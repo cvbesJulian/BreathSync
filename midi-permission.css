@@ -9,6 +9,8 @@
   --surface-highlight: rgba(255, 252, 246, 0.5);
   --surface-depth: 0 24px 80px rgba(46, 42, 38, 0.08);
   --control-depth: 0 9px 22px rgba(46, 42, 38, 0.045);
+  --font-display: Georgia, Cambria, "Times New Roman", Times, serif;
+  --font-ui: "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
 
 * {
@@ -42,7 +44,10 @@ body {
     linear-gradient(180deg, rgba(255, 252, 246, 0.58), rgba(237, 232, 223, 0.72)),
     var(--bg);
   color: var(--text);
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-display);
+  font-synthesis: none;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: geometricPrecision;
 }
 
 body.dark-mode {
@@ -87,7 +92,7 @@ body.dark-mode .midi-permission {
 .eyebrow {
   margin: 0 0 18px;
   color: var(--muted);
-  font-family: Arial, sans-serif;
+  font-family: var(--font-ui);
   font-size: 11px;
   letter-spacing: 0.18em;
   text-transform: uppercase;
@@ -110,7 +115,7 @@ h1 {
   padding-bottom: 22px;
   border-bottom: 1px solid rgba(216, 208, 196, 0.78);
   color: var(--muted);
-  font-family: Arial, sans-serif;
+  font-family: var(--font-ui);
   font-size: 13px;
   line-height: 1.6;
 }
@@ -125,7 +130,7 @@ body.dark-mode .intro {
   gap: 10px;
   margin: -6px 0 18px;
   color: var(--muted);
-  font-family: Arial, sans-serif;
+  font-family: var(--font-ui);
   font-size: 12px;
   letter-spacing: 0;
   line-height: 1.4;
@@ -143,7 +148,7 @@ label {
   display: block;
   margin: 22px 0 10px;
   color: var(--muted);
-  font-family: Arial, sans-serif;
+  font-family: var(--font-ui);
   font-size: 11px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -163,7 +168,7 @@ button {
   background: var(--accent-dark);
   color: var(--bg);
   cursor: pointer;
-  font-family: Arial, sans-serif;
+  font-family: var(--font-ui);
   font-size: 13px;
   box-shadow:
     0 12px 28px rgba(46, 42, 38, 0.08),
@@ -198,7 +203,7 @@ select {
     var(--control-depth),
     inset 0 1px 0 var(--surface-highlight);
   color: var(--text);
-  font-family: Arial, sans-serif;
+  font-family: var(--font-ui);
   font-size: 13px;
   outline: none;
   transition:
@@ -264,7 +269,7 @@ body.dark-mode .secondary:hover {
   min-height: 14px;
   margin: 16px 0 0;
   color: rgba(122, 112, 103, 0.88);
-  font-family: Arial, sans-serif;
+  font-family: var(--font-ui);
   font-size: 11px;
   letter-spacing: 0.02em;
   line-height: 1.45;
@@ -293,7 +298,7 @@ body.dark-mode .debug {
   padding-top: 14px;
   border-top: 1px solid rgba(216, 208, 196, 0.72);
   color: rgba(122, 112, 103, 0.82);
-  font-family: Arial, sans-serif;
+  font-family: var(--font-ui);
   font-size: 9px;
   letter-spacing: 0.14em;
   line-height: 1.5;
