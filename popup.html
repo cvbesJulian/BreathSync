@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BreathSync</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <main class="app">
+    <header class="header">
+      <div class="brand-lockup" aria-label="CVBES Labs">
+        <span class="brand-logo" aria-hidden="true"></span>
+        <p class="eyebrow">BreathSync</p>
+      </div>
+      <h1>Regulate your state.</h1>
+      <p class="intro">
+        A quiet breathing companion for focus, calm, sleep, and creative work.
+      </p>
+    </header>
+
+    <section class="controls" aria-labelledby="techniqueLabel">
+      <label class="sound-control dark-mode-control">
+        <input id="darkModeToggle" type="checkbox" />
+        <span id="darkModeLabel">Dark mode</span>
+        <svg class="moon-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24">
+          <path class="moon-body" d="M20.2 14.7A8.1 8.1 0 0 1 9.3 3.8a8.6 8.6 0 1 0 10.9 10.9Z" />
+        </svg>
+        <svg class="sun-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24">
+          <path class="sun-body" d="M12 4l1.5 4.2 4.1-1.8-1.8 4.1L20 12l-4.2 1.5 1.8 4.1-4.1-1.8L12 20l-1.5-4.2-4.1 1.8 1.8-4.1L4 12l4.2-1.5-1.8-4.1 4.1 1.8L12 4Z" />
+          <circle class="sun-center" cx="12" cy="12" r="3" />
+        </svg>
+      </label>
+      <label id="techniqueLabel" for="technique">Technique</label>
+      <select id="technique">
+        <option value="focus">Focus - Box breathing</option>
+        <option value="relax">Relax - 4-7-8</option>
+        <option value="sleep">Sleep - Slow breathing</option>
+        <option value="reset">Reset - Physiological sigh</option>
+        <option value="performance">Performance - Rhythmic</option>
+      </select>
+      <label class="sound-control">
+        <input id="soundToggle" type="checkbox" />
+        <span>Relaxing phase sounds</span>
+      </label>
+      <label class="volume-label" for="masterVolumeControl">
+        <span>Master volume</span>
+        <span id="masterVolumeValue">50%</span>
+      </label>
+      <input id="masterVolumeControl" type="range" min="0" max="100" step="1" value="50" />
+      <label class="sound-preset-label" for="soundPreset">Sound palette</label>
+      <select id="soundPreset">
+        <option value="tide">Tidal Pentatonic</option>
+        <option value="halo">Halo Bloom</option>
+        <option value="aura">Aura FM</option>
+        <option value="ivory">Ivory Drift</option>
+        <option value="glock">Silver Glocken</option>
+        <option value="meadow">Tape Meadow</option>
+        <option value="saw">Selected Airworks</option>
+      </select>
+      <label class="volume-label" for="volumeControl">
+        <span>Sound palette volume</span>
+        <span id="volumeValue">35%</span>
+      </label>
+      <input id="volumeControl" type="range" min="0" max="100" step="1" value="35" />
+      <label class="volume-label" for="temperatureControl">
+        <span>Temperature</span>
+        <span id="temperatureValue">0%</span>
+      </label>
+      <input id="temperatureControl" type="range" min="0" max="100" step="1" value="0" />
+      <label class="volume-label" for="reverbControl">
+        <span>Reverb</span>
+        <span id="reverbValue">80%</span>
+      </label>
+      <input id="reverbControl" type="range" min="0" max="100" step="1" value="80" />
+      <label class="sound-control">
+        <input id="ambientToggle" type="checkbox" />
+        <span>Ambient sounds</span>
+      </label>
+      <label class="volume-label" for="fountainVolumeControl">
+        <span>Fountain</span>
+        <span id="fountainVolumeValue">25%</span>
+      </label>
+      <input id="fountainVolumeControl" type="range" min="0" max="100" step="1" value="25" />
+      <label class="volume-label" for="rainVolumeControl">
+        <span>Rain</span>
+        <span id="rainVolumeValue">25%</span>
+      </label>
+      <input id="rainVolumeControl" type="range" min="0" max="100" step="1" value="25" />
+      <label class="volume-label" for="kidsVolumeControl">
+        <span>Kids playing</span>
+        <span id="kidsVolumeValue">25%</span>
+      </label>
+      <input id="kidsVolumeControl" type="range" min="0" max="100" step="1" value="25" />
+      <label class="sound-control">
+        <input id="binauralToggle" type="checkbox" />
+        <span>Binaural surround</span>
+      </label>
+      <label class="volume-label" for="spaceControl">
+        <span>3D space</span>
+        <span id="spaceValue">50%</span>
+      </label>
+      <input id="spaceControl" type="range" min="0" max="100" step="1" value="50" />
+      <label class="sound-control">
+        <input id="tickToggle" type="checkbox" />
+        <span>Analogue breath clock</span>
+      </label>
+      <label class="volume-label" for="tickVolumeControl">
+        <span>Clock volume</span>
+        <span id="tickVolumeValue">35%</span>
+      </label>
+      <input id="tickVolumeControl" type="range" min="0" max="100" step="1" value="35" />
+      <label class="sound-control">
+        <input id="midiToggle" type="checkbox" />
+        <span>MIDI notes out</span>
+      </label>
+      <label class="sound-preset-label" for="midiOutput">MIDI output</label>
+      <select id="midiOutput">
+        <option value="">Select IAC MIDI Driver</option>
+      </select>
+      <button id="midiTest" class="midi-test" type="button">Test MIDI note</button>
+      <p id="midiStatus" class="midi-status">MIDI off</p>
+      <p id="midiDebug" class="midi-status">Outputs: none scanned</p>
+    </section>
+
+    <section class="preview" aria-live="polite">
+      <div class="orb" id="previewOrb" aria-hidden="true"></div>
+      <p id="phaseLabel">Ready</p>
+    </section>
+
+    <section class="actions">
+      <button id="toggleWidget" type="button">Start floating guide</button>
+      <button id="stopWidget" class="secondary" type="button">Stop</button>
+      <p id="guideStatus" class="guide-status">Floating guide appears on normal webpages.</p>
+    </section>
+
+    <footer class="signature" aria-label="Application signature">
+      <span>Developed by CVBES Labs 2026</span>
+      <span>Beta 0.1</span>
+    </footer>
+  </main>
+
+  <script src="popup.js"></script>
+</body>
+</html>
