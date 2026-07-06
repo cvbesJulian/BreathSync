@@ -117,6 +117,7 @@ const midiOutput = document.getElementById("midiOutput");
 const midiTest = document.getElementById("midiTest");
 const midiStatus = document.getElementById("midiStatus");
 const midiDebug = document.getElementById("midiDebug");
+const openListen = document.getElementById("openListen");
 const toggleWidget = document.getElementById("toggleWidget");
 const stopWidget = document.getElementById("stopWidget");
 const guideStatus = document.getElementById("guideStatus");
@@ -557,6 +558,17 @@ function openMidiPermissionPage(reason = "") {
       ? `Outputs: ${reason}. Press Enable MIDI access in the setup tab.`
       : "Outputs: press Enable MIDI access in the setup tab"
   );
+}
+
+function openListenPage() {
+  if (!isExtensionRuntime || !chrome.tabs || !chrome.runtime) {
+    setMidiStatus("Listen needs the loaded extension");
+    setMidiDebug("Inputs: open BreathSync from the toolbar, not the file preview.");
+    return;
+  }
+
+  const url = chrome.runtime.getURL("listen.html");
+  chrome.tabs.create({ url }).catch(() => {});
 }
 
 async function queryMidiPermissionState() {
@@ -2551,6 +2563,7 @@ midiToggle.addEventListener("change", persistMidi);
 midiOutput.addEventListener("change", persistMidiOutput);
 midiOutput.addEventListener("pointerdown", () => openMidiPermissionPage("select MIDI output there"));
 midiTest.addEventListener("click", sendMidiTestNote);
+openListen.addEventListener("click", openListenPage);
 
 function playGuideStartAnimation() {
   document.body.classList.remove("guide-launching");
