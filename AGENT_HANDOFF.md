@@ -26,6 +26,8 @@ No React, Vite, npm, bundlers, TypeScript, Tailwind, or external deps.
 - `background.js`: MV3 service worker; creates/closes offscreen audio document.
 - `offscreen.html`: hidden audio document; loads `content.js` as persistent audio engine.
 - `breathsync_mvp.md`: original source spec.
+- `listen.html` / `listen.css` / `listen.js`: instrument listening page (audio input capture + real-time melody/harmony analysis). See `LISTEN_FEATURE_PLAN.md`.
+- `LISTEN_FEATURE_PLAN.md`: phased plan + status for the instrument listening feature (branch `midi-input`).
 
 ## Current Product State
 
@@ -122,6 +124,17 @@ MIDI:
 - Content scripts no longer request MIDI on every tab load.
 - Content scripts never call `requestMIDIAccess`; MIDI permission/output scanning is popup-only to avoid per-tab permission prompts.
 
+Listen (instrument analysis, branch `midi-input`):
+- Opened from popup `Listen / analyze instrument` button (`openListenPage()` → `chrome.tabs.create` on `listen.html`).
+- Analyze-and-display only: does NOT alter BreathSync's own audio/MIDI generation yet.
+- Audio input via `getUserMedia` (mic/line); no new manifest permission needed for extension-page mic capture. AGC/noise-suppression/echo-cancel disabled.
+- Device picker via `enumerateDevices`; selected input persisted to `breathsyncListenInputDevice`.
+- Phase 0 (done): device picker, Start/Stop capture, RMS level meter, clean teardown.
+- Phase 1 (done): autocorrelation monophonic pitch → note/octave/cents readout + tuning needle; median smoothing + noise gate.
+- Phase 2 (todo): FFT → 12-bin chroma → chord templates + Krumhansl–Schmuckler key detection + chroma visualization.
+- Phase 3 (todo): confidence gating + throttled `harmonyState` write to storage as the hook for a future "follow external harmony" generation phase.
+- Shares `breathsyncDarkMode` with the rest of the extension.
+
 ## Important Browser Reality
 
 Chrome extension popup behavior:
@@ -163,9 +176,9 @@ Popup Start button behavior:
 Run after edits:
 
 ```sh
-cd /Users/juliancubillos/dev/BreathSync
 node --check popup.js
 node --check content.js
+node --check listen.js
 python3 -m json.tool manifest.json
 ```
 
