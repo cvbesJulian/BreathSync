@@ -131,7 +131,7 @@ Listen (instrument analysis, branch `midi-input`):
 - Device picker via `enumerateDevices`; selected input persisted to `breathsyncListenInputDevice`.
 - Phase 0 (done): device picker, Start/Stop capture, RMS level meter, clean teardown.
 - Phase 1 (done): autocorrelation monophonic pitch → note/octave/cents readout + tuning needle; median smoothing + noise gate.
-- Phase 2 (todo): FFT → 12-bin chroma → chord templates + Krumhansl–Schmuckler key detection + chroma visualization.
+- Phase 2 (done): FFT (8192) → 12-bin chroma (fast EMA for chords, slow EMA for key) → cosine chord-template match (maj/min/dim/aug/sus2/sus4/maj7/min7/dom7) with hysteresis + Krumhansl–Schmuckler key detection + 12-bar chroma visualization. Pitch autocorrelation runs on the first 2048 samples to stay cheap.
 - Phase 3 (todo): confidence gating + throttled `harmonyState` write to storage as the hook for a future "follow external harmony" generation phase.
 - Shares `breathsyncDarkMode` with the rest of the extension.
 

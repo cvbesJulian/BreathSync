@@ -388,6 +388,89 @@ body.dark-mode .tuning-needle.in-tune {
   letter-spacing: 0.04em;
 }
 
+.harmony {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.harmony-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  background: rgba(255, 252, 246, 0.14);
+}
+
+body.dark-mode .harmony-cell {
+  background: rgba(23, 21, 18, 0.5);
+}
+
+.harmony-label {
+  font-family: var(--font-ui);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.harmony-value {
+  font-family: var(--font-display);
+  font-size: 26px;
+  line-height: 1.05;
+}
+
+.harmony-confidence {
+  font-family: var(--font-ui);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  min-height: 12px;
+}
+
+.chroma {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  align-items: end;
+  gap: 4px;
+  height: 84px;
+  margin-top: 18px;
+}
+
+.chroma-bar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  height: 100%;
+  gap: 5px;
+}
+
+.chroma-fill {
+  width: 100%;
+  height: 2%;
+  background: linear-gradient(180deg, var(--accent-dark), rgba(95, 88, 79, 0.4));
+  transition: height 110ms ease, opacity 160ms ease;
+  opacity: 0.55;
+}
+
+.chroma-bar.is-peak .chroma-fill {
+  opacity: 1;
+}
+
+.chroma-label {
+  font-family: var(--font-ui);
+  font-size: 8px;
+  letter-spacing: 0.02em;
+  color: var(--muted);
+}
+
+.chroma-bar.is-peak .chroma-label {
+  color: var(--text);
+}
+
 .status,
 .debug {
   min-height: 14px;

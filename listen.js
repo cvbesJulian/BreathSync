@@ -16,6 +16,11 @@ const noteOctaveEl = document.getElementById("noteOctave");
 const noteFreqEl = document.getElementById("noteFreq");
 const tuningNeedle = document.getElementById("tuningNeedle");
 const tuningCents = document.getElementById("tuningCents");
+const chordNameEl = document.getElementById("chordName");
+const chordConfidenceEl = document.getElementById("chordConfidence");
+const keyNameEl = document.getElementById("keyName");
+const keyConfidenceEl = document.getElementById("keyConfidence");
+const chromaContainer = document.getElementById("chroma");
 const listenStatus = document.getElementById("listenStatus");
 const listenDebug = document.getElementById("listenDebug");
 
@@ -24,6 +29,39 @@ const PITCH_RMS_GATE = 0.01;
 const PITCH_INTERVAL_MS = 60;
 const PITCH_HISTORY_SIZE = 5;
 const PITCH_SILENCE_FRAMES = 3;
+const PITCH_WINDOW = 2048;
+
+const FFT_SIZE = 8192;
+const HARMONY_INTERVAL_MS = 90;
+const KEY_INTERVAL_MS = 550;
+const HARMONY_RMS_GATE = 0.008;
+const HARMONY_SILENCE_FRAMES = 4;
+const CHROMA_MIN_FREQ = 55;
+const CHROMA_MAX_FREQ = 5000;
+const CHROMA_FAST_ALPHA = 0.28;
+const CHROMA_SLOW_ALPHA = 0.045;
+const CHORD_MIN_CONFIDENCE = 0.5;
+const CHORD_COMMIT_FRAMES = 2;
+const KEY_MIN_CONFIDENCE = 0.2;
+
+const CHORD_TEMPLATES = [
+  { quality: "maj", label: "maj", intervals: [0, 4, 7] },
+  { quality: "min", label: "min", intervals: [0, 3, 7] },
+  { quality: "dim", label: "dim", intervals: [0, 3, 6] },
+  { quality: "aug", label: "aug", intervals: [0, 4, 8] },
+  { quality: "sus2", label: "sus2", intervals: [0, 2, 7] },
+  { quality: "sus4", label: "sus4", intervals: [0, 5, 7] },
+  { quality: "maj7", label: "maj7", intervals: [0, 4, 7, 11] },
+  { quality: "min7", label: "min7", intervals: [0, 3, 7, 10] },
+  { quality: "dom7", label: "7", intervals: [0, 4, 7, 10] }
+];
+
+const KS_MAJOR_PROFILE = [
+  6.35, 2.23, 3.48, 2.33, 4.38, 4.09, 2.52, 5.19, 2.39, 3.66, 2.29, 2.88
+];
+const KS_MINOR_PROFILE = [
+  6.33, 2.68, 3.52, 5.38, 2.6, 3.53, 2.54, 4.75, 3.98, 2.69, 3.34, 3.17
+];
 
 let audioContext = null;
 let analyser = null;
@@ -37,6 +75,19 @@ let darkModeEnabled = false;
 let lastPitchAt = 0;
 let freqHistory = [];
 let silentFrames = 0;
+let freqData = null;
+let binFrequencies = null;
+let binPitchClasses = null;
+let chromaFast = new Float32Array(12);
+let chromaSlow = new Float32Array(12);
+let chromaBarFills = [];
+let chromaBarNodes = [];
+let lastHarmonyAt = 0;
+let lastKeyAt = 0;
+let harmonySilentFrames = 0;
+let displayedChord = null;
+let pendingChord = null;
+let pendingChordCount = 0;
 
 function setStatus(text) {
   listenStatus.textContent = text;
@@ -198,12 +249,19 @@ function renderPitch() {
 }
 
 function detectPitch() {
-  const { frequency } = autoCorrelate(timeData, audioContext.sampleRate);
+  const window = timeData.length > PITCH_WINDOW ? timeData.subarray(0, PITCH_WINDOW) : timeData;
+  const { frequency } = autoCorrelate(window, audioContext.sampleRate);
 
   if (frequency <= 0) {
     silentFrames += 1;
     if (silentFrames >= PITCH_SILENCE_FRAMES && freqHistory.length) {
-      resetReadout();
+      freqHistory = [];
+      noteNameEl.innerHTML = "&mdash;";
+      noteOctaveEl.textContent = "";
+      noteFreqEl.textContent = "";
+      tuningNeedle.style.left = "50%";
+      tuningNeedle.classList.remove("in-tune");
+      tuningCents.textContent = "Melody: waiting for a clear note.";
     }
     return;
   }
@@ -212,6 +270,263 @@ function detectPitch() {
   freqHistory.push(frequency);
   if (freqHistory.length > PITCH_HISTORY_SIZE) freqHistory.shift();
   renderPitch();
+}
+
+function buildChromaBars() {
+  chromaContainer.innerHTML = "";
+  chromaBarFills = [];
+  chromaBarNodes = [];
+
+  NOTE_NAMES.forEach((name) => {
+    const bar = document.createElement("div");
+    bar.className = "chroma-bar";
+
+    const fill = document.createElement("span");
+    fill.className = "chroma-fill";
+
+    const label = document.createElement("span");
+    label.className = "chroma-label";
+    label.textContent = name;
+
+    bar.appendChild(fill);
+    bar.appendChild(label);
+    chromaContainer.appendChild(bar);
+    chromaBarFills.push(fill);
+    chromaBarNodes.push(bar);
+  });
+}
+
+function precomputeBinTables() {
+  const binCount = analyser.frequencyBinCount;
+  const nyquistStep = audioContext.sampleRate / analyser.fftSize;
+  freqData = new Float32Array(binCount);
+  binFrequencies = new Float32Array(binCount);
+  binPitchClasses = new Int8Array(binCount);
+
+  for (let index = 0; index < binCount; index += 1) {
+    const frequency = index * nyquistStep;
+    binFrequencies[index] = frequency;
+    if (frequency < CHROMA_MIN_FREQ || frequency > CHROMA_MAX_FREQ) {
+      binPitchClasses[index] = -1;
+    } else {
+      const midi = Math.round(69 + 12 * Math.log2(frequency / 440));
+      binPitchClasses[index] = ((midi % 12) + 12) % 12;
+    }
+  }
+}
+
+function computeChroma() {
+  analyser.getFloatFrequencyData(freqData);
+
+  const raw = new Float32Array(12);
+  let total = 0;
+  for (let index = 0; index < freqData.length; index += 1) {
+    const pitchClass = binPitchClasses[index];
+    if (pitchClass < 0) continue;
+    const magnitude = 10 ** (freqData[index] / 20);
+    raw[pitchClass] += magnitude;
+    total += magnitude;
+  }
+
+  if (total <= 0) return false;
+
+  let maxBin = 0;
+  for (let index = 0; index < 12; index += 1) {
+    raw[index] /= total;
+    if (raw[index] > maxBin) maxBin = raw[index];
+  }
+
+  for (let index = 0; index < 12; index += 1) {
+    const normalized = maxBin > 0 ? raw[index] / maxBin : 0;
+    chromaFast[index] =
+      CHROMA_FAST_ALPHA * normalized + (1 - CHROMA_FAST_ALPHA) * chromaFast[index];
+    chromaSlow[index] =
+      CHROMA_SLOW_ALPHA * normalized + (1 - CHROMA_SLOW_ALPHA) * chromaSlow[index];
+  }
+
+  return true;
+}
+
+function detectChord(chroma) {
+  let chromaNorm = 0;
+  for (let index = 0; index < 12; index += 1) chromaNorm += chroma[index] * chroma[index];
+  chromaNorm = Math.sqrt(chromaNorm);
+  if (chromaNorm < 1e-6) return null;
+
+  let best = null;
+  for (let root = 0; root < 12; root += 1) {
+    for (let templateIndex = 0; templateIndex < CHORD_TEMPLATES.length; templateIndex += 1) {
+      const template = CHORD_TEMPLATES[templateIndex];
+      let dot = 0;
+      for (let toneIndex = 0; toneIndex < template.intervals.length; toneIndex += 1) {
+        dot += chroma[(root + template.intervals[toneIndex]) % 12];
+      }
+      const score = dot / (chromaNorm * Math.sqrt(template.intervals.length));
+      if (!best || score > best.score) {
+        best = { root, quality: template.quality, label: template.label, score };
+      }
+    }
+  }
+
+  return best;
+}
+
+function pearson(a, b) {
+  let meanA = 0;
+  let meanB = 0;
+  for (let index = 0; index < 12; index += 1) {
+    meanA += a[index];
+    meanB += b[index];
+  }
+  meanA /= 12;
+  meanB /= 12;
+
+  let numerator = 0;
+  let varA = 0;
+  let varB = 0;
+  for (let index = 0; index < 12; index += 1) {
+    const devA = a[index] - meanA;
+    const devB = b[index] - meanB;
+    numerator += devA * devB;
+    varA += devA * devA;
+    varB += devB * devB;
+  }
+  if (varA === 0 || varB === 0) return 0;
+  return numerator / Math.sqrt(varA * varB);
+}
+
+function detectKey(chroma) {
+  const rotated = new Float32Array(12);
+  let best = null;
+
+  for (let root = 0; root < 12; root += 1) {
+    for (let index = 0; index < 12; index += 1) {
+      rotated[index] = KS_MAJOR_PROFILE[((index - root) % 12 + 12) % 12];
+    }
+    const majorScore = pearson(chroma, rotated);
+    if (!best || majorScore > best.score) {
+      best = { root, mode: "major", score: majorScore };
+    }
+
+    for (let index = 0; index < 12; index += 1) {
+      rotated[index] = KS_MINOR_PROFILE[((index - root) % 12 + 12) % 12];
+    }
+    const minorScore = pearson(chroma, rotated);
+    if (minorScore > best.score) {
+      best = { root, mode: "minor", score: minorScore };
+    }
+  }
+
+  return best;
+}
+
+function renderChroma() {
+  for (let index = 0; index < 12; index += 1) {
+    const height = Math.max(2, Math.round(chromaFast[index] * 100));
+    chromaBarFills[index].style.height = `${height}%`;
+    chromaBarNodes[index].classList.toggle("is-peak", chromaFast[index] >= 0.85);
+  }
+}
+
+function renderChord() {
+  if (!displayedChord) {
+    chordNameEl.innerHTML = "&mdash;";
+    chordConfidenceEl.textContent = "";
+    return;
+  }
+  chordNameEl.textContent = `${NOTE_NAMES[displayedChord.root]} ${displayedChord.label}`;
+  chordConfidenceEl.textContent = `${Math.round(displayedChord.score * 100)}% match`;
+}
+
+function updateChord() {
+  const candidate = detectChord(chromaFast);
+
+  if (!candidate || candidate.score < CHORD_MIN_CONFIDENCE) {
+    pendingChord = null;
+    pendingChordCount = 0;
+    return;
+  }
+
+  const sameAsDisplayed =
+    displayedChord &&
+    displayedChord.root === candidate.root &&
+    displayedChord.quality === candidate.quality;
+
+  if (sameAsDisplayed) {
+    displayedChord = candidate;
+    pendingChord = null;
+    pendingChordCount = 0;
+    renderChord();
+    return;
+  }
+
+  const sameAsPending =
+    pendingChord &&
+    pendingChord.root === candidate.root &&
+    pendingChord.quality === candidate.quality;
+
+  if (sameAsPending) {
+    pendingChordCount += 1;
+  } else {
+    pendingChord = candidate;
+    pendingChordCount = 1;
+  }
+
+  if (pendingChordCount >= CHORD_COMMIT_FRAMES) {
+    displayedChord = candidate;
+    pendingChord = null;
+    pendingChordCount = 0;
+    renderChord();
+  }
+}
+
+function updateKey() {
+  const candidate = detectKey(chromaSlow);
+  if (!candidate || candidate.score < KEY_MIN_CONFIDENCE) {
+    keyNameEl.innerHTML = "&mdash;";
+    keyConfidenceEl.textContent = "";
+    return;
+  }
+  keyNameEl.textContent = `${NOTE_NAMES[candidate.root]} ${candidate.mode}`;
+  keyConfidenceEl.textContent = `${Math.round(Math.max(0, candidate.score) * 100)}% fit`;
+}
+
+function resetHarmony() {
+  chromaFast = new Float32Array(12);
+  chromaSlow = new Float32Array(12);
+  harmonySilentFrames = 0;
+  displayedChord = null;
+  pendingChord = null;
+  pendingChordCount = 0;
+  chordNameEl.innerHTML = "&mdash;";
+  chordConfidenceEl.textContent = "";
+  keyNameEl.innerHTML = "&mdash;";
+  keyConfidenceEl.textContent = "";
+  chromaBarFills.forEach((fill) => {
+    fill.style.height = "2%";
+  });
+  chromaBarNodes.forEach((bar) => bar.classList.remove("is-peak"));
+}
+
+function detectHarmony(now, rms) {
+  if (rms < HARMONY_RMS_GATE) {
+    harmonySilentFrames += 1;
+    if (harmonySilentFrames >= HARMONY_SILENCE_FRAMES && displayedChord) {
+      resetHarmony();
+    }
+    return;
+  }
+
+  harmonySilentFrames = 0;
+  if (!computeChroma()) return;
+
+  renderChroma();
+  updateChord();
+
+  if (now - lastKeyAt >= KEY_INTERVAL_MS) {
+    lastKeyAt = now;
+    updateKey();
+  }
 }
 
 function analyze(timestamp) {
@@ -234,6 +549,11 @@ function analyze(timestamp) {
     detectPitch();
   }
 
+  if (now - lastHarmonyAt >= HARMONY_INTERVAL_MS) {
+    lastHarmonyAt = now;
+    detectHarmony(now, rms);
+  }
+
   meterRafId = requestAnimationFrame(analyze);
 }
 
@@ -244,6 +564,7 @@ function stopMeter() {
   }
   meterFill.style.width = "0%";
   resetReadout();
+  resetHarmony();
 }
 
 function releaseStream() {
@@ -360,13 +681,17 @@ async function startListening() {
 
   sourceNode = audioContext.createMediaStreamSource(mediaStream);
   analyser = audioContext.createAnalyser();
-  analyser.fftSize = 2048;
-  analyser.smoothingTimeConstant = 0.6;
+  analyser.fftSize = FFT_SIZE;
+  analyser.smoothingTimeConstant = 0.5;
   timeData = new Float32Array(analyser.fftSize);
   sourceNode.connect(analyser);
+  precomputeBinTables();
   lastPitchAt = 0;
+  lastHarmonyAt = 0;
+  lastKeyAt = 0;
   freqHistory = [];
   silentFrames = 0;
+  resetHarmony();
 
   const activeTrack = mediaStream.getAudioTracks()[0];
   const trackLabel = activeTrack ? activeTrack.label || "audio input" : "audio input";
@@ -410,6 +735,8 @@ inputDeviceSelect.addEventListener("change", async () => {
 darkModeToggle.addEventListener("change", persistDarkMode);
 
 window.addEventListener("beforeunload", releaseStream);
+
+buildChromaBars();
 
 if (hasChromeStorage) {
   chrome.storage.local.get(

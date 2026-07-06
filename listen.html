@@ -51,6 +51,21 @@
     </div>
     <p id="tuningCents" class="cents">Melody: waiting for a clear note.</p>
 
+    <section class="harmony" aria-live="polite">
+      <div class="harmony-cell">
+        <span class="harmony-label">Chord</span>
+        <span id="chordName" class="harmony-value">&mdash;</span>
+        <span id="chordConfidence" class="harmony-confidence"></span>
+      </div>
+      <div class="harmony-cell">
+        <span class="harmony-label">Key</span>
+        <span id="keyName" class="harmony-value">&mdash;</span>
+        <span id="keyConfidence" class="harmony-confidence"></span>
+      </div>
+    </section>
+
+    <div id="chroma" class="chroma" aria-hidden="true"></div>
+
     <p id="listenStatus" class="status">Not listening yet.</p>
     <p id="listenDebug" class="debug">Press Start listening to grant microphone access.</p>
 

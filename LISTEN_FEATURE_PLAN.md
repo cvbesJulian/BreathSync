@@ -82,16 +82,19 @@ If BreathSync ever both sends to and listens from the same rig, guard against ru
 - UI: large note + octave, frequency in Hz, tuning needle (green within ±5 cents),
   cents text readout.
 
-### Phase 2 — Harmony (chord + key) (TODO)
+### Phase 2 — Harmony (chord + key) (DONE)
 
-- FFT (`getFloatFrequencyData`) folded into a **12-bin chroma vector** (energy per
-  pitch class across octaves), with EMA smoothing.
-- **Chord**: correlate chroma against chord templates (maj/min/dim/aug/sus/dom7…) at
-  all 12 roots → root + quality + confidence.
-- **Key + mode**: **Krumhansl–Schmuckler** — correlate longer-smoothed chroma against
-  the 24 major/minor key profiles.
-- Hysteresis + noise gate so the display is stable.
-- 12-bar chroma visualization.
+- FFT window bumped to 8192 (`getFloatFrequencyData`) for ~5.4 Hz bin resolution;
+  monophonic autocorrelation still runs on the first 2048 samples to stay cheap.
+- FFT magnitude (dB→linear) folded into a **12-bin chroma vector** across ~55–5000 Hz,
+  with two EMAs: a fast copy (chords) and a slow copy (key).
+- **Chord**: cosine-similarity match of the fast chroma against templates
+  (maj/min/dim/aug/sus2/sus4/maj7/min7/dom7) at all 12 roots → root + quality +
+  confidence, with a 2-frame commit hysteresis and a min-confidence threshold.
+- **Key + mode**: **Krumhansl–Schmuckler** — Pearson-correlate the slow chroma against
+  the 24 major/minor key profiles; updated on a slower (~550 ms) cadence.
+- RMS noise gate clears chord/key on silence.
+- 12-bar chroma visualization with peak highlighting.
 
 ### Phase 3 — Polish / contract (TODO)
 
