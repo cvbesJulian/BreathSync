@@ -1,6 +1,7 @@
 const LISTEN_STORAGE_KEYS = {
   darkMode: "breathsyncDarkMode",
-  inputDevice: "breathsyncListenInputDevice"
+  inputDevice: "breathsyncListenInputDevice",
+  harmonyState: "breathsyncHarmonyState"
 };
 
 const hasChromeStorage =
@@ -41,8 +42,16 @@ const CHROMA_MAX_FREQ = 5000;
 const CHROMA_FAST_ALPHA = 0.28;
 const CHROMA_SLOW_ALPHA = 0.045;
 const CHORD_MIN_CONFIDENCE = 0.5;
+const CHORD_STRONG_CONFIDENCE = 0.72;
 const CHORD_COMMIT_FRAMES = 2;
 const KEY_MIN_CONFIDENCE = 0.2;
+const KEY_STRONG_CONFIDENCE = 0.5;
+
+const MAJOR_SCALE = [0, 2, 4, 5, 7, 9, 11];
+const MINOR_SCALE = [0, 2, 3, 5, 7, 8, 10];
+const DENSITY_WINDOW_MS = 4000;
+const STATE_WRITE_MIN_MS = 250;
+const STATE_REFRESH_MS = 1000;
 
 const CHORD_TEMPLATES = [
   { quality: "maj", label: "maj", intervals: [0, 4, 7] },
@@ -86,8 +95,13 @@ let lastHarmonyAt = 0;
 let lastKeyAt = 0;
 let harmonySilentFrames = 0;
 let displayedChord = null;
+let displayedKey = null;
 let pendingChord = null;
 let pendingChordCount = 0;
+let currentLeadMidi = null;
+let noteOnsetTimes = [];
+let lastStateSignature = "";
+let lastStateWriteAt = 0;
 
 function setStatus(text) {
   listenStatus.textContent = text;
@@ -233,6 +247,10 @@ function renderPitch() {
   if (smoothed <= 0) return;
 
   const pitch = describePitch(smoothed);
+  if (currentLeadMidi !== pitch.midi) {
+    noteOnsetTimes.push(performance.now());
+    currentLeadMidi = pitch.midi;
+  }
   noteNameEl.textContent = pitch.name;
   noteOctaveEl.textContent = String(pitch.octave);
   noteFreqEl.textContent = `${smoothed.toFixed(1)} Hz`;
@@ -256,6 +274,7 @@ function detectPitch() {
     silentFrames += 1;
     if (silentFrames >= PITCH_SILENCE_FRAMES && freqHistory.length) {
       freqHistory = [];
+      currentLeadMidi = null;
       noteNameEl.innerHTML = "&mdash;";
       noteOctaveEl.textContent = "";
       noteFreqEl.textContent = "";
@@ -431,11 +450,16 @@ function renderChroma() {
 function renderChord() {
   if (!displayedChord) {
     chordNameEl.innerHTML = "&mdash;";
+    chordNameEl.classList.remove("is-tentative");
     chordConfidenceEl.textContent = "";
     return;
   }
   chordNameEl.textContent = `${NOTE_NAMES[displayedChord.root]} ${displayedChord.label}`;
-  chordConfidenceEl.textContent = `${Math.round(displayedChord.score * 100)}% match`;
+  const tentative = displayedChord.score < CHORD_STRONG_CONFIDENCE;
+  chordNameEl.classList.toggle("is-tentative", tentative);
+  chordConfidenceEl.textContent = `${Math.round(displayedChord.score * 100)}% match${
+    tentative ? " · tentative" : ""
+  }`;
 }
 
 function updateChord() {
@@ -483,12 +507,106 @@ function updateChord() {
 function updateKey() {
   const candidate = detectKey(chromaSlow);
   if (!candidate || candidate.score < KEY_MIN_CONFIDENCE) {
+    displayedKey = null;
     keyNameEl.innerHTML = "&mdash;";
+    keyNameEl.classList.remove("is-tentative");
     keyConfidenceEl.textContent = "";
     return;
   }
+  displayedKey = candidate;
   keyNameEl.textContent = `${NOTE_NAMES[candidate.root]} ${candidate.mode}`;
-  keyConfidenceEl.textContent = `${Math.round(Math.max(0, candidate.score) * 100)}% fit`;
+  const tentative = candidate.score < KEY_STRONG_CONFIDENCE;
+  keyNameEl.classList.toggle("is-tentative", tentative);
+  keyConfidenceEl.textContent = `${Math.round(Math.max(0, candidate.score) * 100)}% fit${
+    tentative ? " · tentative" : ""
+  }`;
+}
+
+function buildHarmonyState(now) {
+  const recentOnsets = noteOnsetTimes.filter((time) => now - time <= DENSITY_WINDOW_MS);
+  noteOnsetTimes = recentOnsets;
+  const density = recentOnsets.length / (DENSITY_WINDOW_MS / 1000);
+
+  const state = {
+    key: null,
+    mode: null,
+    scalePitchClasses: [],
+    chordRoot: null,
+    chordQuality: null,
+    chordPitchClasses: [],
+    leadNote: currentLeadMidi,
+    density: Math.round(density * 100) / 100,
+    confidence: 0,
+    updatedAt: Date.now()
+  };
+
+  if (displayedKey) {
+    state.key = NOTE_NAMES[displayedKey.root];
+    state.mode = displayedKey.mode;
+    const scale = displayedKey.mode === "minor" ? MINOR_SCALE : MAJOR_SCALE;
+    state.scalePitchClasses = scale.map((interval) => (displayedKey.root + interval) % 12);
+  }
+
+  if (displayedChord) {
+    state.chordRoot = NOTE_NAMES[displayedChord.root];
+    state.chordQuality = displayedChord.quality;
+    const template = CHORD_TEMPLATES.find((entry) => entry.quality === displayedChord.quality);
+    state.chordPitchClasses = template
+      ? template.intervals.map((interval) => (displayedChord.root + interval) % 12)
+      : [];
+    state.confidence = Math.round(displayedChord.score * 100) / 100;
+  } else if (displayedKey) {
+    state.confidence = Math.round(Math.max(0, displayedKey.score) * 100) / 100;
+  }
+
+  return state;
+}
+
+function stateSignature(state) {
+  return [
+    state.key,
+    state.mode,
+    state.chordRoot,
+    state.chordQuality,
+    state.leadNote
+  ].join("|");
+}
+
+function maybeWriteHarmonyState(now) {
+  if (!hasChromeStorage) return;
+
+  const state = buildHarmonyState(now);
+  const signature = stateSignature(state);
+  const changed = signature !== lastStateSignature;
+  const stale = now - lastStateWriteAt >= STATE_REFRESH_MS;
+
+  if ((changed || stale) && now - lastStateWriteAt >= STATE_WRITE_MIN_MS) {
+    lastStateSignature = signature;
+    lastStateWriteAt = now;
+    chrome.storage.local.set({ [LISTEN_STORAGE_KEYS.harmonyState]: state });
+  }
+}
+
+function writeIdleHarmonyState(now) {
+  if (!hasChromeStorage) return;
+  const idleSignature = "idle";
+  if (lastStateSignature === idleSignature) return;
+  lastStateSignature = idleSignature;
+  lastStateWriteAt = now;
+  chrome.storage.local.set({
+    [LISTEN_STORAGE_KEYS.harmonyState]: {
+      key: null,
+      mode: null,
+      scalePitchClasses: [],
+      chordRoot: null,
+      chordQuality: null,
+      chordPitchClasses: [],
+      leadNote: null,
+      density: 0,
+      confidence: 0,
+      updatedAt: Date.now()
+    }
+  });
 }
 
 function resetHarmony() {
@@ -496,16 +614,22 @@ function resetHarmony() {
   chromaSlow = new Float32Array(12);
   harmonySilentFrames = 0;
   displayedChord = null;
+  displayedKey = null;
   pendingChord = null;
   pendingChordCount = 0;
+  currentLeadMidi = null;
+  noteOnsetTimes = [];
   chordNameEl.innerHTML = "&mdash;";
+  chordNameEl.classList.remove("is-tentative");
   chordConfidenceEl.textContent = "";
   keyNameEl.innerHTML = "&mdash;";
+  keyNameEl.classList.remove("is-tentative");
   keyConfidenceEl.textContent = "";
   chromaBarFills.forEach((fill) => {
     fill.style.height = "2%";
   });
   chromaBarNodes.forEach((bar) => bar.classList.remove("is-peak"));
+  writeIdleHarmonyState(performance.now());
 }
 
 function detectHarmony(now, rms) {
@@ -527,6 +651,8 @@ function detectHarmony(now, rms) {
     lastKeyAt = now;
     updateKey();
   }
+
+  maybeWriteHarmonyState(now);
 }
 
 function analyze(timestamp) {

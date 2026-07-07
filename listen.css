@@ -420,6 +420,12 @@ body.dark-mode .harmony-cell {
   font-family: var(--font-display);
   font-size: 26px;
   line-height: 1.05;
+  transition: opacity 160ms ease;
+}
+
+.harmony-value.is-tentative {
+  opacity: 0.55;
+  font-style: italic;
 }
 
 .harmony-confidence {

@@ -49,9 +49,11 @@ A future generation phase would consume a compact `harmonyState` object:
 }
 ```
 
-When we get there, it will be written **throttled (~3–5 Hz, on-change only)** to
-`chrome.storage.local` (never per-frame — respects the anti-flooding warnings in
-`AGENT_HANDOFF.md`). Nothing reads it to change sound yet.
+As of Phase 3 this object is assembled live and written **throttled (min 250 ms
+between writes, on-change plus a ~1 s refresh)** to `chrome.storage.local` under
+`breathsyncHarmonyState` (never per-frame — respects the anti-flooding warnings in
+`AGENT_HANDOFF.md`). Nothing reads it to change sound yet; it is the inert hook for a
+future generation phase.
 
 ## Feedback-loop safety (relevant once generation reacts)
 
@@ -96,11 +98,21 @@ If BreathSync ever both sends to and listens from the same rig, guard against ru
 - RMS noise gate clears chord/key on silence.
 - 12-bar chroma visualization with peak highlighting.
 
-### Phase 3 — Polish / contract (TODO)
+### Phase 3 — Polish / contract (DONE)
 
-- Confidence gating + status copy.
-- Assemble the `harmonyState` object and (optionally) write it throttled to storage as
-  the hook for a future "follow external harmony" generation phase.
+- Confidence gating: chord and key render as **tentative** (dimmed/italic + "· tentative"
+  label) when below a strong-confidence threshold instead of asserting them.
+- Lead-note tracking + note-onset **density** (notes/sec over a 4 s window).
+- Assembles the `harmonyState` object (key/mode, scale pitch-classes, chord root/quality,
+  chord pitch-classes, lead note, density, confidence, timestamp) and writes it throttled
+  to `chrome.storage.local` under `breathsyncHarmonyState` (min 250 ms, on-change + ~1 s
+  refresh). Writes an idle/zeroed state on silence/stop. Still inert — no consumers yet.
+
+### Future — Follow external harmony (not scheduled)
+
+- Make BreathSync's scale/chord/lead helpers key-aware and consume `breathsyncHarmonyState`
+  so generation harmonizes with the external instrument, gated by a toggle + strength
+  slider, with feedback-loop safety. Explicitly out of scope for the analyze-only track.
 
 ## Files
 
