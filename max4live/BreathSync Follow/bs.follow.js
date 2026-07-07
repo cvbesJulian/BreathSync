@@ -59,7 +59,9 @@ const cfg = {
   mindur: 100,  // live.dial int 0..500 ms (min sounded duration / flap guard)
   keysync: 0,   // live.toggle 0/1 (defaults OFF — undo cost)
   keyconf: 0.5, // live.dial float 0.20..0.90 (gate on state.keyConfidence)
-  keyhold: 5    // live.dial int 1..30 s (candidate stability before commit)
+  keyhold: 5,   // live.dial int 1..30 s (candidate stability before commit)
+  waitmode: 1,  // live.menu index: 0 Off / 1 Bars / 2 Clip (engage delay source)
+  waitbars: 4   // live.dial int 1..32 bars (Bars mode wait; Clip-mode fallback)
 };
 
 // --- link / protocol state ----------------------------------------------------
@@ -95,6 +97,13 @@ let lastKeySetAt = 0;
 let liveSet = null;
 let playObserver = null;
 let wasPlaying = 0;
+
+// --- engage gating (start silent, join after N bars) ---------------------------
+
+let engaged = true;        // notes may flow (true = jam mode while stopped)
+let waitArmed = false;     // counting down (transport playing, waitmode != 0)
+let waitStartBeat = 0;     // song position (beats) when the countdown armed
+let waitTargetBeats = 0;   // beats to stay silent from waitStartBeat
 
 // --- helpers --------------------------------------------------------------------
 
@@ -339,6 +348,7 @@ function reapplyChord() {
 }
 
 function reapplyActive() {
+  if (!engaged) return; // still listening — the engage step re-applies later
   if (leadEngineOn()) reapplyLead();
   if (chordEngineOn()) reapplyChord();
 }
@@ -443,6 +453,102 @@ function commitKey(rootName, modeName) {
   }
 }
 
+// --- engage gating -------------------------------------------------------------
+// "Listen first, then join": while the transport plays, the voice engine stays
+// silent until the countdown elapses. Bar math is done in beats, so tempo
+// changes mid-wait are harmless. With the transport stopped the gate is open
+// (jam mode) — there are no bars to count without a transport.
+
+function songBeats() {
+  return firstNumber(liveSet.get("current_song_time"));
+}
+
+function beatsPerBar() {
+  const num = firstNumber(liveSet.get("signature_numerator"));
+  const den = firstNumber(liveSet.get("signature_denominator"));
+  return num > 0 && den > 0 ? num * (4 / den) : 4;
+}
+
+// Longest currently-playing session clip, in beats (0 = none). Clip wait mode
+// sits out one full pass of the loop Follow is listening to.
+function longestPlayingClipBeats() {
+  try {
+    const n = firstNumber(liveSet.getcount("tracks"));
+    let best = 0;
+    for (let t = 0; t < n; t++) {
+      const track = new LiveAPI("live_set tracks " + t);
+      const slot = firstNumber(track.get("playing_slot_index"));
+      if (!(slot >= 0)) continue;
+      const clip = new LiveAPI(
+        "live_set tracks " + t + " clip_slots " + slot + " clip");
+      if (!firstNumber(clip.id)) continue; // id 0 = empty slot
+      const len = firstNumber(clip.get("length"));
+      if (len > best) best = len;
+    }
+    return best;
+  } catch (err) {
+    return 0;
+  }
+}
+
+function setEngaged(on) {
+  if (on === engaged) return;
+  engaged = on;
+  if (!on) {
+    releaseAll(false); // go silent NOW; caches keep the current harmony
+    return;
+  }
+  if (cfg.enabled) reapplyActive(); // join in on whatever is sounding
+  refreshStatus();
+}
+
+// Transport started (or wait settings changed mid-wait): go silent and start
+// the countdown. Fail-open: without a Live API there are no bars to count.
+function armWait() {
+  if (cfg.waitmode === 0 || !liveSet) {
+    waitArmed = false;
+    setEngaged(true);
+    return;
+  }
+  try {
+    let beats = cfg.waitbars * beatsPerBar();
+    if (cfg.waitmode === 2) {
+      const clipBeats = longestPlayingClipBeats();
+      if (clipBeats > 0) beats = clipBeats; // else fall back to Wait Bars
+    }
+    waitStartBeat = songBeats();
+    waitTargetBeats = beats;
+    waitArmed = true;
+    setEngaged(false);
+    waitStep(); // show the countdown right away
+  } catch (err) {
+    waitArmed = false;
+    setEngaged(true);
+  }
+}
+
+// Driven by the 250 ms watchdog metro while counting down.
+function waitStep() {
+  if (!waitArmed || engaged) return;
+  try {
+    let elapsed = songBeats() - waitStartBeat;
+    if (elapsed < 0) { // user jumped backwards: re-anchor, keep waiting
+      waitStartBeat = songBeats();
+      elapsed = 0;
+    }
+    if (elapsed >= waitTargetBeats) {
+      waitArmed = false;
+      setEngaged(true);
+      return;
+    }
+    const remain = (waitTargetBeats - elapsed) / beatsPerBar();
+    disp("status", "wait " + remain.toFixed(1) + " bars");
+  } catch (err) {
+    waitArmed = false;
+    setEngaged(true);
+  }
+}
+
 // --- transport observer -------------------------------------------------------------
 
 function onLiveSetProperty(args) {
@@ -461,8 +567,16 @@ function onLiveSetProperty(args) {
       // Transport stopped: flush; if audio continues, the next state (<=1 s
       // heartbeat) re-applies the cached events; if audio stopped too, the
       // analyzer's lead -1 / chord reset events clear the caches first.
+      // The wait gate reopens quietly (jam mode) — no reapply here, the
+      // pendingRestrike path owns the re-strike.
       releaseAll(false);
       pendingRestrike = true;
+      waitArmed = false;
+      engaged = true;
+      refreshStatus(); // clear a mid-countdown "wait n bars" readout
+    }
+    if (wasPlaying === 0 && playing === 1) {
+      armWait(); // start silent; join after the countdown
     }
     wasPlaying = playing;
   } catch (err) { /* LiveAPI callback context — never throw */ }
@@ -487,6 +601,7 @@ function init() {
   disp("inchord", "-");
   disp("inkey", "-");
   disp("lastset", NBSP);
+  if (wasPlaying) armWait(); // already mid-song: count from here
 }
 
 // state <jsonSym> — authoritative harmonyState. Feeds ONLY key-sync, displays,
@@ -525,7 +640,7 @@ function lead(midi, conf) {
   if (typeof midi !== "number") return;
   const c = typeof conf === "number" ? clamp01(conf) : 1;
   lastLeadEvent = midi >= 0 ? { midi: midi, conf: c } : null;
-  if (!cfg.enabled || !leadEngineOn()) return;
+  if (!cfg.enabled || !engaged || !leadEngineOn()) return;
   leadTransition(leadTargetFor(lastLeadEvent), c);
 }
 
@@ -543,7 +658,7 @@ function chord(rootPc, quality, score, ...pcs) {
   } else {
     lastChordEvent = null;
   }
-  if (!cfg.enabled || !chordEngineOn()) return;
+  if (!cfg.enabled || !engaged || !chordEngineOn()) return;
   if (lastChordEvent) {
     const ev = lastChordEvent;
     chordTransition(chordSigFor(ev), voiceChord(ev.rootPc, ev.pcs), ev.score);
@@ -566,9 +681,11 @@ function hello(v, src) {
   refreshStatus();
 }
 
-// watchdog — banged by [metro 250]. 3000 ms without state/hello => analyzer
-// gone: release everything it drove, clear caches, show stale.
+// watchdog — banged by [metro 250]. Advances the engage countdown, then the
+// staleness check: 3000 ms without state/hello => analyzer gone: release
+// everything it drove, clear caches, show stale.
 function watchdog() {
+  waitStep();
   if (!linked) return;
   if (Date.now() - lastStateAt <= STALE_MS) return;
   linked = false;
@@ -664,6 +781,35 @@ function keyconf(v) {
 function keyhold(v) {
   if (typeof v !== "number") return;
   cfg.keyhold = clamp(1, 30, Math.round(v));
+}
+
+// waitmode <0..2> from live.menu: 0 Off / 1 Bars / 2 Clip.
+function waitmode(v) {
+  if (typeof v !== "number") return;
+  const m = clamp(0, 2, Math.round(v));
+  if (m === cfg.waitmode) return;
+  cfg.waitmode = m;
+  if (m === 0) {
+    waitArmed = false;
+    setEngaged(true);
+  } else if (wasPlaying) {
+    armWait(); // the new rule counts from the current song position
+  }
+}
+
+// waitbars <1..32> from live.dial. Mid-countdown changes re-derive the target
+// but keep counting from the original start.
+function waitbars(v) {
+  if (typeof v !== "number") return;
+  const bars = clamp(1, 32, Math.round(v));
+  if (bars === cfg.waitbars) return;
+  cfg.waitbars = bars;
+  if (waitArmed && !engaged && wasPlaying) {
+    const anchor = waitStartBeat;
+    armWait();
+    waitStartBeat = anchor;
+    waitStep();
+  }
 }
 
 // --- lifecycle -----------------------------------------------------------------------------

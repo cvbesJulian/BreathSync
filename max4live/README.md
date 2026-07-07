@@ -32,6 +32,16 @@ source of truth for the bus messages.
    status flips from "waiting for analyzer" to "linked".
 4. Follow's **Mode**: Off / Lead (follow the detected melody) / Chord (sound the
    committed chord) / Both. **Min Dur** suppresses flapping on fast playing.
+   **Wait Mode / Wait Bars** make Follow listen before joining: when the
+   transport starts it stays silent for **Wait Bars** bars (default 4), or in
+   **Clip** mode for one full pass of the longest playing session clip (falls
+   back to Wait Bars if nothing is playing), then joins on whatever harmony is
+   sounding. The countdown shows in the status display; it re-arms every time
+   the transport starts. With the transport stopped there are no bars to
+   count, so Follow plays immediately (jam mode); set Wait Mode to Off for the
+   old always-on behavior. Bar math is done in beats, so tempo changes during
+   the wait are handled; only note output is gated — Key Sync keeps its own
+   slower gates.
 5. **Key Sync** (default **off**): when enabled, a detected key that stays
    stable for **Key Hold** seconds at ≥ **Key Conf** confidence sets Live's
    song Root Note + Scale. Note: every scale change lands in Live's undo

@@ -78,7 +78,9 @@ function makeInstance() {
     disp: [],   // { at, sel, text }
     gets: [],   // { at, prop }
     sets: [],   // { at, prop, val }  <- undo-relevant LiveAPI writes
-    song: { root_note: 0, scale_name: "Major", is_playing: 0 }, // fake C Major
+    song: { root_note: 0, scale_name: "Major", is_playing: 0, // fake C Major
+      current_song_time: 0, signature_numerator: 4, signature_denominator: 4 },
+    tracks: [], // { playing_slot_index, clipLength } for the clip-wait scan
     observers: [], // LiveAPI instances constructed with a callback
   };
 
@@ -99,12 +101,27 @@ function makeInstance() {
         this.path = a;
       }
       this._property = null;
-      this.id = 1;
+      // Clip objects resolve to id 0 (LiveAPI's "no object") on empty slots.
+      const cm = /^live_set tracks (\d+) clip_slots \d+ clip$/.exec(this.path || "");
+      this.id = cm && !(ctx.tracks[+cm[1]] || {}).clipLength ? 0 : 1;
     }
     get property() { return this._property; }
     set property(p) { this._property = p; }
+    getcount(name) {
+      return name === "tracks" ? ctx.tracks.length : 0;
+    }
     get(prop) {
       ctx.gets.push({ at: now, prop });
+      const tm = /^live_set tracks (\d+)$/.exec(this.path || "");
+      if (tm) {
+        const t = ctx.tracks[+tm[1]];
+        return [t ? t.playing_slot_index : -1];
+      }
+      const cm = /^live_set tracks (\d+) clip_slots \d+ clip$/.exec(this.path || "");
+      if (cm) {
+        const t = ctx.tracks[+cm[1]];
+        return [prop === "length" && t ? t.clipLength : 0];
+      }
       const v = ctx.song[prop];
       return v === undefined ? [0] : [v]; // LiveAPI returns arrays
     }
@@ -118,6 +135,7 @@ function makeInstance() {
     "init", "state", "lead", "chord", "hello", "watchdog", "enabled",
     "mode", "vel", "velconf", "channel", "leadoct", "chordoct", "mindur",
     "keysync", "keyconf", "keyhold", "panic", "notifydeleted", "anything",
+    "waitmode", "waitbars",
   ];
   const factory = new Function(
     "outlet", "post", "messnamed", "Task", "LiveAPI", "jsarguments",
@@ -421,6 +439,7 @@ section("j. transport is_playing 1->0");
 {
   const { api, ctx } = makeInstance();
   api.init();
+  api.waitmode(0); // isolate pure transport semantics from the engage gate
   check("j1: init registered an is_playing observer",
     ctx.observers.some((o) => o.property === "is_playing"),
     JSON.stringify(ctx.observers.map((o) => o.property)));
@@ -521,6 +540,164 @@ section("l. key sync default off");
   check("l2: fake song untouched (still C Major)",
     ctx.song.root_note === 0 && ctx.song.scale_name === "Major",
     JSON.stringify(ctx.song));
+}
+
+// ============================================================================
+// m. engage gating — Bars mode (default: waitmode 1, waitbars 4 => 16 beats)
+// ============================================================================
+section("m. wait gating, Bars mode (default 4 bars)");
+{
+  const { api, ctx } = makeInstance();
+  api.init();
+  api.hello(1, "013bstime");
+  api.state(mkstate({}));
+
+  api.lead(60, 0.8); // transport stopped => jam mode, plays immediately
+  let m = drainMidi(ctx);
+  check("m1: jam mode (transport stopped) plays immediately",
+    m.length === 1 && m[0].status === 0x90 && m[0].data1 === 60, dump(m));
+
+  ctx.song.is_playing = 1;
+  ctx.song.current_song_time = 0;
+  fireTransport(ctx, 1); // arm: go silent, count 4 bars
+  m = drainMidi(ctx);
+  check("m2: transport start releases the jam note (starts silent)",
+    m.length === 1 && m[0].status === 0x80 && m[0].data1 === 60, dump(m));
+  check("m3: countdown shown in status",
+    statusTexts(ctx).some((t) => t.startsWith("wait" + NBSP)),
+    JSON.stringify(statusTexts(ctx).slice(-3)));
+
+  api.lead(64, 0.8); // mid-wait events are gated but cached
+  ctx.song.current_song_time = 8; // 2 of 4 bars
+  advance(250);
+  api.watchdog();
+  check("m4: no MIDI mid-wait (2 of 4 bars)", ctx.midi.length === 0, dump(ctx.midi));
+
+  ctx.song.current_song_time = 16.01; // past 4 bars
+  advance(250);
+  api.watchdog();
+  m = drainMidi(ctx);
+  check("m5: engages after 4 bars and re-strikes the cached lead 64",
+    m.length === 1 && m[0].status === 0x90 && m[0].data1 === 64, dump(m));
+  const st = statusTexts(ctx);
+  check("m6: status returns to linked after engage",
+    st[st.length - 1] === "linked" + NBSP + "013bstime", JSON.stringify(st.slice(-2)));
+
+  advance(150); // > mindur
+  api.lead(65, 0.8); // engaged: events flow normally again (legato pair)
+  m = drainMidi(ctx);
+  check("m7: post-engage events flow (legato 65 on, 64 off)",
+    m.length === 2 && m[0].status === 0x90 && m[0].data1 === 65 &&
+    m[1].status === 0x80 && m[1].data1 === 64, dump(m));
+}
+
+// ============================================================================
+// n. wait gating — user bars input + mid-wait changes
+// ============================================================================
+section("n. wait gating, Wait Bars input");
+{
+  const { api, ctx } = makeInstance();
+  api.init();
+  api.waitbars(1); // 1 bar @ 4/4 = 4 beats
+  ctx.song.is_playing = 1;
+  ctx.song.current_song_time = 0;
+  fireTransport(ctx, 1);
+  api.lead(60, 0.8);
+  ctx.song.current_song_time = 3.9;
+  api.watchdog();
+  check("n1: gated before 1 bar elapses", ctx.midi.length === 0, dump(ctx.midi));
+  ctx.song.current_song_time = 4.01;
+  api.watchdog();
+  let m = drainMidi(ctx);
+  check("n2: engages after the user-set 1 bar",
+    m.length === 1 && m[0].status === 0x90 && m[0].data1 === 60, dump(m));
+
+  // waitmode 0 mid-wait engages immediately
+  const inst2 = makeInstance();
+  inst2.api.init();
+  inst2.ctx.song.is_playing = 1;
+  inst2.ctx.song.current_song_time = 0;
+  fireTransport(inst2.ctx, 1);
+  inst2.api.lead(62, 0.8);
+  check("n3: gated right after transport start", inst2.ctx.midi.length === 0,
+    dump(inst2.ctx.midi));
+  inst2.api.waitmode(0);
+  m = drainMidi(inst2.ctx);
+  check("n4: switching Wait Mode off engages immediately (re-strike 62)",
+    m.length === 1 && m[0].status === 0x90 && m[0].data1 === 62, dump(m));
+}
+
+// ============================================================================
+// o. wait gating — Clip mode (longest playing session clip; fallback to bars)
+// ============================================================================
+section("o. wait gating, Clip mode");
+{
+  const { api, ctx } = makeInstance();
+  api.init();
+  api.waitmode(2);
+  ctx.tracks = [
+    { playing_slot_index: -1, clipLength: 0 },  // silent track
+    { playing_slot_index: 0, clipLength: 8 },   // playing 2-bar loop
+  ];
+  ctx.song.is_playing = 1;
+  ctx.song.current_song_time = 0;
+  fireTransport(ctx, 1);
+  api.lead(60, 0.8);
+  ctx.song.current_song_time = 7.9;
+  api.watchdog();
+  check("o1: gated during the clip's first pass (8 beats)",
+    ctx.midi.length === 0, dump(ctx.midi));
+  ctx.song.current_song_time = 8.01;
+  api.watchdog();
+  let m = drainMidi(ctx);
+  check("o2: engages after one full clip pass",
+    m.length === 1 && m[0].status === 0x90 && m[0].data1 === 60, dump(m));
+
+  // Fallback: no playing clip => Wait Bars applies (default 4 bars = 16 beats)
+  const inst2 = makeInstance();
+  inst2.api.init();
+  inst2.api.waitmode(2);
+  inst2.ctx.song.is_playing = 1;
+  inst2.ctx.song.current_song_time = 0;
+  fireTransport(inst2.ctx, 1);
+  inst2.api.lead(64, 0.8);
+  inst2.ctx.song.current_song_time = 8.1;
+  inst2.api.watchdog();
+  check("o3: no playing clip -> still gated at 8.1 beats (bars fallback)",
+    inst2.ctx.midi.length === 0, dump(inst2.ctx.midi));
+  inst2.ctx.song.current_song_time = 16.1;
+  inst2.api.watchdog();
+  m = drainMidi(inst2.ctx);
+  check("o4: falls back to Wait Bars (engages after 16 beats)",
+    m.length === 1 && m[0].status === 0x90 && m[0].data1 === 64, dump(m));
+}
+
+// ============================================================================
+// p. wait gating — transport stop mid-wait reopens jam mode
+// ============================================================================
+section("p. wait gating, transport stop mid-wait");
+{
+  const { api, ctx } = makeInstance();
+  api.init();
+  ctx.song.is_playing = 1;
+  ctx.song.current_song_time = 0;
+  fireTransport(ctx, 1);
+  api.lead(60, 0.8);
+  ctx.song.current_song_time = 4;
+  api.watchdog();
+  check("p1: gated mid-wait", ctx.midi.length === 0, dump(ctx.midi));
+  ctx.song.is_playing = 0;
+  fireTransport(ctx, 0); // stop: countdown cancelled, back to jam mode
+  api.state(mkstate({})); // pendingRestrike path
+  let m = drainMidi(ctx);
+  check("p2: after stop, cached lead re-strikes via the next state",
+    m.length === 1 && m[0].status === 0x90 && m[0].data1 === 60, dump(m));
+  advance(150);
+  api.lead(62, 0.8);
+  m = drainMidi(ctx);
+  check("p3: jam mode after stop plays events immediately",
+    m.length === 2 && m[0].status === 0x90 && m[0].data1 === 62 &&
+    m[1].status === 0x80 && m[1].data1 === 60, dump(m));
 }
 
 // --- summary -------------------------------------------------------------------

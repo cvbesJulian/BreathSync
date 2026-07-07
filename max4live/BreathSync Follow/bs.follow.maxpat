@@ -1560,6 +1560,154 @@
 					],
 					"text": "iter"
 				}
+			},
+			{
+				"box": {
+					"id": "obj-62",
+					"maxclass": "live.menu",
+					"numinlets": 1,
+					"numoutlets": 3,
+					"outlettype": [
+						"",
+						"",
+						"float"
+					],
+					"parameter_enable": 1,
+					"patching_rect": [
+						1130.0,
+						32.0,
+						60.0,
+						15.0
+					],
+					"presentation": 1,
+					"presentation_rect": [
+						316.0,
+						84.0,
+						48.0,
+						15.0
+					],
+					"saved_attribute_attributes": {
+						"valueof": {
+							"parameter_enum": [
+								"Off",
+								"Bars",
+								"Clip"
+							],
+							"parameter_initial": [
+								1
+							],
+							"parameter_initial_enable": 1,
+							"parameter_invisible": 2,
+							"parameter_longname": "Wait Mode",
+							"parameter_mmax": 7,
+							"parameter_modmode": 0,
+							"parameter_shortname": "Wait Mode",
+							"parameter_type": 2
+						}
+					},
+					"varname": "bus_menu"
+				}
+			},
+			{
+				"box": {
+					"id": "obj-63",
+					"maxclass": "message",
+					"numinlets": 2,
+					"numoutlets": 1,
+					"outlettype": [
+						""
+					],
+					"patching_rect": [
+						1130.0,
+						62.0,
+						60.0,
+						15.0
+					],
+					"text": "waitmode $1"
+				}
+			},
+			{
+				"box": {
+					"id": "obj-64",
+					"maxclass": "live.dial",
+					"numinlets": 1,
+					"numoutlets": 2,
+					"outlettype": [
+						"",
+						"float"
+					],
+					"parameter_enable": 1,
+					"patching_rect": [
+						1200.0,
+						32.0,
+						40.0,
+						36.0
+					],
+					"presentation": 1,
+					"presentation_rect": [
+						368.0,
+						70.0,
+						40.0,
+						36.0
+					],
+					"saved_attribute_attributes": {
+						"valueof": {
+							"parameter_initial": [
+								4
+							],
+							"parameter_initial_enable": 1,
+							"parameter_longname": "Wait Bars",
+							"parameter_mmin": 1.0,
+							"parameter_mmax": 32.0,
+							"parameter_modmode": 0,
+							"parameter_shortname": "Wait Bars",
+							"parameter_type": 1,
+							"parameter_unitstyle": 0
+						}
+					},
+					"varname": "mindur_dial"
+				}
+			},
+			{
+				"box": {
+					"id": "obj-65",
+					"maxclass": "message",
+					"numinlets": 2,
+					"numoutlets": 1,
+					"outlettype": [
+						""
+					],
+					"patching_rect": [
+						1200.0,
+						82.0,
+						40.0,
+						36.0
+					],
+					"text": "waitbars $1"
+				}
+			},
+			{
+				"box": {
+					"id": "obj-66",
+					"maxclass": "comment",
+					"numinlets": 1,
+					"numoutlets": 0,
+					"patching_rect": [
+						1130.0,
+						16.0,
+						40.0,
+						12.0
+					],
+					"presentation": 1,
+					"presentation_rect": [
+						316.0,
+						70.0,
+						40.0,
+						12.0
+					],
+					"fontsize": 8.0,
+					"text": "WAIT"
+				}
 			}
 		],
 		"lines": [
@@ -2255,6 +2403,54 @@
 					],
 					"source": [
 						"obj-61",
+						0
+					]
+				}
+			},
+			{
+				"patchline": {
+					"destination": [
+						"obj-63",
+						0
+					],
+					"source": [
+						"obj-62",
+						0
+					]
+				}
+			},
+			{
+				"patchline": {
+					"destination": [
+						"obj-17",
+						0
+					],
+					"source": [
+						"obj-63",
+						0
+					]
+				}
+			},
+			{
+				"patchline": {
+					"destination": [
+						"obj-65",
+						0
+					],
+					"source": [
+						"obj-64",
+						0
+					]
+				}
+			},
+			{
+				"patchline": {
+					"destination": [
+						"obj-17",
+						0
+					],
+					"source": [
+						"obj-65",
 						0
 					]
 				}
