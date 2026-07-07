@@ -8,7 +8,10 @@ const MIDI_STORAGE_KEYS = {
   sound: "breathsyncSound",
   soundPreset: "breathsyncSoundPreset",
   temperature: "breathsyncTemperature",
-  darkMode: "breathsyncDarkMode"
+  darkMode: "breathsyncDarkMode",
+  followHarmony: "breathsyncFollowHarmony",
+  followStrength: "breathsyncFollowStrength",
+  harmonyState: "breathsyncHarmonyState"
 };
 
 const MIDI_TECHNIQUES = {
@@ -25,6 +28,14 @@ const MIDI_CONSONANT_SCALE = [
   554.37, 587.33, 659.25, 739.99, 783.99, 880, 987.77, 1108.73,
   1174.66
 ];
+
+const MIDI_MAJOR_SCALE_STEPS = [0, 2, 4, 5, 7, 9, 11];
+const MIDI_MINOR_SCALE_STEPS = [0, 2, 3, 5, 7, 8, 10];
+const MIDI_NOTE_NAME_TO_PC = {
+  C: 0, "C#": 1, D: 2, "D#": 3, E: 4, F: 5,
+  "F#": 6, G: 7, "G#": 8, A: 9, "A#": 10, B: 11
+};
+const MIDI_FOLLOW_STALE_MS = 4000;
 
 const enableMidiButton = document.getElementById("enableMidi");
 const midiOutputSelect = document.getElementById("midiOutput");
@@ -49,6 +60,10 @@ let schedulerTemperature = 0;
 let schedulerMidiEnabled = false;
 let schedulerTimers = [];
 let darkModeEnabled = false;
+let activeScale = MIDI_CONSONANT_SCALE;
+let schedulerFollowHarmony = false;
+let schedulerFollowStrength = 0.6;
+let schedulerHarmonyState = null;
 
 function setStatus(text) {
   midiStatus.textContent = text;
@@ -82,11 +97,55 @@ function frequencyToMidiNote(frequency) {
   return Math.max(0, Math.min(127, Math.round(69 + 12 * Math.log2(frequency / 440))));
 }
 
+function buildScaleFromKey(rootPc, mode) {
+  const steps = mode === "minor" ? MIDI_MINOR_SCALE_STEPS : MIDI_MAJOR_SCALE_STEPS;
+  const baseMidi = 36 + rootPc;
+  const scale = [];
+
+  for (let octave = 0; octave < 5; octave += 1) {
+    for (let stepIndex = 0; stepIndex < steps.length; stepIndex += 1) {
+      const midi = baseMidi + octave * 12 + steps[stepIndex];
+      const frequency = 440 * 2 ** ((midi - 69) / 12);
+      if (frequency >= 60 && frequency <= 1250) scale.push(frequency);
+    }
+  }
+
+  return scale.length ? scale : MIDI_CONSONANT_SCALE;
+}
+
+function getFollowedScale() {
+  if (!schedulerFollowHarmony) return null;
+  if (!(schedulerFollowStrength > 0.05)) return null;
+
+  const state = schedulerHarmonyState;
+  if (!state || typeof state.key !== "string") return null;
+  if (
+    !Number.isFinite(state.updatedAt) ||
+    Date.now() - state.updatedAt > MIDI_FOLLOW_STALE_MS
+  ) {
+    return null;
+  }
+
+  const minConfidence = 0.85 - schedulerFollowStrength * 0.45;
+  if (!Number.isFinite(state.confidence) || state.confidence < minConfidence) return null;
+
+  const rootPc = MIDI_NOTE_NAME_TO_PC[state.key];
+  if (rootPc == null) return null;
+
+  const mode = state.mode === "minor" ? "minor" : "major";
+  return buildScaleFromKey(rootPc, mode);
+}
+
+function updateActiveScale() {
+  activeScale = getFollowedScale() || MIDI_CONSONANT_SCALE;
+  return activeScale;
+}
+
 function nearestScaleIndex(frequency) {
   let bestIndex = 0;
   let bestDistance = Infinity;
 
-  MIDI_CONSONANT_SCALE.forEach((note, index) => {
+  activeScale.forEach((note, index) => {
     const distance = Math.abs(note - frequency);
     if (distance < bestDistance) {
       bestDistance = distance;
@@ -98,7 +157,9 @@ function nearestScaleIndex(frequency) {
 }
 
 function getDiatonicNoteFromIndex(index) {
-  return MIDI_CONSONANT_SCALE[Math.max(0, Math.min(MIDI_CONSONANT_SCALE.length - 1, index))];
+  const nextIndex = Math.max(0, Math.min(activeScale.length - 1, index));
+
+  return activeScale[nextIndex];
 }
 
 function clearSchedulerTimers() {
@@ -449,6 +510,7 @@ function scheduleReflectiveMelodyMidi(label, duration, sound, phaseStartMs) {
 }
 
 function schedulePhaseMidi(label, duration, phaseStartMs = 0) {
+  updateActiveScale();
   const sound = applyTemperatureToSound(getPhaseSound(label));
   const sequence = Array.isArray(sound.sequence) ? sound.sequence : [];
   const phaseMs = duration * 1000;
@@ -538,6 +600,12 @@ function updateSchedulerState(data) {
   if (!Number.isFinite(schedulerCycleStartedAt)) schedulerCycleStartedAt = 0;
   schedulerTemperature = Number(data[MIDI_STORAGE_KEYS.temperature]);
   if (!Number.isFinite(schedulerTemperature)) schedulerTemperature = 0;
+  schedulerFollowHarmony = Boolean(data[MIDI_STORAGE_KEYS.followHarmony]);
+  schedulerFollowStrength = Number(data[MIDI_STORAGE_KEYS.followStrength]);
+  if (!Number.isFinite(schedulerFollowStrength)) schedulerFollowStrength = 0.6;
+  const nextHarmonyState = data[MIDI_STORAGE_KEYS.harmonyState];
+  schedulerHarmonyState =
+    nextHarmonyState && typeof nextHarmonyState === "object" ? nextHarmonyState : null;
 
   clearSchedulerTimers();
   allNotesOff();
@@ -553,7 +621,10 @@ function syncSchedulerFromStorage() {
       [MIDI_STORAGE_KEYS.sound]: false,
       [MIDI_STORAGE_KEYS.technique]: "focus",
       [MIDI_STORAGE_KEYS.cycleStartedAt]: 0,
-      [MIDI_STORAGE_KEYS.temperature]: 0
+      [MIDI_STORAGE_KEYS.temperature]: 0,
+      [MIDI_STORAGE_KEYS.followHarmony]: false,
+      [MIDI_STORAGE_KEYS.followStrength]: 0.6,
+      [MIDI_STORAGE_KEYS.harmonyState]: null
     },
     updateSchedulerState
   );
@@ -625,7 +696,10 @@ chrome.storage.local.get(
     [MIDI_STORAGE_KEYS.technique]: "focus",
     [MIDI_STORAGE_KEYS.cycleStartedAt]: 0,
     [MIDI_STORAGE_KEYS.temperature]: 0,
-    [MIDI_STORAGE_KEYS.darkMode]: false
+    [MIDI_STORAGE_KEYS.darkMode]: false,
+    [MIDI_STORAGE_KEYS.followHarmony]: false,
+    [MIDI_STORAGE_KEYS.followStrength]: 0.6,
+    [MIDI_STORAGE_KEYS.harmonyState]: null
   },
   async (data) => {
     darkModeEnabled = Boolean(data[MIDI_STORAGE_KEYS.darkMode]);
@@ -652,6 +726,19 @@ chrome.storage.onChanged.addListener((changes, area) => {
   if (changes[MIDI_STORAGE_KEYS.darkMode]) {
     darkModeEnabled = Boolean(changes[MIDI_STORAGE_KEYS.darkMode].newValue);
     applyDarkMode();
+  }
+
+  if (changes[MIDI_STORAGE_KEYS.followHarmony]) {
+    schedulerFollowHarmony = Boolean(changes[MIDI_STORAGE_KEYS.followHarmony].newValue);
+  }
+  if (changes[MIDI_STORAGE_KEYS.followStrength]) {
+    const nextStrength = Number(changes[MIDI_STORAGE_KEYS.followStrength].newValue);
+    schedulerFollowStrength = Number.isFinite(nextStrength) ? nextStrength : 0.6;
+  }
+  if (changes[MIDI_STORAGE_KEYS.harmonyState]) {
+    const nextHarmonyState = changes[MIDI_STORAGE_KEYS.harmonyState].newValue;
+    schedulerHarmonyState =
+      nextHarmonyState && typeof nextHarmonyState === "object" ? nextHarmonyState : null;
   }
 
   const relevantChange =
