@@ -1,0 +1,20 @@
+{
+  "name": "BreathSync",
+  "short_name": "BreathSync",
+  "description": "A quiet breathing companion for focus, calm, sleep, and creative work.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f7f4ee",
+  "theme_color": "#f7f4ee",
+  "icons": [
+    { "src": "assets/icon-48.png", "sizes": "48x48", "type": "image/png" },
+    { "src": "assets/icon-128.png", "sizes": "128x128", "type": "image/png" },
+    {
+      "src": "assets/breathsync-icon-master.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -29,6 +29,18 @@ No React, Vite, npm, bundlers, TypeScript, Tailwind, or external deps.
 - `listen.html` / `listen.css` / `listen.js`: instrument listening page (audio input capture + real-time melody/harmony analysis). See `LISTEN_FEATURE_PLAN.md`.
 - `LISTEN_FEATURE_PLAN.md`: phased plan + status for the instrument listening feature (branch `midi-input`).
 
+### Web build (branch `port-web`)
+
+Standalone HTTPS/localhost web-app port of the extension, keeping the multi-page structure. No bundler; still vanilla.
+
+- `chrome-shim.js`: minimal `chrome.storage.local` + `chrome.storage.onChanged` (localStorage-backed, cross-tab via the window `storage` event) plus small `runtime`/`tabs` stubs. Loaded first on every page so `popup.js`, `listen.js`, and `midi-permission.js` run unchanged. It defines no `chrome.runtime.id`, so `isExtensionRuntime` stays `false` and `popup.js` uses its in-page audio engine + draggable local widget (no offscreen document needed).
+- `index.html`: web entry; mirrors `popup.html` but loads `chrome-shim.js` before `popup.js`, links the PWA manifest, and registers `sw.js`.
+- `manifest.webmanifest` + `sw.js`: optional PWA install + network-first offline caching (caching only, no messaging).
+- `background.js`, `offscreen.html`, and the extension `manifest.json` are removed on this branch (still present on `main`/`audio-output`). `content.js`/`content.css` remain but are unused by the web build.
+- The only `popup.js` edits: `openMidiPermissionPage`/`openListenPage` now `window.open` the pages in web mode.
+- Run locally: serve the folder over `http://localhost` (a secure context for mic + Web MIDI), e.g. `python3 -m http.server`, then open `/index.html`.
+- Not ported: floating widget injected onto arbitrary third-party sites (extension-only). Web build uses the in-app draggable widget instead. Web MIDI is Chromium-only.
+
 ## Current Product State
 
 Implemented:

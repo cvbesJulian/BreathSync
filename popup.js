@@ -548,7 +548,17 @@ function setMidiDebug(text) {
 }
 
 function openMidiPermissionPage(reason = "") {
-  if (!isExtensionRuntime || !chrome.tabs || !chrome.runtime) return;
+  if (!isExtensionRuntime) {
+    window.open("midi-permission.html", "_blank", "noopener");
+    setMidiStatus("Opened MIDI setup page");
+    setMidiDebug(
+      reason
+        ? `Outputs: ${reason}. Press Enable MIDI access in the setup page.`
+        : "Outputs: press Enable MIDI access in the setup page"
+    );
+    return;
+  }
+  if (!chrome.tabs || !chrome.runtime) return;
 
   const url = chrome.runtime.getURL("midi-permission.html");
   chrome.tabs.create({ url }).catch(() => {});
@@ -561,7 +571,11 @@ function openMidiPermissionPage(reason = "") {
 }
 
 function openListenPage() {
-  if (!isExtensionRuntime || !chrome.tabs || !chrome.runtime) {
+  if (!isExtensionRuntime) {
+    window.open("listen.html", "_blank", "noopener");
+    return;
+  }
+  if (!chrome.tabs || !chrome.runtime) {
     setMidiStatus("Listen needs the loaded extension");
     setMidiDebug("Inputs: open BreathSync from the toolbar, not the file preview.");
     return;
