@@ -1,7 +1,7 @@
 // BreathSync offline caching service worker.
 // Network-first so active development always sees fresh files when online,
 // with a cache fallback for offline use. Caching only; no messaging.
-const CACHE = "breathsync-v1";
+const CACHE = "breathsync-v2.0.0";
 const APP_SHELL = [
   "./",
   "./index.html",

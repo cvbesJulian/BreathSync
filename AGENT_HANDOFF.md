@@ -29,9 +29,9 @@ No React, Vite, npm, bundlers, TypeScript, Tailwind, or external deps.
 - `listen.html` / `listen.css` / `listen.js`: instrument listening page (audio input capture + real-time melody/harmony analysis). See `LISTEN_FEATURE_PLAN.md`.
 - `LISTEN_FEATURE_PLAN.md`: phased plan + status for the instrument listening feature (branch `midi-input`).
 
-### Web build (branch `port-web`)
+### Web build (branch `port-web`, v2.0.0)
 
-Standalone HTTPS/localhost web-app port of the extension, keeping the multi-page structure. No bundler; still vanilla.
+Standalone HTTPS/localhost web-app port of the extension, keeping the multi-page structure. No bundler; still vanilla. Tagged `v2.0.0` (first web release; verified working in-browser). Version is surfaced in each page footer (`Web v2.0.0`) and in `manifest.webmanifest`; there is no extension `manifest.json` on this branch.
 
 - `chrome-shim.js`: minimal `chrome.storage.local` + `chrome.storage.onChanged` (localStorage-backed, cross-tab via the window `storage` event) plus small `runtime`/`tabs` stubs. Loaded first on every page so `popup.js`, `listen.js`, and `midi-permission.js` run unchanged. It defines no `chrome.runtime.id`, so `isExtensionRuntime` stays `false` and `popup.js` uses its in-page audio engine + draggable local widget (no offscreen document needed).
 - `index.html`: web entry; mirrors `popup.html` but loads `chrome-shim.js` before `popup.js`, links the PWA manifest, and registers `sw.js`.
