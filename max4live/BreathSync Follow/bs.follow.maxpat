@@ -766,7 +766,7 @@
 						52.0,
 						20.0
 					],
-					"text": "receive",
+					"text": "receive bs.harmony.bus1",
 					"outlettype": [
 						""
 					]
@@ -1540,7 +1540,25 @@
 						14.0
 					],
 					"fontsize": 9.0,
-					"text": "KEY SYNC → LIVE SCALE"
+					"text": "KEY SYNC \u2192 LIVE SCALE"
+				}
+			},
+			{
+				"box": {
+					"id": "obj-61",
+					"maxclass": "newobj",
+					"numinlets": 1,
+					"numoutlets": 1,
+					"outlettype": [
+						""
+					],
+					"patching_rect": [
+						24.0,
+						474.0,
+						40.0,
+						22.0
+					],
+					"text": "iter"
 				}
 			}
 		],
@@ -1812,7 +1830,7 @@
 			{
 				"patchline": {
 					"destination": [
-						"obj-19",
+						"obj-61",
 						0
 					],
 					"source": [
@@ -2225,6 +2243,18 @@
 					],
 					"source": [
 						"obj-50",
+						0
+					]
+				}
+			},
+			{
+				"patchline": {
+					"destination": [
+						"obj-19",
+						0
+					],
+					"source": [
+						"obj-61",
 						0
 					]
 				}
