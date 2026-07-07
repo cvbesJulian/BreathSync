@@ -113,6 +113,7 @@ If BreathSync ever both sends to and listens from the same rig, guard against ru
 - Make BreathSync's scale/chord/lead helpers key-aware and consume `breathsyncHarmonyState`
   so generation harmonizes with the external instrument, gated by a toggle + strength
   slider, with feedback-loop safety. Explicitly out of scope for the analyze-only track.
+- Full design lives in `FOLLOW_HARMONY_PLAN.md`.
 
 ## Files
 

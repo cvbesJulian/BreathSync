@@ -31,7 +31,10 @@ const BREATHSYNC_STORAGE_KEYS = {
   activeTabId: "breathsyncActiveTabId",
   muted: "breathsyncMuted",
   widgetX: "breathsyncWidgetX",
-  widgetY: "breathsyncWidgetY"
+  widgetY: "breathsyncWidgetY",
+  followHarmony: "breathsyncFollowHarmony",
+  followStrength: "breathsyncFollowStrength",
+  harmonyState: "breathsyncHarmonyState"
 };
 const BREATHSYNC_PALETTE_FADE_IN_SECONDS = 1.5;
 
@@ -136,6 +139,9 @@ let breathsyncFountainVolume = 0;
 let breathsyncRainVolume = 0;
 let breathsyncKidsVolume = 0;
 let breathsyncTemperature = 0;
+let breathsyncFollowHarmony = false;
+let breathsyncFollowStrength = 0.6;
+let breathsyncHarmonyState = null;
 let breathsyncReverbAmount = 0.8;
 let breathsyncBinauralEnabled = false;
 let breathsyncSpaceAmount = 0.5;
@@ -1634,11 +1640,65 @@ const BREATHSYNC_CONSONANT_SCALE = [
   1174.66
 ];
 
+const BREATHSYNC_MAJOR_SCALE_STEPS = [0, 2, 4, 5, 7, 9, 11];
+const BREATHSYNC_MINOR_SCALE_STEPS = [0, 2, 3, 5, 7, 8, 10];
+const BREATHSYNC_NOTE_NAME_TO_PC = {
+  C: 0, "C#": 1, D: 2, "D#": 3, E: 4, F: 5,
+  "F#": 6, G: 7, "G#": 8, A: 9, "A#": 10, B: 11
+};
+const BREATHSYNC_FOLLOW_STALE_MS = 4000;
+
+let breathsyncActiveScale = BREATHSYNC_CONSONANT_SCALE;
+
+function breathsyncBuildScaleFromKey(rootPc, mode) {
+  const steps = mode === "minor" ? BREATHSYNC_MINOR_SCALE_STEPS : BREATHSYNC_MAJOR_SCALE_STEPS;
+  const baseMidi = 36 + rootPc;
+  const scale = [];
+
+  for (let octave = 0; octave < 5; octave += 1) {
+    for (let stepIndex = 0; stepIndex < steps.length; stepIndex += 1) {
+      const midi = baseMidi + octave * 12 + steps[stepIndex];
+      const frequency = 440 * 2 ** ((midi - 69) / 12);
+      if (frequency >= 60 && frequency <= 1250) scale.push(frequency);
+    }
+  }
+
+  return scale.length ? scale : BREATHSYNC_CONSONANT_SCALE;
+}
+
+function breathsyncGetFollowedScale() {
+  if (!breathsyncFollowHarmony) return null;
+  if (!(breathsyncFollowStrength > 0.05)) return null;
+
+  const state = breathsyncHarmonyState;
+  if (!state || typeof state.key !== "string") return null;
+  if (
+    !Number.isFinite(state.updatedAt) ||
+    Date.now() - state.updatedAt > BREATHSYNC_FOLLOW_STALE_MS
+  ) {
+    return null;
+  }
+
+  const minConfidence = 0.85 - breathsyncFollowStrength * 0.45;
+  if (!Number.isFinite(state.confidence) || state.confidence < minConfidence) return null;
+
+  const rootPc = BREATHSYNC_NOTE_NAME_TO_PC[state.key];
+  if (rootPc == null) return null;
+
+  const mode = state.mode === "minor" ? "minor" : "major";
+  return breathsyncBuildScaleFromKey(rootPc, mode);
+}
+
+function breathsyncUpdateActiveScale() {
+  breathsyncActiveScale = breathsyncGetFollowedScale() || BREATHSYNC_CONSONANT_SCALE;
+  return breathsyncActiveScale;
+}
+
 function breathsyncNearestScaleIndex(frequency) {
   let bestIndex = 0;
   let bestDistance = Infinity;
 
-  BREATHSYNC_CONSONANT_SCALE.forEach((note, index) => {
+  breathsyncActiveScale.forEach((note, index) => {
     const distance = Math.abs(note - frequency);
     if (distance < bestDistance) {
       bestDistance = distance;
@@ -1652,10 +1712,10 @@ function breathsyncNearestScaleIndex(frequency) {
 function breathsyncGetDiatonicNoteFromIndex(index) {
   const nextIndex = Math.max(
     0,
-    Math.min(BREATHSYNC_CONSONANT_SCALE.length - 1, index)
+    Math.min(breathsyncActiveScale.length - 1, index)
   );
 
-  return BREATHSYNC_CONSONANT_SCALE[nextIndex];
+  return breathsyncActiveScale[nextIndex];
 }
 
 function breathsyncBuildTemperatureChord(chord, amount, chordIndex) {
@@ -2103,6 +2163,7 @@ function breathsyncPlayPhaseSound(label, duration) {
   if (!context || !breathsyncMasterGain) return;
 
   const now = context.currentTime;
+  breathsyncUpdateActiveScale();
   const sound = breathsyncApplyTemperatureToSound(breathsyncGetPhaseSound(label));
   const gain = context.createGain();
   const filter = context.createBiquadFilter();
@@ -2421,6 +2482,9 @@ function breathsyncApplyState(data, softTechniqueChange = false) {
   const nextRainVolume = Number(data[BREATHSYNC_STORAGE_KEYS.rainVolume]);
   const nextKidsVolume = Number(data[BREATHSYNC_STORAGE_KEYS.kidsVolume]);
   const nextTemperature = Number(data[BREATHSYNC_STORAGE_KEYS.temperature]);
+  const nextFollowHarmony = Boolean(data[BREATHSYNC_STORAGE_KEYS.followHarmony]);
+  const nextFollowStrength = Number(data[BREATHSYNC_STORAGE_KEYS.followStrength]);
+  const nextHarmonyState = data[BREATHSYNC_STORAGE_KEYS.harmonyState];
   const nextReverb = Number(data[BREATHSYNC_STORAGE_KEYS.reverb]);
   const nextBinaural = Boolean(data[BREATHSYNC_STORAGE_KEYS.binaural]);
   const nextSpace = Number(data[BREATHSYNC_STORAGE_KEYS.space]);
@@ -2488,6 +2552,11 @@ function breathsyncApplyState(data, softTechniqueChange = false) {
   breathsyncTemperature = Number.isFinite(nextTemperature)
     ? nextTemperature
     : 0;
+  breathsyncFollowHarmony = nextFollowHarmony;
+  breathsyncFollowStrength = Number.isFinite(nextFollowStrength) ? nextFollowStrength : 0.6;
+  if (nextHarmonyState && typeof nextHarmonyState === "object") {
+    breathsyncHarmonyState = nextHarmonyState;
+  }
   breathsyncReverbAmount = Number.isFinite(nextReverb) ? nextReverb : 0.8;
   breathsyncBinauralEnabled = nextBinaural;
   breathsyncSpaceAmount = Number.isFinite(nextSpace) ? nextSpace : 0.5;
@@ -2609,6 +2678,9 @@ function breathsyncSyncState(softTechniqueChange = false) {
       [BREATHSYNC_STORAGE_KEYS.volume]: 0.35,
       [BREATHSYNC_STORAGE_KEYS.volumeTouched]: false,
       [BREATHSYNC_STORAGE_KEYS.temperature]: 0,
+      [BREATHSYNC_STORAGE_KEYS.followHarmony]: false,
+      [BREATHSYNC_STORAGE_KEYS.followStrength]: 0.6,
+      [BREATHSYNC_STORAGE_KEYS.harmonyState]: null,
       [BREATHSYNC_STORAGE_KEYS.reverb]: 0.8,
       [BREATHSYNC_STORAGE_KEYS.binaural]: false,
       [BREATHSYNC_STORAGE_KEYS.space]: 0.5,
@@ -2637,6 +2709,19 @@ if (document.readyState === "loading") {
 if (breathsyncHasStorage()) {
 chrome.storage.onChanged.addListener((changes, area) => {
   if (area !== "local") return;
+
+  if (changes[BREATHSYNC_STORAGE_KEYS.followHarmony]) {
+    breathsyncFollowHarmony = Boolean(changes[BREATHSYNC_STORAGE_KEYS.followHarmony].newValue);
+  }
+  if (changes[BREATHSYNC_STORAGE_KEYS.followStrength]) {
+    const nextStrength = Number(changes[BREATHSYNC_STORAGE_KEYS.followStrength].newValue);
+    breathsyncFollowStrength = Number.isFinite(nextStrength) ? nextStrength : 0.6;
+  }
+  if (changes[BREATHSYNC_STORAGE_KEYS.harmonyState]) {
+    const nextHarmonyState = changes[BREATHSYNC_STORAGE_KEYS.harmonyState].newValue;
+    breathsyncHarmonyState =
+      nextHarmonyState && typeof nextHarmonyState === "object" ? nextHarmonyState : null;
+  }
 
   const relevantChange =
     changes[BREATHSYNC_STORAGE_KEYS.running] ||

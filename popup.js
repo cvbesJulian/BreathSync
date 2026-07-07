@@ -16,6 +16,9 @@ const STORAGE_KEYS = {
   kidsVolume: "breathsyncKidsVolume",
   ambientDebug: "breathsyncAmbientDebug",
   temperature: "breathsyncTemperature",
+  followHarmony: "breathsyncFollowHarmony",
+  followStrength: "breathsyncFollowStrength",
+  harmonyState: "breathsyncHarmonyState",
   reverb: "breathsyncReverb",
   binaural: "breathsyncBinaural",
   space: "breathsyncSpace",
@@ -118,6 +121,10 @@ const midiTest = document.getElementById("midiTest");
 const midiStatus = document.getElementById("midiStatus");
 const midiDebug = document.getElementById("midiDebug");
 const openListen = document.getElementById("openListen");
+const followHarmonyToggle = document.getElementById("followHarmonyToggle");
+const followStrengthControl = document.getElementById("followStrengthControl");
+const followStrengthValue = document.getElementById("followStrengthValue");
+const followStatus = document.getElementById("followStatus");
 const toggleWidget = document.getElementById("toggleWidget");
 const stopWidget = document.getElementById("stopWidget");
 const guideStatus = document.getElementById("guideStatus");
@@ -149,6 +156,9 @@ let kidsVolume = 0;
 let mixMasterVolume = 0.5;
 let soundVolume = 0.35;
 let temperature = 0;
+let followHarmony = false;
+let followStrength = 0.6;
+let harmonyState = null;
 let reverbAmount = 0.8;
 let binauralEnabled = false;
 let spaceAmount = 0.5;
@@ -1374,11 +1384,62 @@ const CONSONANT_SCALE = [
   1174.66
 ];
 
+const MAJOR_SCALE_STEPS = [0, 2, 4, 5, 7, 9, 11];
+const MINOR_SCALE_STEPS = [0, 2, 3, 5, 7, 8, 10];
+const NOTE_NAME_TO_PC = {
+  C: 0, "C#": 1, D: 2, "D#": 3, E: 4, F: 5,
+  "F#": 6, G: 7, "G#": 8, A: 9, "A#": 10, B: 11
+};
+const FOLLOW_STALE_MS = 4000;
+
+let activeScale = CONSONANT_SCALE;
+
+function buildScaleFromKey(rootPc, mode) {
+  const steps = mode === "minor" ? MINOR_SCALE_STEPS : MAJOR_SCALE_STEPS;
+  const baseMidi = 36 + rootPc;
+  const scale = [];
+
+  for (let octave = 0; octave < 5; octave += 1) {
+    for (let stepIndex = 0; stepIndex < steps.length; stepIndex += 1) {
+      const midi = baseMidi + octave * 12 + steps[stepIndex];
+      const frequency = 440 * 2 ** ((midi - 69) / 12);
+      if (frequency >= 60 && frequency <= 1250) scale.push(frequency);
+    }
+  }
+
+  return scale.length ? scale : CONSONANT_SCALE;
+}
+
+function getFollowedScale() {
+  if (!followHarmony) return null;
+  if (!(followStrength > 0.05)) return null;
+
+  const state = harmonyState;
+  if (!state || typeof state.key !== "string") return null;
+  if (!Number.isFinite(state.updatedAt) || Date.now() - state.updatedAt > FOLLOW_STALE_MS) {
+    return null;
+  }
+
+  const minConfidence = 0.85 - followStrength * 0.45;
+  if (!Number.isFinite(state.confidence) || state.confidence < minConfidence) return null;
+
+  const rootPc = NOTE_NAME_TO_PC[state.key];
+  if (rootPc == null) return null;
+
+  const mode = state.mode === "minor" ? "minor" : "major";
+  return buildScaleFromKey(rootPc, mode);
+}
+
+function updateActiveScale() {
+  activeScale = getFollowedScale() || CONSONANT_SCALE;
+  return activeScale;
+}
+
 function nearestScaleIndex(frequency) {
   let bestIndex = 0;
   let bestDistance = Infinity;
 
-  CONSONANT_SCALE.forEach((note, index) => {
+  activeScale.forEach((note, index) => {
     const distance = Math.abs(note - frequency);
     if (distance < bestDistance) {
       bestDistance = distance;
@@ -1392,10 +1453,10 @@ function nearestScaleIndex(frequency) {
 function getDiatonicNoteFromIndex(index) {
   const nextIndex = Math.max(
     0,
-    Math.min(CONSONANT_SCALE.length - 1, index)
+    Math.min(activeScale.length - 1, index)
   );
 
-  return CONSONANT_SCALE[nextIndex];
+  return activeScale[nextIndex];
 }
 
 function buildTemperatureChord(chord, amount, chordIndex) {
@@ -1804,6 +1865,7 @@ function playLocalPhaseSound(label, duration) {
   if (!context) return;
 
   const now = context.currentTime;
+  updateActiveScale();
   const sound = applyTemperatureToSound(getPhaseSound(label));
   const gain = context.createGain();
   const filter = context.createBiquadFilter();
@@ -2455,6 +2517,63 @@ async function persistTemperature() {
   });
 }
 
+function updateFollowStatus() {
+  if (!followStatus) return;
+
+  if (!followHarmony) {
+    followStatus.textContent = "Follow off";
+    return;
+  }
+
+  const state = harmonyState;
+  const fresh =
+    state &&
+    Number.isFinite(state.updatedAt) &&
+    Date.now() - state.updatedAt <= FOLLOW_STALE_MS;
+
+  if (fresh && typeof state.key === "string") {
+    const minConfidence = 0.85 - followStrength * 0.45;
+    if (Number.isFinite(state.confidence) && state.confidence >= minConfidence) {
+      followStatus.textContent = `Following ${state.key} ${state.mode || "major"} from instrument`;
+    } else {
+      followStatus.textContent = "Follow on - waiting for a confident key";
+    }
+  } else {
+    followStatus.textContent = "Follow on - open Listen and play an instrument";
+  }
+}
+
+function applyFollowHarmony() {
+  if (followHarmonyToggle) followHarmonyToggle.checked = followHarmony;
+  if (followStrengthControl) {
+    followStrengthControl.disabled = !followHarmony;
+    followStrengthControl.value = String(Math.round(followStrength * 100));
+  }
+  if (followStrengthValue) {
+    followStrengthValue.textContent = `${Math.round(followStrength * 100)}%`;
+  }
+  updateFollowStatus();
+}
+
+async function persistFollowHarmony() {
+  followHarmony = followHarmonyToggle.checked;
+  applyFollowHarmony();
+  if (running) restartPreviewLoop();
+
+  await storage.set({
+    [STORAGE_KEYS.followHarmony]: followHarmony
+  });
+}
+
+async function persistFollowStrength() {
+  followStrength = Number(followStrengthControl.value) / 100;
+  applyFollowHarmony();
+
+  await storage.set({
+    [STORAGE_KEYS.followStrength]: followStrength
+  });
+}
+
 async function persistReverb() {
   reverbAmount = Number(reverbControl.value) / 100;
   applyReverb();
@@ -2564,6 +2683,8 @@ midiOutput.addEventListener("change", persistMidiOutput);
 midiOutput.addEventListener("pointerdown", () => openMidiPermissionPage("select MIDI output there"));
 midiTest.addEventListener("click", sendMidiTestNote);
 openListen.addEventListener("click", openListenPage);
+followHarmonyToggle.addEventListener("change", persistFollowHarmony);
+followStrengthControl.addEventListener("input", persistFollowStrength);
 
 function playGuideStartAnimation() {
   document.body.classList.remove("guide-launching");
@@ -2748,6 +2869,23 @@ storage.onChanged((changes, area) => {
     if (running) restartPreviewLoop();
   }
 
+  if (changes[STORAGE_KEYS.followHarmony]) {
+    followHarmony = Boolean(changes[STORAGE_KEYS.followHarmony].newValue);
+    applyFollowHarmony();
+  }
+
+  if (changes[STORAGE_KEYS.followStrength]) {
+    followStrength = Number(changes[STORAGE_KEYS.followStrength].newValue);
+    if (!Number.isFinite(followStrength)) followStrength = 0.6;
+    applyFollowHarmony();
+  }
+
+  if (changes[STORAGE_KEYS.harmonyState]) {
+    const nextHarmonyState = changes[STORAGE_KEYS.harmonyState].newValue;
+    harmonyState = nextHarmonyState && typeof nextHarmonyState === "object" ? nextHarmonyState : null;
+    updateFollowStatus();
+  }
+
   if (changes[STORAGE_KEYS.reverb]) {
     reverbAmount = Number(changes[STORAGE_KEYS.reverb].newValue);
     if (!Number.isFinite(reverbAmount)) reverbAmount = 0.8;
@@ -2842,6 +2980,9 @@ storage.get(
     [STORAGE_KEYS.volume]: 0.35,
     [STORAGE_KEYS.volumeTouched]: false,
     [STORAGE_KEYS.temperature]: 0,
+    [STORAGE_KEYS.followHarmony]: false,
+    [STORAGE_KEYS.followStrength]: 0.6,
+    [STORAGE_KEYS.harmonyState]: null,
     [STORAGE_KEYS.reverb]: 0.8,
     [STORAGE_KEYS.binaural]: false,
     [STORAGE_KEYS.space]: 0.5,
@@ -2893,6 +3034,12 @@ storage.get(
       : Boolean(data[STORAGE_KEYS.volumeTouched]);
     temperature = shouldApplyLaunchDefaults ? 0 : Number(data[STORAGE_KEYS.temperature]);
     if (!Number.isFinite(temperature)) temperature = 0;
+    followHarmony = shouldApplyLaunchDefaults ? false : Boolean(data[STORAGE_KEYS.followHarmony]);
+    followStrength = shouldApplyLaunchDefaults ? 0.6 : Number(data[STORAGE_KEYS.followStrength]);
+    if (!Number.isFinite(followStrength)) followStrength = 0.6;
+    const loadedHarmonyState = data[STORAGE_KEYS.harmonyState];
+    harmonyState =
+      loadedHarmonyState && typeof loadedHarmonyState === "object" ? loadedHarmonyState : null;
     reverbAmount = shouldApplyLaunchDefaults ? 0.8 : Number(data[STORAGE_KEYS.reverb]);
     if (!Number.isFinite(reverbAmount)) reverbAmount = 0.8;
     binauralEnabled = shouldApplyLaunchDefaults ? false : Boolean(data[STORAGE_KEYS.binaural]);
@@ -2911,6 +3058,7 @@ storage.get(
     applyMasterVolume();
     applyLocalVolume();
     applyTemperature();
+    applyFollowHarmony();
     applyReverb();
     binauralToggle.checked = binauralEnabled;
     applyBinauralSpace();

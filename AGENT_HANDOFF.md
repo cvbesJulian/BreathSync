@@ -133,7 +133,17 @@ Listen (instrument analysis, branch `midi-input`):
 - Phase 1 (done): autocorrelation monophonic pitch → note/octave/cents readout + tuning needle; median smoothing + noise gate.
 - Phase 2 (done): FFT (8192) → 12-bin chroma (fast EMA for chords, slow EMA for key) → cosine chord-template match (maj/min/dim/aug/sus2/sus4/maj7/min7/dom7) with hysteresis + Krumhansl–Schmuckler key detection + 12-bar chroma visualization. Pitch autocorrelation runs on the first 2048 samples to stay cheap.
 - Phase 3 (done): confidence gating (chord/key show as tentative below strong threshold), lead-note + note-onset density tracking, and a throttled `harmonyState` write to `chrome.storage.local` key `breathsyncHarmonyState` (min 250 ms, on-change + ~1 s refresh; idle state on silence/stop). Still inert — no consumers change sound yet.
-- Future (not scheduled): "follow external harmony" — make generation key-aware by consuming `breathsyncHarmonyState`, gated by a toggle + strength slider with feedback-loop safety.
+- Future (partly shipped): "follow external harmony" — make generation key-aware by consuming `breathsyncHarmonyState`, gated by a toggle + strength slider with feedback-loop safety.
+
+Follow external harmony (audio path, v1.1.0, branch `audio-output`):
+- Decisions: key-only following, audio output first (MIDI-out untouched for now).
+- New storage keys: `breathsyncFollowHarmony` (bool, default false), `breathsyncFollowStrength` (0–1, default 0.6). Consumers also read `breathsyncHarmonyState` (from Listen).
+- Bridge mirrored in `content.js` (audible offscreen) and `popup.js` (preview): `buildScaleFromKey`, `getFollowedScale`, `updateActiveScale`; `nearestScaleIndex`/`getDiatonicNoteFromIndex` now read a swappable `activeScale`.
+- Active scale is refreshed at the start of each phase sound build (`breathsyncPlayPhaseSound` / `playLocalPhaseSound`), so key follows switch at breath-phase boundaries.
+- Following engages only when: toggle on, strength > 0.05, state fresh (`updatedAt` within 4s), and `confidence >= 0.85 − strength·0.45`. Otherwise it falls back to the internal `*_CONSONANT_SCALE` (default-off = unchanged behavior).
+- `harmonyState`/follow-key `storage.onChanged` updates caches directly WITHOUT calling sync/resync (avoids ~4 Hz phase restarts; do not add these keys to the resync `relevantChange` list).
+- Popup controls: `Follow external harmony (key)` toggle + `Follow strength` slider + `followStatus` line.
+- Not yet done: MIDI-out following (`midi-permission.js`), chord biasing, lead alignment. See `FOLLOW_HARMONY_PLAN.md`.
 - Shares `breathsyncDarkMode` with the rest of the extension.
 
 ## Important Browser Reality

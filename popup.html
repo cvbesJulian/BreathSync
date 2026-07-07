@@ -122,6 +122,16 @@
       <p id="midiStatus" class="midi-status">MIDI off</p>
       <p id="midiDebug" class="midi-status">Outputs: none scanned</p>
       <button id="openListen" class="midi-test" type="button">Listen / analyze instrument</button>
+      <label class="sound-control">
+        <input id="followHarmonyToggle" type="checkbox" />
+        <span>Follow external harmony (key)</span>
+      </label>
+      <label class="volume-label" for="followStrengthControl">
+        <span>Follow strength</span>
+        <span id="followStrengthValue">60%</span>
+      </label>
+      <input id="followStrengthControl" type="range" min="0" max="100" step="1" value="60" />
+      <p id="followStatus" class="midi-status">Follow off</p>
     </section>
 
     <section class="preview" aria-live="polite">
