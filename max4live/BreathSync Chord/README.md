@@ -32,40 +32,55 @@ Listen (audio) ──bs.harmony.bus1──► bs.chord.js ──predict json─�
 
 | file | role |
 |---|---|
-| `bs.chord.js` | the `v8` device script (this folder). |
+| `BreathSync Chord.amxd` | the built Max for Live device (MIDI effect; `bs.chord.js` embedded). |
+| `bs.chord.maxpat` | the patcher source (JSON) — open/edit in Max, re-save as usual. |
+| `bs.chord.js` | the `v8` device script. |
+| `build_chord_maxpat.py` | regenerates `bs.chord.maxpat` from scratch. |
 | `../../ml/next_chord/deploy/nextchord.node.js` | the `node.script` model server. |
 | `../test/chord.harness.mjs` | headless test: drives `bs.chord.js` against the **real** ONNX model (23 checks). |
 
 The model + configs live in `ml/next_chord/artifacts/` and are loaded by the
 node at runtime; retrain → re-export updates the device with no code changes.
 
-## Knobs (wire these widgets in the .maxpat)
+## Rebuild the device
 
-`active` (toggle) · `complexity` 0–1 (triad → 7th → 9th) · `freedom` 0–1
-(model softmax temperature) · `wlenbars` (melody window) · `vel` · `channel` ·
-`chordoct` · `waitbars` (bars to listen before comping).
+```bash
+cd max4live
+python3 "BreathSync Chord/build_chord_maxpat.py"          # -> bs.chord.maxpat
+python3 build_amxd.py "BreathSync Chord/bs.chord.maxpat" \
+        "BreathSync Chord/BreathSync Chord.amxd" \
+        --type midi --embed "BreathSync Chord/bs.chord.js"
+```
 
-## Building the patcher (must be done in Max 9 / Live 12.2+)
+`build_amxd.py` embeds the v8 script and validates the patch graph
+(inlet/outlet bounds, unique parameter names, presentation rects). The `.amxd`
+is a 32-byte chunk header + the patcher JSON, so it round-trips cleanly.
 
-The `.maxpat` and `.amxd` are authored in Max and are not checked in (binary).
-Build a **MIDI-effect** device with:
+## Patch topology (already wired in `bs.chord.maxpat`)
 
-- `v8 bs.chord.js @autowatch 0` — inlet 0, three outlets.
-- `node.script nextchord.node.js @autostart 1` — its output routes back to the
-  v8 inlet (the `modelchord` / `top` messages).
-- `[receive bs.harmony.bus1]` → `route state lead chord hello` → v8 inlet
-  (consumes `state` + `lead`; `chord`/`hello` are ignored by design).
+- `v8 bs.chord.js @autowatch 0 @embed 1` — inlet 0, three outlets (MIDI /
+  displays / predict).
+- `node.script nextchord.node.js @autostart 1` — output wired back to the v8
+  inlet (`modelchord` reply).
+- `[receive bs.harmony.bus1]` → `[route state lead chord hello]` →
+  `[prepend state]`/`[prepend lead]` → v8 (`chord`/`hello` ignored by design).
 - v8 **outlet 2** (`predict …`) → `node.script` inlet.
-- v8 **outlet 0** (raw MIDI) → `[midiout]` (optionally `[iter]`→`[midiflush]`
-  as in Follow, to avoid hung notes).
-- v8 **outlet 1** (displays) → your UI `status` / `chord` / `key` fields.
-- `[live.thisdevice]` → `[t b]` → `init` message into v8 (LiveAPI is only legal
-  after device init).
-- `[metro 20]` (gated by transport) → `watchdog` into v8 (beat detection +
-  staleness). Param widgets send their named messages (`complexity $1`, etc.).
+- v8 **outlet 0** (MIDI list) → `[iter]` → `[midiflush]` → `[midiout]`;
+  `[midiin]` → `[midiout]` passthrough.
+- v8 **outlet 1** (displays) → `[route status chord key]` → UI message boxes.
+- `[live.thisdevice]` → `[t b b]` → `init` (before) + `[1]`→`[metro 20]`→
+  `watchdog` (beat detection). `live.thisdevice` outlet 1 → `enabled $1`.
+- Presentation controls send named messages: `active/complexity/freedom/`
+  `wlenbars/vel/chordoct/waitbars/channel $1`, `panic`.
 
-Requires Live 12.2+ (Max 9 `v8` + Node for Max). In `ml/next_chord/deploy/`,
-run `npm install` once so `node.script` can load `onnxruntime-node`.
+## Install in Live (Live 12.2+ / Max 9)
+
+1. Drop `BreathSync Chord.amxd` on a **MIDI track**, after a **BreathSync
+   Listen** device feeding the same harmony bus.
+2. `node.script` loads `nextchord.node.js` from `ml/next_chord/deploy/`. Run
+   `npm install` there once (for `onnxruntime-node`), then add that folder to
+   **Options → File Preferences → (Max) search path** so Max resolves the
+   script + its `node_modules` — or copy the `deploy/` contents beside the device.
 
 ## Verify (headless, no Max needed)
 
@@ -76,4 +91,5 @@ node ../../../max4live/test/chord.harness.mjs   # ALL 23 CHECKS PASSED
 
 This drives `bs.chord.js` (compiled with Max stubs) through the real
 `chord_service.respond()` + `onnxruntime-node`, i.e. the whole Max-side → model
-→ MIDI path. Only the in-Max patcher/Ableton wiring is unverifiable outside Max.
+→ MIDI path. The `.amxd` builds and validates via `build_amxd.py`; the one thing
+not exercisable outside Ableton is opening the device in Live itself.
