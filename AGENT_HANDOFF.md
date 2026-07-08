@@ -26,6 +26,8 @@ No React, Vite, npm, bundlers, TypeScript, Tailwind, or external deps.
 - `background.js`: MV3 service worker; creates/closes offscreen audio document.
 - `offscreen.html`: hidden audio document; loads `content.js` as persistent audio engine.
 - `breathsync_mvp.md`: original source spec.
+- `listen.html` / `listen.css` / `listen.js`: instrument listening page (audio input capture + real-time melody/harmony analysis). See `LISTEN_FEATURE_PLAN.md`.
+- `LISTEN_FEATURE_PLAN.md`: phased plan + status for the instrument listening feature (branch `midi-input`).
 
 ## Current Product State
 
@@ -122,6 +124,18 @@ MIDI:
 - Content scripts no longer request MIDI on every tab load.
 - Content scripts never call `requestMIDIAccess`; MIDI permission/output scanning is popup-only to avoid per-tab permission prompts.
 
+Listen (instrument analysis, branch `midi-input`):
+- Opened from popup `Listen / analyze instrument` button (`openListenPage()` → `chrome.tabs.create` on `listen.html`).
+- Analyze-and-display only: does NOT alter BreathSync's own audio/MIDI generation yet.
+- Audio input via `getUserMedia` (mic/line); no new manifest permission needed for extension-page mic capture. AGC/noise-suppression/echo-cancel disabled.
+- Device picker via `enumerateDevices`; selected input persisted to `breathsyncListenInputDevice`.
+- Phase 0 (done): device picker, Start/Stop capture, RMS level meter, clean teardown.
+- Phase 1 (done): autocorrelation monophonic pitch → note/octave/cents readout + tuning needle; median smoothing + noise gate.
+- Phase 2 (done): FFT (8192) → 12-bin chroma (fast EMA for chords, slow EMA for key) → cosine chord-template match (maj/min/dim/aug/sus2/sus4/maj7/min7/dom7) with hysteresis + Krumhansl–Schmuckler key detection + 12-bar chroma visualization. Pitch autocorrelation runs on the first 2048 samples to stay cheap.
+- Phase 3 (done): confidence gating (chord/key show as tentative below strong threshold), lead-note + note-onset density tracking, and a throttled `harmonyState` write to `chrome.storage.local` key `breathsyncHarmonyState` (min 250 ms, on-change + ~1 s refresh; idle state on silence/stop). Still inert — no consumers change sound yet.
+- Future (not scheduled): "follow external harmony" — make generation key-aware by consuming `breathsyncHarmonyState`, gated by a toggle + strength slider with feedback-loop safety.
+- Shares `breathsyncDarkMode` with the rest of the extension.
+
 ## Important Browser Reality
 
 Chrome extension popup behavior:
@@ -163,9 +177,9 @@ Popup Start button behavior:
 Run after edits:
 
 ```sh
-cd /Users/juliancubillos/dev/BreathSync
 node --check popup.js
 node --check content.js
+node --check listen.js
 python3 -m json.tool manifest.json
 ```
 

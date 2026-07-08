@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BreathSync Listen</title>
+  <link rel="stylesheet" href="listen.css" />
+</head>
+<body>
+  <main class="listen">
+    <div class="brand-lockup" aria-label="CVBES Labs">
+      <span class="brand-logo" aria-hidden="true"></span>
+      <p class="eyebrow">BreathSync</p>
+    </div>
+    <h1>Listen</h1>
+    <p class="intro">
+      Capture another instrument to read its harmony and melody. Nothing is recorded or sent anywhere.
+    </p>
+
+    <label class="mode-control">
+      <input id="darkModeToggle" type="checkbox" />
+      <span>Dark mode</span>
+    </label>
+
+    <button id="toggleListen" type="button">Start listening</button>
+
+    <label for="inputDevice">Audio input</label>
+    <select id="inputDevice">
+      <option value="">Default input</option>
+    </select>
+
+    <div class="actions">
+      <button id="rescanDevices" class="secondary" type="button">Rescan inputs</button>
+    </div>
+
+    <div class="meter" aria-hidden="true">
+      <span id="meterFill" class="meter-fill"></span>
+    </div>
+
+    <section class="readout" aria-live="polite">
+      <div class="readout-note">
+        <span id="noteName" class="note-name">&mdash;</span>
+        <span id="noteOctave" class="note-octave"></span>
+      </div>
+      <span id="noteFreq" class="note-freq"></span>
+    </section>
+
+    <div class="tuning" aria-hidden="true">
+      <span class="tuning-center"></span>
+      <span id="tuningNeedle" class="tuning-needle"></span>
+    </div>
+    <p id="tuningCents" class="cents">Melody: waiting for a clear note.</p>
+
+    <section class="harmony" aria-live="polite">
+      <div class="harmony-cell">
+        <span class="harmony-label">Chord</span>
+        <span id="chordName" class="harmony-value">&mdash;</span>
+        <span id="chordConfidence" class="harmony-confidence"></span>
+      </div>
+      <div class="harmony-cell">
+        <span class="harmony-label">Key</span>
+        <span id="keyName" class="harmony-value">&mdash;</span>
+        <span id="keyConfidence" class="harmony-confidence"></span>
+      </div>
+    </section>
+
+    <div id="chroma" class="chroma" aria-hidden="true"></div>
+
+    <p id="listenStatus" class="status">Not listening yet.</p>
+    <p id="listenDebug" class="debug">Press Start listening to grant microphone access.</p>
+
+    <footer class="signature" aria-label="Application signature">
+      <span>Developed by CVBES Labs 2026</span>
+      <span>Beta 0.1</span>
+    </footer>
+  </main>
+
+  <script src="listen.js"></script>
+</body>
+</html>
