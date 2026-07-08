@@ -1,0 +1,15 @@
+{
+  "n_reference_midis": 1479,
+  "n_compared": 1443,
+  "n_pitch_exact": 1442,
+  "n_timing_ok": 1442,
+  "max_onset_err_ms": 0.234,
+  "mismatches": [
+    {
+      "uid": "nLgaXYn_mYp",
+      "kind": "pitch",
+      "ref": 22,
+      "ours": 33
+    }
+  ]
+}

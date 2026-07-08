@@ -1,0 +1,216 @@
+{
+ "min_count": 20,
+ "families": [
+  "MAJ",
+  "DOM",
+  "MIN",
+  "HDIM",
+  "DIM",
+  "AUG",
+  "SUS"
+ ],
+ "n_classes_total": 42,
+ "coverage": 0.9811,
+ "classes": [
+  {
+   "root": 0,
+   "family": "MAJ",
+   "count": 1348
+  },
+  {
+   "root": 7,
+   "family": "DOM",
+   "count": 1010
+  },
+  {
+   "root": 2,
+   "family": "MIN",
+   "count": 938
+  },
+  {
+   "root": 9,
+   "family": "MIN",
+   "count": 671
+  },
+  {
+   "root": 4,
+   "family": "DOM",
+   "count": 370
+  },
+  {
+   "root": 9,
+   "family": "DOM",
+   "count": 363
+  },
+  {
+   "root": 4,
+   "family": "MIN",
+   "count": 343
+  },
+  {
+   "root": 5,
+   "family": "MAJ",
+   "count": 332
+  },
+  {
+   "root": 2,
+   "family": "DOM",
+   "count": 295
+  },
+  {
+   "root": 0,
+   "family": "DOM",
+   "count": 290
+  },
+  {
+   "root": 5,
+   "family": "DOM",
+   "count": 169
+  },
+  {
+   "root": 5,
+   "family": "MIN",
+   "count": 165
+  },
+  {
+   "root": 11,
+   "family": "DOM",
+   "count": 164
+  },
+  {
+   "root": 10,
+   "family": "DOM",
+   "count": 156
+  },
+  {
+   "root": 7,
+   "family": "MIN",
+   "count": 136
+  },
+  {
+   "root": 11,
+   "family": "HDIM",
+   "count": 114
+  },
+  {
+   "root": 3,
+   "family": "DIM",
+   "count": 106
+  },
+  {
+   "root": 0,
+   "family": "MIN",
+   "count": 103
+  },
+  {
+   "root": 3,
+   "family": "DOM",
+   "count": 84
+  },
+  {
+   "root": 8,
+   "family": "DOM",
+   "count": 72
+  },
+  {
+   "root": 6,
+   "family": "HDIM",
+   "count": 69
+  },
+  {
+   "root": 2,
+   "family": "HDIM",
+   "count": 54
+  },
+  {
+   "root": 4,
+   "family": "HDIM",
+   "count": 53
+  },
+  {
+   "root": 4,
+   "family": "MAJ",
+   "count": 49
+  },
+  {
+   "root": 8,
+   "family": "MAJ",
+   "count": 48
+  },
+  {
+   "root": 3,
+   "family": "MAJ",
+   "count": 48
+  },
+  {
+   "root": 10,
+   "family": "MAJ",
+   "count": 47
+  },
+  {
+   "root": 9,
+   "family": "MAJ",
+   "count": 47
+  },
+  {
+   "root": 6,
+   "family": "MIN",
+   "count": 45
+  },
+  {
+   "root": 1,
+   "family": "DOM",
+   "count": 43
+  },
+  {
+   "root": 7,
+   "family": "MAJ",
+   "count": 43
+  },
+  {
+   "root": 6,
+   "family": "DIM",
+   "count": 38
+  },
+  {
+   "root": 11,
+   "family": "MIN",
+   "count": 37
+  },
+  {
+   "root": 1,
+   "family": "DIM",
+   "count": 34
+  },
+  {
+   "root": 1,
+   "family": "MAJ",
+   "count": 31
+  },
+  {
+   "root": 6,
+   "family": "DOM",
+   "count": 27
+  },
+  {
+   "root": 3,
+   "family": "MIN",
+   "count": 26
+  },
+  {
+   "root": 2,
+   "family": "MAJ",
+   "count": 26
+  },
+  {
+   "root": 9,
+   "family": "HDIM",
+   "count": 22
+  },
+  {
+   "root": 10,
+   "family": "MIN",
+   "count": 22
+  }
+ ]
+}

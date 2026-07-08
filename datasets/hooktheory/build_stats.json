@@ -1,0 +1,130 @@
+{
+  "songs_total": 26175,
+  "songs_included": 22866,
+  "songs_excluded": 3309,
+  "excluded_reasons": [
+    [
+      "no_melody",
+      2342
+    ],
+    [
+      "key_change",
+      473
+    ],
+    [
+      "meter_change",
+      269
+    ],
+    [
+      "no_harmony",
+      221
+    ],
+    [
+      "too_short",
+      3
+    ],
+    [
+      "no_parsable_chords",
+      1
+    ]
+  ],
+  "split_counts": [
+    [
+      "TRAIN",
+      18583
+    ],
+    [
+      "TEST",
+      2410
+    ],
+    [
+      "VALID",
+      1873
+    ]
+  ],
+  "bars": 261844,
+  "phrases": 229229,
+  "chord_events": 299991,
+  "chord_vocab": 192,
+  "quality_counts": [
+    [
+      "maj",
+      148769
+    ],
+    [
+      "min",
+      70181
+    ],
+    [
+      "min7",
+      26948
+    ],
+    [
+      "7",
+      16729
+    ],
+    [
+      "maj7",
+      14803
+    ],
+    [
+      "sus4",
+      7505
+    ],
+    [
+      "sus2",
+      5009
+    ],
+    [
+      "dim",
+      4677
+    ],
+    [
+      "hdim7",
+      2942
+    ],
+    [
+      "dim7",
+      846
+    ],
+    [
+      "aug",
+      581
+    ],
+    [
+      "maj6",
+      329
+    ],
+    [
+      "5",
+      236
+    ],
+    [
+      "1",
+      202
+    ],
+    [
+      "minmaj7",
+      162
+    ],
+    [
+      "min6",
+      72
+    ]
+  ],
+  "median_consonance": 0.7258,
+  "verification": {
+    "n_reference_midis": 1479,
+    "n_compared": 1443,
+    "n_pitch_exact": 1442,
+    "n_timing_ok": 1442,
+    "max_onset_err_ms": 0.234
+  },
+  "verify_midi_samples": [
+    "nLgaOXJBoYp",
+    "JkmZJynJmqn",
+    "veoYpdVVxdn",
+    "ROmNRwGQmNw",
+    "zngRBLwEgJj"
+  ]
+}
