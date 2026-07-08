@@ -21,6 +21,7 @@ distinguished by the `source` column:
 | `phrases.csv` | Ready-made training examples: up to 8 bars of context + `next_chord` / `next_chord_t` targets |
 | `songs.csv` | Per-song metadata (key, mode, transpose offset) and POP909 verification scores |
 | `build_stats.json` / `build_stats_combined.json` | Build summaries |
+| `browser.html` | Self-contained interactive browser (open in any browser): piano-roll playback, training-example framing, chord-transition tables; 46 representative songs embedded |
 | `verify_midi/` | Reconstructed melody+chord MIDIs for 5 POP909 songs — listen to spot-check alignment |
 | `improspira_max/` | Full-fidelity per-song JSON dicts for Max/MSP (velocities, full chord symbols, titles) + Markov transition dicts — see its README |
 | `build_dataset.py` | Step 1: builds the POP909-only tables from `../POP909` |
