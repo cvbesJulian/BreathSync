@@ -1,0 +1,19 @@
+{
+  "songs_total": 909,
+  "songs_included": 906,
+  "songs_excluded": 3,
+  "bars": 74661,
+  "phrases": 65612,
+  "chord_events": 107296,
+  "chord_vocab": 152,
+  "consonance_threshold": 0.8,
+  "coverage_threshold": 0.9,
+  "median_consonance": 0.9482,
+  "verify_midi_samples": [
+    "405",
+    "178",
+    "354",
+    "294",
+    "033"
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "songs": {
+    "nottingham": 1018,
+    "pop909": 906,
+    "openbook": 152
+  },
+  "bars": {
+    "pop909": 74661,
+    "nottingham": 39503,
+    "openbook": 6738
+  },
+  "phrases": {
+    "pop909": 65612,
+    "nottingham": 38482,
+    "openbook": 6586
+  },
+  "chord_events": {
+    "pop909": 107296,
+    "nottingham": 41890,
+    "openbook": 9029
+  },
+  "chord_vocab": 163,
+  "chord_vocab_transposed": 158,
+  "skipped_unparseable_chords": 0
+}
