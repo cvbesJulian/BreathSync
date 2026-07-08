@@ -48,6 +48,109 @@ source of truth for the bus messages.
    history (a Live API limitation) — the device rate-limits to at most one
    change per 10 s and never rewrites an unchanged key.
 
+## Performing
+
+Follow adds a **Perform** panel of 11 live-playable parameters (timing/groove,
+voicing, and performance switches). They are designed for a hardware control
+surface — an Akai MPK Mini Plus today, a MIDI foot controller later. The panel
+sits to the right of the existing controls, widening the device window to
+**624 × 169 px**; the left column is unchanged.
+
+**Every default is a musical no-op.** With Quantize/Gate off, Strum/Human/Spread
+at 0, Chance at 100, Voices at 4, and Hold/Kill off, Follow emits exactly the
+same MIDI byte stream as before — the Perform panel only bites when you turn
+something up.
+
+| Param | Range | Default | What it does |
+|---|---|---|---|
+| **Quantize** | Off, 1/16, 1/8, 1/8T, 1/4, 1/2, 1 Bar | Off | Snaps note *changes* to the next grid boundary of the chosen division, so joins and chord changes land on the beat. |
+| **Gate** | Off, 1/4, 1/8, 1/8T, 1/16, 1/16T | Off | Rhythmically re-strikes the **chord** on every grid division (a pumping/arp feel). Chord-only — the lead melody always sustains. |
+| **Gate Len** | 5–100 % | 50 | Length of each gated chord note as a fraction of the gate interval (staccato → legato). Only matters when Gate is on. |
+| **Chance** | 0–100 % | 100 | Probability that each physical note-on actually sounds. Adds sparseness/stutter. |
+| **Spread** | 0–3 | 0 | Octave-spread voicing width. 0 = close voicing; higher stages lift alternating chord tones up an octave. |
+| **Voices** | 1–4 | 4 | Chord-tone budget. 4 = full chord, 3 = drop the 5th (shell), 2 = root + defining tone, 1 = root only (bass follower). |
+| **Strum** | 0–60 ms | 0 | Staggers newly added chord tones low→high, `n × strum` ms apart. 0 = simultaneous block chord. |
+| **Human** | 0–100 % | 0 | Humanizes timing and velocity: adds an on-delay in `[0, 20 ms × h]` and velocity `± round(12 × h)`. |
+| **Hold** | off / on | off | Freezes the current harmony — the sounding notes keep ringing while incoming events are ignored for output (caches still track underneath). |
+| **Kill** | off / on | off | Instantly mutes all output and cancels every scheduled note. Tracking continues; turning it off re-strikes from the live source. |
+| **Re-Wait** | trigger | — | Re-arms the wait-N-bars countdown (see **Wait Mode**) from the current transport position. No-op when stopped. |
+
+### The rules that matter
+
+- **Precedence (strongest first): Panic/delete → device off → Kill → stale →
+  Wait gate.** Whatever is higher wins. In particular **Kill beats Hold**
+  (a killed device is silent even while holding), and the Wait gate is the
+  weakest — anything above it can override the "still waiting to join" state.
+- **Hold survives staleness.** If the analyzer goes quiet while Hold is on, the
+  frozen pad keeps ringing (status reads *stale hold*) instead of releasing.
+  Hold also survives transport stop/start and Re-Wait. A **Panic** clears the
+  frozen snapshot (it freezes silence). Changing Mode, Channel, Octave, Spread,
+  or Voices re-voices the held content in place.
+- **Releases are never quantized.** Stopping (`lead -1`, chord reset), Kill,
+  disabling the device, staleness, and Mode-off all release *immediately* — only
+  note *changes* ride the grid. So Quantize never leaves a note hanging past its
+  cue.
+- **Chance never gates a note-off.** A skipped note advances the logical voice
+  state as if it had played; only the on-byte is suppressed, so there are no
+  stuck notes and refcounts stay correct.
+- **Transport stopped = jam mode.** Quantize and Gate bypass while the transport
+  is stopped (there is no grid to ride) — Follow plays with plain sustain
+  semantics, same as always.
+
+### Momentary vs. latching (foot pedals & pads)
+
+**Hold** and **Kill** are *level-based* (0/1), not edge-triggered. That gives you
+both feels for free from a single parameter:
+
+- **Momentary** — MIDI-map a control that sends **CC value 127 on press, 0 on
+  release** (a Live MIDI-mapped foot pedal, or an MPK pad in *momentary* mode).
+  Hold/Kill is then active only while you hold the pedal/pad down.
+- **Latching** — the on-screen toggle, or an MPK pad in *toggle* mode, flips the
+  state and leaves it there until pressed again.
+
+### Akai MPK Mini Plus map
+
+Set the MPK's knobs to send CC and MIDI-map each to the parameter below (Live's
+**MIDI Map Mode**, click the widget, wiggle the knob). Pads A1–A3 use the pad's
+*momentary* mode so Kill/Hold/Re-Wait act while held; put the same three pads on
+**Bank B** in *toggle* mode for latching copies.
+
+| Control | Maps to |
+|---|---|
+| **K1** | Gate |
+| **K2** | Gate Len |
+| **K3** | Chance |
+| **K4** | Strum |
+| **K5** | Spread |
+| **K6** | Voices |
+| **K7** | Human |
+| **K8** | Velocity *(existing base-velocity dial)* |
+| **Pad A1** (momentary) | Kill |
+| **Pad A2** (momentary) | Hold |
+| **Pad A3** (momentary) | Re-Wait |
+| **Bank B pads 1–3** (toggle) | Kill / Hold / Re-Wait, latching |
+
+Quantize is left off the knob map by default — it's a set-and-forget menu you
+pick once for a section rather than sweep live.
+
+### In-Live performance checklist
+
+Spot-check these once in a real set; they exercise the runtime edges the
+headless tests can't reach:
+
+1. **Quantized join** — Quantize 1/4 at 120 BPM: a new chord snaps onto the beat
+   instead of the moment you played it.
+2. **Gate at a loop brace** — Gate 1/16 over a 1-bar loop; watch a MIDI monitor
+   at the loop wrap for doubled or dropped strikes (loop-wrap grid timing is the
+   #1 thing to eyeball).
+3. **Tempo ramp under Gate = 1 Bar**, and a **4/4 → 3/4 meter change** under the
+   same — the grid should re-align without hung chords.
+4. **Pedal-mapped Kill/Hold** — momentary feel: sound stops/freezes on press,
+   resumes on release, with no stuck notes.
+5. **Hold through staleness** — freeze a pad, mute the source; the pad keeps
+   ringing (status *stale hold*), and toggling Hold off releases cleanly.
+6. **CPU sanity** — run ~8 instances and confirm timing stays tight under load.
+
 ## Building from source
 
 The `.amxd` containers are built by the packager (stdlib-only Python):

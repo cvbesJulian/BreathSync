@@ -18,7 +18,7 @@
 		"openrect": [
 			0.0,
 			0.0,
-			460.0,
+			624.0,
 			169.0
 		],
 		"bglocked": 0,
@@ -44,7 +44,7 @@
 		"boxanimatetime": 500,
 		"enablehscroll": 1,
 		"enablevscroll": 1,
-		"devicewidth": 460.0,
+		"devicewidth": 624.0,
 		"description": "MIDI companion for BreathSync Listen: harmony-bus consumer, Lead/Chord note generation and Live 12 scale sync.",
 		"digest": "",
 		"tags": "",
@@ -1599,13 +1599,13 @@
 							"parameter_initial_enable": 1,
 							"parameter_invisible": 2,
 							"parameter_longname": "Wait Mode",
-							"parameter_mmax": 7,
+							"parameter_mmax": 2,
 							"parameter_modmode": 0,
 							"parameter_shortname": "Wait Mode",
 							"parameter_type": 2
 						}
 					},
-					"varname": "bus_menu"
+					"varname": "waitmode_menu"
 				}
 			},
 			{
@@ -1665,7 +1665,7 @@
 							"parameter_unitstyle": 0
 						}
 					},
-					"varname": "mindur_dial"
+					"varname": "waitbars_dial"
 				}
 			},
 			{
@@ -1707,6 +1707,848 @@
 					],
 					"fontsize": 8.0,
 					"text": "WAIT"
+				}
+			},
+			{
+				"box": {
+					"id": "obj-67",
+					"maxclass": "newobj",
+					"numinlets": 2,
+					"numoutlets": 1,
+					"outlettype": [
+						"bang"
+					],
+					"patching_rect": [
+						460.0,
+						232.0,
+						236.0,
+						20.0
+					],
+					"text": "metro 40 ticks @quantize 40 ticks @active 1"
+				}
+			},
+			{
+				"box": {
+					"id": "obj-68",
+					"maxclass": "newobj",
+					"numinlets": 2,
+					"numoutlets": 9,
+					"outlettype": [
+						"int",
+						"int",
+						"float",
+						"float",
+						"float",
+						"list",
+						"int",
+						"float",
+						"list"
+					],
+					"patching_rect": [
+						460.0,
+						264.0,
+						72.0,
+						20.0
+					],
+					"text": "transport"
+				}
+			},
+			{
+				"box": {
+					"id": "obj-69",
+					"maxclass": "newobj",
+					"numinlets": 3,
+					"numoutlets": 1,
+					"outlettype": [
+						""
+					],
+					"patching_rect": [
+						460.0,
+						296.0,
+						84.0,
+						20.0
+					],
+					"text": "pack 0 0 0."
+				}
+			},
+			{
+				"box": {
+					"id": "obj-70",
+					"maxclass": "newobj",
+					"numinlets": 1,
+					"numoutlets": 1,
+					"outlettype": [
+						""
+					],
+					"patching_rect": [
+						460.0,
+						328.0,
+						90.0,
+						20.0
+					],
+					"text": "prepend grid"
+				}
+			},
+			{
+				"box": {
+					"id": "obj-71",
+					"maxclass": "live.text",
+					"numinlets": 1,
+					"numoutlets": 2,
+					"outlettype": [
+						"",
+						""
+					],
+					"parameter_enable": 1,
+					"patching_rect": [
+						620.0,
+						640.0,
+						48.0,
+						18.0
+					],
+					"presentation": 1,
+					"presentation_rect": [
+						466.0,
+						15.0,
+						48.0,
+						18.0
+					],
+					"saved_attribute_attributes": {
+						"valueof": {
+							"parameter_enum": [
+								"off",
+								"on"
+							],
+							"parameter_initial": [
+								0
+							],
+							"parameter_initial_enable": 1,
+							"parameter_longname": "Hold",
+							"parameter_mmax": 1,
+							"parameter_modmode": 0,
+							"parameter_shortname": "Hold",
+							"parameter_type": 2
+						}
+					},
+					"varname": "hold_text",
+					"mode": 1,
+					"text": "HOLD",
+					"texton": "HOLD",
+					"fontsize": 9.0
+				}
+			},
+			{
+				"box": {
+					"id": "obj-72",
+					"maxclass": "message",
+					"numinlets": 2,
+					"numoutlets": 1,
+					"outlettype": [
+						""
+					],
+					"patching_rect": [
+						620.0,
+						664.0,
+						54.0,
+						20.0
+					],
+					"text": "hold $1"
+				}
+			},
+			{
+				"box": {
+					"id": "obj-73",
+					"maxclass": "live.text",
+					"numinlets": 1,
+					"numoutlets": 2,
+					"outlettype": [
+						"",
+						""
+					],
+					"parameter_enable": 1,
+					"patching_rect": [
+						684.0,
+						640.0,
+						48.0,
+						18.0
+					],
+					"presentation": 1,
+					"presentation_rect": [
+						518.0,
+						15.0,
+						48.0,
+						18.0
+					],
+					"saved_attribute_attributes": {
+						"valueof": {
+							"parameter_enum": [
+								"off",
+								"on"
+							],
+							"parameter_initial": [
+								0
+							],
+							"parameter_initial_enable": 1,
+							"parameter_longname": "Kill",
+							"parameter_mmax": 1,
+							"parameter_modmode": 0,
+							"parameter_shortname": "Kill",
+							"parameter_type": 2
+						}
+					},
+					"varname": "kill_text",
+					"mode": 1,
+					"text": "KILL",
+					"texton": "KILL",
+					"fontsize": 9.0
+				}
+			},
+			{
+				"box": {
+					"id": "obj-74",
+					"maxclass": "message",
+					"numinlets": 2,
+					"numoutlets": 1,
+					"outlettype": [
+						""
+					],
+					"patching_rect": [
+						684.0,
+						664.0,
+						54.0,
+						20.0
+					],
+					"text": "kill $1"
+				}
+			},
+			{
+				"box": {
+					"id": "obj-75",
+					"maxclass": "live.text",
+					"numinlets": 1,
+					"numoutlets": 2,
+					"outlettype": [
+						"",
+						""
+					],
+					"parameter_enable": 1,
+					"patching_rect": [
+						748.0,
+						640.0,
+						48.0,
+						18.0
+					],
+					"presentation": 1,
+					"presentation_rect": [
+						570.0,
+						15.0,
+						48.0,
+						18.0
+					],
+					"saved_attribute_attributes": {
+						"valueof": {
+							"parameter_enum": [
+								"off",
+								"on"
+							],
+							"parameter_initial": [
+								0
+							],
+							"parameter_initial_enable": 1,
+							"parameter_longname": "Re-Wait",
+							"parameter_mmax": 1,
+							"parameter_modmode": 0,
+							"parameter_shortname": "ReWait",
+							"parameter_type": 2
+						}
+					},
+					"varname": "rewait_text",
+					"mode": 0,
+					"text": "REWAIT",
+					"texton": "REWAIT",
+					"fontsize": 9.0
+				}
+			},
+			{
+				"box": {
+					"id": "obj-76",
+					"maxclass": "message",
+					"numinlets": 2,
+					"numoutlets": 1,
+					"outlettype": [
+						""
+					],
+					"patching_rect": [
+						748.0,
+						664.0,
+						54.0,
+						20.0
+					],
+					"text": "rewait"
+				}
+			},
+			{
+				"box": {
+					"id": "obj-77",
+					"maxclass": "live.menu",
+					"numinlets": 1,
+					"numoutlets": 3,
+					"outlettype": [
+						"",
+						"",
+						"float"
+					],
+					"parameter_enable": 1,
+					"patching_rect": [
+						620.0,
+						700.0,
+						52.0,
+						15.0
+					],
+					"presentation": 1,
+					"presentation_rect": [
+						466.0,
+						50.0,
+						52.0,
+						15.0
+					],
+					"saved_attribute_attributes": {
+						"valueof": {
+							"parameter_enum": [
+								"Off",
+								"1/4",
+								"1/8",
+								"1/8T",
+								"1/16",
+								"1/16T"
+							],
+							"parameter_initial": [
+								0
+							],
+							"parameter_initial_enable": 1,
+							"parameter_longname": "Gate",
+							"parameter_mmax": 5,
+							"parameter_modmode": 0,
+							"parameter_shortname": "Gate",
+							"parameter_type": 2
+						}
+					},
+					"varname": "gate_menu"
+				}
+			},
+			{
+				"box": {
+					"id": "obj-78",
+					"maxclass": "message",
+					"numinlets": 2,
+					"numoutlets": 1,
+					"outlettype": [
+						""
+					],
+					"patching_rect": [
+						620.0,
+						722.0,
+						60.0,
+						20.0
+					],
+					"text": "gate $1"
+				}
+			},
+			{
+				"box": {
+					"id": "obj-79",
+					"maxclass": "live.dial",
+					"numinlets": 1,
+					"numoutlets": 2,
+					"outlettype": [
+						"",
+						"float"
+					],
+					"parameter_enable": 1,
+					"patching_rect": [
+						688.0,
+						700.0,
+						40.0,
+						36.0
+					],
+					"presentation": 1,
+					"presentation_rect": [
+						520.0,
+						40.0,
+						40.0,
+						36.0
+					],
+					"saved_attribute_attributes": {
+						"valueof": {
+							"parameter_initial": [
+								50
+							],
+							"parameter_initial_enable": 1,
+							"parameter_longname": "Gate Len",
+							"parameter_mmin": 5,
+							"parameter_mmax": 100,
+							"parameter_modmode": 0,
+							"parameter_shortname": "G.Len",
+							"parameter_type": 1,
+							"parameter_unitstyle": 5
+						}
+					},
+					"varname": "gatelen_dial"
+				}
+			},
+			{
+				"box": {
+					"id": "obj-80",
+					"maxclass": "message",
+					"numinlets": 2,
+					"numoutlets": 1,
+					"outlettype": [
+						""
+					],
+					"patching_rect": [
+						688.0,
+						740.0,
+						64.0,
+						20.0
+					],
+					"text": "gatelen $1"
+				}
+			},
+			{
+				"box": {
+					"id": "obj-81",
+					"maxclass": "live.dial",
+					"numinlets": 1,
+					"numoutlets": 2,
+					"outlettype": [
+						"",
+						"float"
+					],
+					"parameter_enable": 1,
+					"patching_rect": [
+						740.0,
+						700.0,
+						40.0,
+						36.0
+					],
+					"presentation": 1,
+					"presentation_rect": [
+						572.0,
+						40.0,
+						40.0,
+						36.0
+					],
+					"saved_attribute_attributes": {
+						"valueof": {
+							"parameter_initial": [
+								100
+							],
+							"parameter_initial_enable": 1,
+							"parameter_longname": "Chance",
+							"parameter_mmin": 0,
+							"parameter_mmax": 100,
+							"parameter_modmode": 0,
+							"parameter_shortname": "Chance",
+							"parameter_type": 1,
+							"parameter_unitstyle": 5
+						}
+					},
+					"varname": "chance_dial"
+				}
+			},
+			{
+				"box": {
+					"id": "obj-82",
+					"maxclass": "message",
+					"numinlets": 2,
+					"numoutlets": 1,
+					"outlettype": [
+						""
+					],
+					"patching_rect": [
+						740.0,
+						740.0,
+						64.0,
+						20.0
+					],
+					"text": "chance $1"
+				}
+			},
+			{
+				"box": {
+					"id": "obj-83",
+					"maxclass": "live.dial",
+					"numinlets": 1,
+					"numoutlets": 2,
+					"outlettype": [
+						"",
+						"float"
+					],
+					"parameter_enable": 1,
+					"patching_rect": [
+						620.0,
+						760.0,
+						40.0,
+						36.0
+					],
+					"presentation": 1,
+					"presentation_rect": [
+						468.0,
+						82.0,
+						40.0,
+						36.0
+					],
+					"saved_attribute_attributes": {
+						"valueof": {
+							"parameter_initial": [
+								0
+							],
+							"parameter_initial_enable": 1,
+							"parameter_longname": "Spread",
+							"parameter_mmin": 0,
+							"parameter_mmax": 3,
+							"parameter_modmode": 0,
+							"parameter_shortname": "Spread",
+							"parameter_type": 1,
+							"parameter_unitstyle": 0
+						}
+					},
+					"varname": "spread_dial"
+				}
+			},
+			{
+				"box": {
+					"id": "obj-84",
+					"maxclass": "message",
+					"numinlets": 2,
+					"numoutlets": 1,
+					"outlettype": [
+						""
+					],
+					"patching_rect": [
+						620.0,
+						800.0,
+						64.0,
+						20.0
+					],
+					"text": "spread $1"
+				}
+			},
+			{
+				"box": {
+					"id": "obj-85",
+					"maxclass": "live.dial",
+					"numinlets": 1,
+					"numoutlets": 2,
+					"outlettype": [
+						"",
+						"float"
+					],
+					"parameter_enable": 1,
+					"patching_rect": [
+						688.0,
+						760.0,
+						40.0,
+						36.0
+					],
+					"presentation": 1,
+					"presentation_rect": [
+						520.0,
+						82.0,
+						40.0,
+						36.0
+					],
+					"saved_attribute_attributes": {
+						"valueof": {
+							"parameter_initial": [
+								4
+							],
+							"parameter_initial_enable": 1,
+							"parameter_longname": "Voices",
+							"parameter_mmin": 1,
+							"parameter_mmax": 4,
+							"parameter_modmode": 0,
+							"parameter_shortname": "Voices",
+							"parameter_type": 1,
+							"parameter_unitstyle": 0
+						}
+					},
+					"varname": "voices_dial"
+				}
+			},
+			{
+				"box": {
+					"id": "obj-86",
+					"maxclass": "message",
+					"numinlets": 2,
+					"numoutlets": 1,
+					"outlettype": [
+						""
+					],
+					"patching_rect": [
+						688.0,
+						800.0,
+						64.0,
+						20.0
+					],
+					"text": "voices $1"
+				}
+			},
+			{
+				"box": {
+					"id": "obj-87",
+					"maxclass": "live.dial",
+					"numinlets": 1,
+					"numoutlets": 2,
+					"outlettype": [
+						"",
+						"float"
+					],
+					"parameter_enable": 1,
+					"patching_rect": [
+						756.0,
+						760.0,
+						40.0,
+						36.0
+					],
+					"presentation": 1,
+					"presentation_rect": [
+						572.0,
+						82.0,
+						40.0,
+						36.0
+					],
+					"saved_attribute_attributes": {
+						"valueof": {
+							"parameter_initial": [
+								0
+							],
+							"parameter_initial_enable": 1,
+							"parameter_longname": "Strum",
+							"parameter_mmin": 0,
+							"parameter_mmax": 60,
+							"parameter_modmode": 0,
+							"parameter_shortname": "Strum",
+							"parameter_type": 1,
+							"parameter_unitstyle": 2
+						}
+					},
+					"varname": "strum_dial"
+				}
+			},
+			{
+				"box": {
+					"id": "obj-88",
+					"maxclass": "message",
+					"numinlets": 2,
+					"numoutlets": 1,
+					"outlettype": [
+						""
+					],
+					"patching_rect": [
+						756.0,
+						800.0,
+						64.0,
+						20.0
+					],
+					"text": "strum $1"
+				}
+			},
+			{
+				"box": {
+					"id": "obj-89",
+					"maxclass": "live.menu",
+					"numinlets": 1,
+					"numoutlets": 3,
+					"outlettype": [
+						"",
+						"",
+						"float"
+					],
+					"parameter_enable": 1,
+					"patching_rect": [
+						620.0,
+						840.0,
+						60.0,
+						15.0
+					],
+					"presentation": 1,
+					"presentation_rect": [
+						466.0,
+						135.0,
+						60.0,
+						15.0
+					],
+					"saved_attribute_attributes": {
+						"valueof": {
+							"parameter_enum": [
+								"Off",
+								"1/16",
+								"1/8",
+								"1/8T",
+								"1/4",
+								"1/2",
+								"1 Bar"
+							],
+							"parameter_initial": [
+								0
+							],
+							"parameter_initial_enable": 1,
+							"parameter_longname": "Quantize",
+							"parameter_mmax": 6,
+							"parameter_modmode": 0,
+							"parameter_shortname": "Quant",
+							"parameter_type": 2
+						}
+					},
+					"varname": "quant_menu"
+				}
+			},
+			{
+				"box": {
+					"id": "obj-90",
+					"maxclass": "message",
+					"numinlets": 2,
+					"numoutlets": 1,
+					"outlettype": [
+						""
+					],
+					"patching_rect": [
+						620.0,
+						862.0,
+						72.0,
+						20.0
+					],
+					"text": "quantize $1"
+				}
+			},
+			{
+				"box": {
+					"id": "obj-91",
+					"maxclass": "live.dial",
+					"numinlets": 1,
+					"numoutlets": 2,
+					"outlettype": [
+						"",
+						"float"
+					],
+					"parameter_enable": 1,
+					"patching_rect": [
+						700.0,
+						840.0,
+						40.0,
+						36.0
+					],
+					"presentation": 1,
+					"presentation_rect": [
+						560.0,
+						120.0,
+						40.0,
+						36.0
+					],
+					"saved_attribute_attributes": {
+						"valueof": {
+							"parameter_initial": [
+								0
+							],
+							"parameter_initial_enable": 1,
+							"parameter_longname": "Human",
+							"parameter_mmin": 0,
+							"parameter_mmax": 100,
+							"parameter_modmode": 0,
+							"parameter_shortname": "Human",
+							"parameter_type": 1,
+							"parameter_unitstyle": 5
+						}
+					},
+					"varname": "human_dial"
+				}
+			},
+			{
+				"box": {
+					"id": "obj-92",
+					"maxclass": "message",
+					"numinlets": 2,
+					"numoutlets": 1,
+					"outlettype": [
+						""
+					],
+					"patching_rect": [
+						700.0,
+						880.0,
+						64.0,
+						20.0
+					],
+					"text": "human $1"
+				}
+			},
+			{
+				"box": {
+					"id": "obj-93",
+					"maxclass": "comment",
+					"numinlets": 1,
+					"numoutlets": 0,
+					"patching_rect": [
+						620.0,
+						600.0,
+						90.0,
+						12.0
+					],
+					"presentation": 1,
+					"presentation_rect": [
+						466.0,
+						1.0,
+						90.0,
+						12.0
+					],
+					"fontsize": 9.0,
+					"text": "PERFORM"
+				}
+			},
+			{
+				"box": {
+					"id": "obj-94",
+					"maxclass": "comment",
+					"numinlets": 1,
+					"numoutlets": 0,
+					"patching_rect": [
+						620.0,
+						620.0,
+						40.0,
+						12.0
+					],
+					"presentation": 1,
+					"presentation_rect": [
+						466.0,
+						36.0,
+						40.0,
+						12.0
+					],
+					"fontsize": 8.0,
+					"text": "GATE"
+				}
+			},
+			{
+				"box": {
+					"id": "obj-95",
+					"maxclass": "comment",
+					"numinlets": 1,
+					"numoutlets": 0,
+					"patching_rect": [
+						700.0,
+						620.0,
+						44.0,
+						12.0
+					],
+					"presentation": 1,
+					"presentation_rect": [
+						466.0,
+						122.0,
+						44.0,
+						12.0
+					],
+					"fontsize": 8.0,
+					"text": "QUANT"
 				}
 			}
 		],
@@ -2451,6 +3293,342 @@
 					],
 					"source": [
 						"obj-65",
+						0
+					]
+				}
+			},
+			{
+				"patchline": {
+					"destination": [
+						"obj-68",
+						0
+					],
+					"source": [
+						"obj-67",
+						0
+					]
+				}
+			},
+			{
+				"patchline": {
+					"destination": [
+						"obj-69",
+						0
+					],
+					"source": [
+						"obj-68",
+						0
+					]
+				}
+			},
+			{
+				"patchline": {
+					"destination": [
+						"obj-69",
+						1
+					],
+					"source": [
+						"obj-68",
+						1
+					]
+				}
+			},
+			{
+				"patchline": {
+					"destination": [
+						"obj-69",
+						2
+					],
+					"source": [
+						"obj-68",
+						2
+					]
+				}
+			},
+			{
+				"patchline": {
+					"destination": [
+						"obj-70",
+						0
+					],
+					"source": [
+						"obj-69",
+						0
+					]
+				}
+			},
+			{
+				"patchline": {
+					"destination": [
+						"obj-17",
+						0
+					],
+					"source": [
+						"obj-70",
+						0
+					]
+				}
+			},
+			{
+				"patchline": {
+					"destination": [
+						"obj-72",
+						0
+					],
+					"source": [
+						"obj-71",
+						0
+					]
+				}
+			},
+			{
+				"patchline": {
+					"destination": [
+						"obj-17",
+						0
+					],
+					"source": [
+						"obj-72",
+						0
+					]
+				}
+			},
+			{
+				"patchline": {
+					"destination": [
+						"obj-74",
+						0
+					],
+					"source": [
+						"obj-73",
+						0
+					]
+				}
+			},
+			{
+				"patchline": {
+					"destination": [
+						"obj-17",
+						0
+					],
+					"source": [
+						"obj-74",
+						0
+					]
+				}
+			},
+			{
+				"patchline": {
+					"destination": [
+						"obj-76",
+						0
+					],
+					"source": [
+						"obj-75",
+						0
+					]
+				}
+			},
+			{
+				"patchline": {
+					"destination": [
+						"obj-17",
+						0
+					],
+					"source": [
+						"obj-76",
+						0
+					]
+				}
+			},
+			{
+				"patchline": {
+					"destination": [
+						"obj-78",
+						0
+					],
+					"source": [
+						"obj-77",
+						0
+					]
+				}
+			},
+			{
+				"patchline": {
+					"destination": [
+						"obj-17",
+						0
+					],
+					"source": [
+						"obj-78",
+						0
+					]
+				}
+			},
+			{
+				"patchline": {
+					"destination": [
+						"obj-80",
+						0
+					],
+					"source": [
+						"obj-79",
+						0
+					]
+				}
+			},
+			{
+				"patchline": {
+					"destination": [
+						"obj-17",
+						0
+					],
+					"source": [
+						"obj-80",
+						0
+					]
+				}
+			},
+			{
+				"patchline": {
+					"destination": [
+						"obj-82",
+						0
+					],
+					"source": [
+						"obj-81",
+						0
+					]
+				}
+			},
+			{
+				"patchline": {
+					"destination": [
+						"obj-17",
+						0
+					],
+					"source": [
+						"obj-82",
+						0
+					]
+				}
+			},
+			{
+				"patchline": {
+					"destination": [
+						"obj-84",
+						0
+					],
+					"source": [
+						"obj-83",
+						0
+					]
+				}
+			},
+			{
+				"patchline": {
+					"destination": [
+						"obj-17",
+						0
+					],
+					"source": [
+						"obj-84",
+						0
+					]
+				}
+			},
+			{
+				"patchline": {
+					"destination": [
+						"obj-86",
+						0
+					],
+					"source": [
+						"obj-85",
+						0
+					]
+				}
+			},
+			{
+				"patchline": {
+					"destination": [
+						"obj-17",
+						0
+					],
+					"source": [
+						"obj-86",
+						0
+					]
+				}
+			},
+			{
+				"patchline": {
+					"destination": [
+						"obj-88",
+						0
+					],
+					"source": [
+						"obj-87",
+						0
+					]
+				}
+			},
+			{
+				"patchline": {
+					"destination": [
+						"obj-17",
+						0
+					],
+					"source": [
+						"obj-88",
+						0
+					]
+				}
+			},
+			{
+				"patchline": {
+					"destination": [
+						"obj-90",
+						0
+					],
+					"source": [
+						"obj-89",
+						0
+					]
+				}
+			},
+			{
+				"patchline": {
+					"destination": [
+						"obj-17",
+						0
+					],
+					"source": [
+						"obj-90",
+						0
+					]
+				}
+			},
+			{
+				"patchline": {
+					"destination": [
+						"obj-92",
+						0
+					],
+					"source": [
+						"obj-91",
+						0
+					]
+				}
+			},
+			{
+				"patchline": {
+					"destination": [
+						"obj-17",
+						0
+					],
+					"source": [
+						"obj-92",
 						0
 					]
 				}
