@@ -69,7 +69,10 @@ def build_example(song, dp, spec, wlen_bars, rng=None, aug=None, mask_notes=Fals
     return {
         "global_ids": global_ids,
         "notes": note_streams,
-        "n_notes": len(notes),
+        # honest count of ENCODED notes: 0 under mask_notes, so the melody-masked
+        # ablation is truly note-blind (note_mask all False) instead of attending
+        # to N identical placeholder tokens and leaking the note count.
+        "n_notes": len(note_streams["pc"]),
         "target": dp.target,
         "func_target": func_target_of(dp, song.mode),
         "meta": {
@@ -79,6 +82,27 @@ def build_example(song, dp, spec, wlen_bars, rng=None, aug=None, mask_notes=Fals
             "transpose_offset": song.transpose_offset, "t": dp.t,
         },
     }
+
+
+def window_pcs(song, t, span_beats):
+    """Duration-weighted (pitch_class, weight) list for notes in [t-span, t)."""
+    lo = t - span_beats
+    out = []
+    for n in song.notes:
+        if lo - 1e-9 <= n.onset < t - 1e-9:
+            out.append((n.pitch % 12, max(1e-3, n.dur)))
+    return out
+
+
+def strong_pcs(song, t, span_beats):
+    """Pitch classes of notes on strong (near-integer) beats in [t-span, t)."""
+    lo = t - span_beats
+    out = []
+    for n in song.notes:
+        if lo - 1e-9 <= n.onset < t - 1e-9:
+            if abs(n.onset_in_bar - round(n.onset_in_bar)) < 1e-3:
+                out.append(n.pitch % 12)
+    return out
 
 
 def split_decisions(songs, split_ids):
@@ -104,11 +128,14 @@ def epoch_example_refs(fixed, hold_pool, hold_target_frac, rng):
     """
     n_fixed_hold = sum(1 for _, dp in fixed if dp.target == vocab.HOLD)
     n_change = len(fixed) - n_fixed_hold
-    # solve (n_fixed_hold + H) / (len(fixed) + H) = frac
-    f = hold_target_frac
-    denom = (1.0 - f)
-    H = int(round((f * len(fixed) - n_fixed_hold) / denom)) if denom > 1e-9 else 0
-    H = max(0, min(H, len(hold_pool)))
+    if hold_target_frac is None:
+        H = len(hold_pool)  # keep the natural distribution
+    else:
+        # solve (n_fixed_hold + H) / (len(fixed) + H) = frac
+        f = hold_target_frac
+        denom = (1.0 - f)
+        H = int(round((f * len(fixed) - n_fixed_hold) / denom)) if denom > 1e-9 else 0
+        H = max(0, min(H, len(hold_pool)))
     sampled = rng.sample(hold_pool, H) if H < len(hold_pool) else list(hold_pool)
     refs = list(fixed) + sampled
     rng.shuffle(refs)

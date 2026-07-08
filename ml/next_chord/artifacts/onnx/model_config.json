@@ -1,0 +1,504 @@
+{
+ "model": "transformer",
+ "n_classes": 42,
+ "calibration_T": 0.9187590479850769,
+ "input_order": [
+  "global_ids",
+  "pc",
+  "octave",
+  "dt",
+  "dur",
+  "phase",
+  "downbeat",
+  "bar_offset",
+  "note_mask"
+ ],
+ "hold_id": 0,
+ "other_id": 41,
+ "families": [
+  "MAJ",
+  "DOM",
+  "MIN",
+  "HDIM",
+  "DIM",
+  "AUG",
+  "SUS"
+ ],
+ "vocab_classes": [
+  {
+   "root": 0,
+   "family": "MAJ",
+   "count": 1348
+  },
+  {
+   "root": 7,
+   "family": "DOM",
+   "count": 1010
+  },
+  {
+   "root": 2,
+   "family": "MIN",
+   "count": 938
+  },
+  {
+   "root": 9,
+   "family": "MIN",
+   "count": 671
+  },
+  {
+   "root": 4,
+   "family": "DOM",
+   "count": 370
+  },
+  {
+   "root": 9,
+   "family": "DOM",
+   "count": 363
+  },
+  {
+   "root": 4,
+   "family": "MIN",
+   "count": 343
+  },
+  {
+   "root": 5,
+   "family": "MAJ",
+   "count": 332
+  },
+  {
+   "root": 2,
+   "family": "DOM",
+   "count": 295
+  },
+  {
+   "root": 0,
+   "family": "DOM",
+   "count": 290
+  },
+  {
+   "root": 5,
+   "family": "DOM",
+   "count": 169
+  },
+  {
+   "root": 5,
+   "family": "MIN",
+   "count": 165
+  },
+  {
+   "root": 11,
+   "family": "DOM",
+   "count": 164
+  },
+  {
+   "root": 10,
+   "family": "DOM",
+   "count": 156
+  },
+  {
+   "root": 7,
+   "family": "MIN",
+   "count": 136
+  },
+  {
+   "root": 11,
+   "family": "HDIM",
+   "count": 114
+  },
+  {
+   "root": 3,
+   "family": "DIM",
+   "count": 106
+  },
+  {
+   "root": 0,
+   "family": "MIN",
+   "count": 103
+  },
+  {
+   "root": 3,
+   "family": "DOM",
+   "count": 84
+  },
+  {
+   "root": 8,
+   "family": "DOM",
+   "count": 72
+  },
+  {
+   "root": 6,
+   "family": "HDIM",
+   "count": 69
+  },
+  {
+   "root": 2,
+   "family": "HDIM",
+   "count": 54
+  },
+  {
+   "root": 4,
+   "family": "HDIM",
+   "count": 53
+  },
+  {
+   "root": 4,
+   "family": "MAJ",
+   "count": 49
+  },
+  {
+   "root": 8,
+   "family": "MAJ",
+   "count": 48
+  },
+  {
+   "root": 3,
+   "family": "MAJ",
+   "count": 48
+  },
+  {
+   "root": 10,
+   "family": "MAJ",
+   "count": 47
+  },
+  {
+   "root": 9,
+   "family": "MAJ",
+   "count": 47
+  },
+  {
+   "root": 6,
+   "family": "MIN",
+   "count": 45
+  },
+  {
+   "root": 1,
+   "family": "DOM",
+   "count": 43
+  },
+  {
+   "root": 7,
+   "family": "MAJ",
+   "count": 43
+  },
+  {
+   "root": 6,
+   "family": "DIM",
+   "count": 38
+  },
+  {
+   "root": 11,
+   "family": "MIN",
+   "count": 37
+  },
+  {
+   "root": 1,
+   "family": "DIM",
+   "count": 34
+  },
+  {
+   "root": 1,
+   "family": "MAJ",
+   "count": 31
+  },
+  {
+   "root": 6,
+   "family": "DOM",
+   "count": 27
+  },
+  {
+   "root": 3,
+   "family": "MIN",
+   "count": 26
+  },
+  {
+   "root": 2,
+   "family": "MAJ",
+   "count": 26
+  },
+  {
+   "root": 9,
+   "family": "HDIM",
+   "count": 22
+  },
+  {
+   "root": 10,
+   "family": "MIN",
+   "count": 22
+  }
+ ],
+ "roman_major": [
+  "HOLD",
+  "I",
+  "V7",
+  "ii",
+  "vi",
+  "III7",
+  "VI7",
+  "iii",
+  "IV",
+  "II7",
+  "I7",
+  "IV7",
+  "iv",
+  "VII7",
+  "bVII7",
+  "v",
+  "vii\u00f87",
+  "biii\u00b0",
+  "i",
+  "bIII7",
+  "bVI7",
+  "#iv\u00f87",
+  "ii\u00f87",
+  "iii\u00f87",
+  "III",
+  "bVI",
+  "bIII",
+  "bVII",
+  "VI",
+  "#iv",
+  "bII7",
+  "V",
+  "#iv\u00b0",
+  "vii",
+  "bii\u00b0",
+  "bII",
+  "#IV7",
+  "biii",
+  "II",
+  "vi\u00f87",
+  "bvii",
+  "OTHER"
+ ],
+ "roman_minor": [
+  "HOLD",
+  "III",
+  "VII7",
+  "iv",
+  "i",
+  "V7",
+  "I7",
+  "v",
+  "VI",
+  "IV7",
+  "III7",
+  "VI7",
+  "vi",
+  "II7",
+  "bII7",
+  "vii",
+  "ii\u00f87",
+  "#iv\u00b0",
+  "iii",
+  "#IV7",
+  "VII+7",
+  "#vi\u00f87",
+  "iv\u00f87",
+  "v\u00f87",
+  "V",
+  "VII+",
+  "#IV",
+  "bII",
+  "I",
+  "#vi",
+  "#III7",
+  "VII",
+  "#vi\u00b0",
+  "ii",
+  "#iii\u00b0",
+  "#III",
+  "#VI7",
+  "#iv",
+  "IV",
+  "i\u00f87",
+  "bii",
+  "OTHER"
+ ],
+ "function_major": [
+  0,
+  0,
+  2,
+  1,
+  0,
+  2,
+  2,
+  0,
+  1,
+  2,
+  2,
+  2,
+  1,
+  2,
+  2,
+  2,
+  1,
+  2,
+  0,
+  2,
+  2,
+  1,
+  1,
+  1,
+  0,
+  1,
+  0,
+  1,
+  0,
+  0,
+  2,
+  2,
+  2,
+  2,
+  2,
+  0,
+  2,
+  0,
+  1,
+  1,
+  1,
+  2
+ ],
+ "function_minor": [
+  0,
+  0,
+  2,
+  1,
+  0,
+  2,
+  2,
+  2,
+  0,
+  2,
+  2,
+  2,
+  0,
+  2,
+  2,
+  1,
+  1,
+  2,
+  0,
+  2,
+  2,
+  1,
+  1,
+  1,
+  2,
+  2,
+  0,
+  0,
+  0,
+  0,
+  2,
+  1,
+  2,
+  1,
+  2,
+  0,
+  2,
+  0,
+  1,
+  1,
+  0,
+  2
+ ],
+ "functions": [
+  "T",
+  "PD",
+  "D"
+ ],
+ "features": {
+  "global_slots": [
+   "CLS",
+   "MODE",
+   "METER",
+   "PREVCHORD",
+   "PREVFUNC",
+   "WLEN",
+   "HYPER",
+   "GRIDPOS"
+  ],
+  "note_feats": [
+   "pc",
+   "octave",
+   "dt",
+   "dur",
+   "phase",
+   "downbeat",
+   "bar_offset"
+  ],
+  "note_card": {
+   "pc": 13,
+   "octave": 5,
+   "dt": 25,
+   "dur": 9,
+   "phase": 13,
+   "downbeat": 3,
+   "bar_offset": 6
+  },
+  "global_card": {
+   "CLS": 1,
+   "MODE": 2,
+   "METER": 4,
+   "PREVCHORD": 44,
+   "PREVFUNC": 5,
+   "WLEN": 7,
+   "HYPER": 9,
+   "GRIDPOS": 3
+  },
+  "octave_base": 48,
+  "octave_buckets": 4,
+  "phase_bins": 12,
+  "max_bar_offset": 4,
+  "max_seq_len": 64,
+  "max_notes": 56,
+  "meters": [
+   3,
+   4,
+   5
+  ],
+  "dt_edges": [
+   0.5,
+   0.6072873136472859,
+   0.737595762633874,
+   0.8958650984950931,
+   1.0880950181108926,
+   1.321572601083118,
+   1.6051485494032458,
+   1.9495727011438702,
+   2.367901536875488,
+   2.8759931266207897,
+   3.493108279867196,
+   4.242640687119283,
+   5.153003731302689,
+   6.258707586394502,
+   7.601667434090811,
+   9.232792390578132,
+   11.213915376674594,
+   13.620137089137414,
+   16.54267292874005,
+   20.092310806880448,
+   24.40361090975352,
+   29.640006625355632,
+   35.99999999999996
+  ],
+  "dur_edges": [
+   0.25,
+   0.44544935907016964,
+   0.7937005259840997,
+   1.414213562373095,
+   2.519842099789746,
+   4.489848193237491,
+   7.999999999999998
+  ],
+  "lengths_bars": [
+   0.5,
+   1.0,
+   1.5,
+   2.0,
+   3.0,
+   4.0
+  ]
+ },
+ "query_contract": "Query at beat gridpoints (downbeats and integer beats). Notes padded to max_notes; note_mask marks real notes. Bucketing per features spec is applied outside the graph."
+}

@@ -1,0 +1,30 @@
+{
+ "alpha": 0.8,
+ "beta": 0.4,
+ "gamma": 0.0,
+ "delta": 1.0,
+ "topk": 5,
+ "func_transition": {
+  "T": {
+   "T": 0.35,
+   "PD": 0.45,
+   "D": 0.2
+  },
+  "PD": {
+   "T": 0.15,
+   "PD": 0.35,
+   "D": 0.5
+  },
+  "D": {
+   "T": 0.65,
+   "PD": 0.15,
+   "D": 0.2
+  },
+  "BOS": {
+   "T": 0.5,
+   "PD": 0.3,
+   "D": 0.2
+  }
+ },
+ "exclude_other_from_selection": true
+}

@@ -110,12 +110,14 @@ class FeatureSpec:
 
 def encode_globals(spec, mode, meter, prev_class, prev_func, wlen_bars, hyper, grid):
     """Return int list of length N_GLOBALS (ids into per-slot tables)."""
-    meter_id = spec.meter_index.get(int(round(meter)), len(spec.meters)) + 1
+    # OOV meter -> id 0 (a valid "unknown meter" slot; globals have no padding_idx).
+    # Known meters map 0..len-1 -> 1..len, all within the METER table's cardinality.
+    meter_id = spec.meter_index.get(int(round(meter)), -1) + 1
     wlen_id = spec.wlen_index.get(round(wlen_bars, 4), 0) + 1
     return [
         0,                                   # CLS (single vector)
         (0 if mode == "maj" else 1),         # MODE
-        meter_id,                            # METER (pad=0 for unknown handled by +1)
+        meter_id,                            # METER (0 = unknown)
         prev_class + 1,                      # PREVCHORD (0..n_classes incl BOS) +1 pad
         prev_func + 1,                       # PREVFUNC (0..3 incl BOS) +1 pad
         wlen_id,                             # WLEN

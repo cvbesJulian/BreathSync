@@ -2,5 +2,4 @@
 __pycache__/
 *.pyc
 artifacts/checkpoints/
-artifacts/onnx/
 .pytest_cache/
