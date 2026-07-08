@@ -104,11 +104,20 @@ Demo:
     --mode maj --meter 4 --prev-chord D:min7
 ```
 
-## Deployment (future, out of scope here)
+## Deployment — Node for Max (`deploy/`)
 
-`export_onnx.py` writes `artifacts/onnx/model.onnx` + `model_config.json`
-containing the full feature spec, vocab, roman/function maps and the
-query contract. The Max for Live device (Node for Max + onnxruntime-node)
-reimplements the bucketing from `model_config.json`, runs the graph, and calls
-a JS port of `rerank.py` — `artifacts/test_vectors.json` pins the port to the
-Python reference. Max owns beat timing and Ableton sync.
+The inference core is ported to JS and **verified bit-for-bit against Python**
+(`deploy/test_parity.mjs` — 245 checks: feature encoding, `onnxruntime-node`
+logits within 1e-3, reranker, and live melody-context derivation). `export_onnx.py`
+writes `artifacts/onnx/model.onnx` + `model_config.json` (full feature spec, vocab,
+roman/function maps, query contract); the JS side reads those directly, so
+retrain → re-export updates the device with no code changes.
+
+```bash
+cd deploy && npm install && node test_parity.mjs   # PASS: 245 checks
+```
+
+`deploy/nextchord.node.js` is the `node.script` entry (Max owns beat timing and
+Ableton sync; the node answers `predict` requests). See
+[deploy/README.md](deploy/README.md) for the message protocol and patch wiring.
+Only the in-Max patcher/Ableton wiring remains unverifiable outside Max.

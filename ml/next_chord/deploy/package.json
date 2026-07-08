@@ -1,0 +1,12 @@
+{
+  "name": "breathsync-nextchord-deploy",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Node-for-Max deployment of the next-chord model: JS feature encoder + reranker + onnxruntime inference",
+  "scripts": {
+    "test": "node test_parity.mjs"
+  },
+  "dependencies": {
+    "onnxruntime-node": "^1.19.2"
+  }
+}
