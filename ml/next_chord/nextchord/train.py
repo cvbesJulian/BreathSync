@@ -118,11 +118,13 @@ def main():
         "cfg": cfg,
         "spec_config": spec.to_config(),
         "n_classes": n_classes,
-        "vocab": vocab.load(),
+        "vocab": vocab.load(pipeline.vocab_path(cfg)),
         "metrics": best_metrics,
         "calibration_T": 1.0,
     }
-    out = os.path.join(pipeline.ROOT, "artifacts", "checkpoints", f"{args.model}.pt")
+    ckpt_dir = pipeline.checkpoint_dir(cfg)
+    os.makedirs(ckpt_dir, exist_ok=True)
+    out = os.path.join(ckpt_dir, f"{args.model}.pt")
     torch.save(ckpt, out)
     print(f"saved {out}  best {best_metrics}")
 

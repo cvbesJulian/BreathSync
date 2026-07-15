@@ -6,7 +6,7 @@ import os
 import numpy as np
 import torch
 
-from . import vocab, data, features
+from . import vocab, data, data_hooktheory, features
 
 ROOT = os.path.normpath(os.path.join(os.path.dirname(__file__), ".."))
 
@@ -19,18 +19,44 @@ def dataset_dir(cfg):
     return os.path.normpath(os.path.join(ROOT, cfg["data"]["dataset_dir"]))
 
 
-def load_splits():
-    return json.load(open(os.path.join(ROOT, "artifacts", "splits.json")))
+def _artifact_path(cfg, key, default_rel):
+    """Resolve a per-config artifact path (vocab/splits/checkpoints), falling
+    back to the shared default so OpenBook call sites are unaffected."""
+    rel = cfg["data"].get(key, default_rel) if cfg else default_rel
+    return os.path.join(ROOT, rel)
+
+
+def vocab_path(cfg=None):
+    return _artifact_path(cfg, "vocab_path", os.path.join("artifacts", "vocab.json"))
+
+
+def checkpoint_dir(cfg=None):
+    return _artifact_path(cfg, "checkpoint_dir",
+                          os.path.join("artifacts", "checkpoints"))
+
+
+def load_splits(cfg=None):
+    return json.load(open(_artifact_path(
+        cfg, "splits_path", os.path.join("artifacts", "splits.json"))))
+
+
+def _loader_for(cfg):
+    return data_hooktheory if cfg["data"].get("source") == "hooktheory" else data
 
 
 def load_everything(cfg=None):
-    """Return (cfg, songs dict, FeatureSpec, splits). Ensures vocab is loaded."""
+    """Return (cfg, songs dict, FeatureSpec, splits). Ensures vocab is loaded.
+
+    Dispatches the song loader on cfg['data']['source'] ('hooktheory' -> the
+    CSV loader, else OpenBook JSON) and loads the matching frozen vocab.
+    """
     cfg = cfg or load_cfg()
-    vocab.load()
-    songs = data.load_all_songs(dataset_dir(cfg), cfg["data"]["songs_glob"],
-                                cfg["data"]["songs_csv"], cfg["data"]["source"])
+    vocab.load(vocab_path(cfg))
+    songs = _loader_for(cfg).load_all_songs(
+        dataset_dir(cfg), cfg["data"]["songs_glob"],
+        cfg["data"]["songs_csv"], cfg["data"]["source"])
     spec = features.FeatureSpec(cfg)
-    splits = load_splits()
+    splits = load_splits(cfg)
     return cfg, songs, spec, splits
 
 

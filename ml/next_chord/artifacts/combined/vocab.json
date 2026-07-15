@@ -1,0 +1,351 @@
+{
+ "min_count": 20,
+ "sources": [
+  "pop909",
+  "nottingham",
+  "openbook"
+ ],
+ "families": [
+  "MAJ",
+  "DOM",
+  "MIN",
+  "HDIM",
+  "DIM",
+  "AUG",
+  "SUS"
+ ],
+ "n_classes_total": 68,
+ "coverage": 0.9993,
+ "classes": [
+  {
+   "root": 0,
+   "family": "MAJ",
+   "count": 37058
+  },
+  {
+   "root": 9,
+   "family": "MIN",
+   "count": 25215
+  },
+  {
+   "root": 7,
+   "family": "MAJ",
+   "count": 25183
+  },
+  {
+   "root": 5,
+   "family": "MAJ",
+   "count": 20570
+  },
+  {
+   "root": 2,
+   "family": "MIN",
+   "count": 13008
+  },
+  {
+   "root": 4,
+   "family": "MIN",
+   "count": 11055
+  },
+  {
+   "root": 7,
+   "family": "DOM",
+   "count": 8273
+  },
+  {
+   "root": 4,
+   "family": "MAJ",
+   "count": 3260
+  },
+  {
+   "root": 7,
+   "family": "SUS",
+   "count": 2473
+  },
+  {
+   "root": 2,
+   "family": "MAJ",
+   "count": 2322
+  },
+  {
+   "root": 9,
+   "family": "MAJ",
+   "count": 2199
+  },
+  {
+   "root": 0,
+   "family": "SUS",
+   "count": 2128
+  },
+  {
+   "root": 9,
+   "family": "SUS",
+   "count": 2125
+  },
+  {
+   "root": 2,
+   "family": "DOM",
+   "count": 1374
+  },
+  {
+   "root": 10,
+   "family": "MAJ",
+   "count": 1246
+  },
+  {
+   "root": 4,
+   "family": "DOM",
+   "count": 1193
+  },
+  {
+   "root": 5,
+   "family": "MIN",
+   "count": 987
+  },
+  {
+   "root": 0,
+   "family": "DOM",
+   "count": 932
+  },
+  {
+   "root": 8,
+   "family": "MAJ",
+   "count": 819
+  },
+  {
+   "root": 2,
+   "family": "SUS",
+   "count": 796
+  },
+  {
+   "root": 5,
+   "family": "SUS",
+   "count": 779
+  },
+  {
+   "root": 9,
+   "family": "DOM",
+   "count": 741
+  },
+  {
+   "root": 4,
+   "family": "SUS",
+   "count": 692
+  },
+  {
+   "root": 11,
+   "family": "MIN",
+   "count": 574
+  },
+  {
+   "root": 1,
+   "family": "MAJ",
+   "count": 565
+  },
+  {
+   "root": 7,
+   "family": "MIN",
+   "count": 437
+  },
+  {
+   "root": 3,
+   "family": "MAJ",
+   "count": 400
+  },
+  {
+   "root": 6,
+   "family": "MAJ",
+   "count": 375
+  },
+  {
+   "root": 6,
+   "family": "DIM",
+   "count": 365
+  },
+  {
+   "root": 10,
+   "family": "MIN",
+   "count": 340
+  },
+  {
+   "root": 6,
+   "family": "MIN",
+   "count": 337
+  },
+  {
+   "root": 0,
+   "family": "MIN",
+   "count": 297
+  },
+  {
+   "root": 5,
+   "family": "DOM",
+   "count": 219
+  },
+  {
+   "root": 3,
+   "family": "MIN",
+   "count": 213
+  },
+  {
+   "root": 11,
+   "family": "HDIM",
+   "count": 210
+  },
+  {
+   "root": 11,
+   "family": "DOM",
+   "count": 186
+  },
+  {
+   "root": 10,
+   "family": "DOM",
+   "count": 184
+  },
+  {
+   "root": 11,
+   "family": "DIM",
+   "count": 175
+  },
+  {
+   "root": 1,
+   "family": "MIN",
+   "count": 167
+  },
+  {
+   "root": 11,
+   "family": "MAJ",
+   "count": 156
+  },
+  {
+   "root": 6,
+   "family": "HDIM",
+   "count": 152
+  },
+  {
+   "root": 3,
+   "family": "DIM",
+   "count": 128
+  },
+  {
+   "root": 8,
+   "family": "MIN",
+   "count": 102
+  },
+  {
+   "root": 8,
+   "family": "DOM",
+   "count": 102
+  },
+  {
+   "root": 3,
+   "family": "DOM",
+   "count": 90
+  },
+  {
+   "root": 10,
+   "family": "SUS",
+   "count": 82
+  },
+  {
+   "root": 11,
+   "family": "SUS",
+   "count": 79
+  },
+  {
+   "root": 8,
+   "family": "DIM",
+   "count": 76
+  },
+  {
+   "root": 8,
+   "family": "SUS",
+   "count": 71
+  },
+  {
+   "root": 1,
+   "family": "SUS",
+   "count": 70
+  },
+  {
+   "root": 2,
+   "family": "HDIM",
+   "count": 68
+  },
+  {
+   "root": 4,
+   "family": "HDIM",
+   "count": 61
+  },
+  {
+   "root": 1,
+   "family": "DOM",
+   "count": 60
+  },
+  {
+   "root": 5,
+   "family": "DIM",
+   "count": 53
+  },
+  {
+   "root": 0,
+   "family": "DIM",
+   "count": 51
+  },
+  {
+   "root": 1,
+   "family": "DIM",
+   "count": 48
+  },
+  {
+   "root": 8,
+   "family": "AUG",
+   "count": 43
+  },
+  {
+   "root": 10,
+   "family": "DIM",
+   "count": 43
+  },
+  {
+   "root": 3,
+   "family": "SUS",
+   "count": 37
+  },
+  {
+   "root": 7,
+   "family": "DIM",
+   "count": 35
+  },
+  {
+   "root": 6,
+   "family": "SUS",
+   "count": 33
+  },
+  {
+   "root": 11,
+   "family": "AUG",
+   "count": 30
+  },
+  {
+   "root": 6,
+   "family": "DOM",
+   "count": 30
+  },
+  {
+   "root": 2,
+   "family": "DIM",
+   "count": 28
+  },
+  {
+   "root": 4,
+   "family": "DIM",
+   "count": 25
+  },
+  {
+   "root": 9,
+   "family": "HDIM",
+   "count": 24
+  }
+ ]
+}

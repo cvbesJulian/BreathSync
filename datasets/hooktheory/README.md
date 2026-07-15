@@ -16,7 +16,7 @@ consonance-threshold filtering, and no chord inference.
 |---|---|
 | songs included | **22,866** (of 26,175; excluded: 2,342 no melody, 473 key change, 269 meter change, 221 no harmony, 4 other) |
 | bars | **261,844** |
-| phrases (training examples) | **229,229** |
+| phrases (training examples) | **229,229** (in `phrases.csv.gz`) |
 | chord events | **299,991** |
 | chord vocab (root × quality) | 192 |
 | splits (from SheetSage) | TRAIN 18,583 · TEST 2,410 · VALID 1,873 |
@@ -27,7 +27,7 @@ consonance-threshold filtering, and no chord inference.
 |---|---|
 | `bars.csv` | One row per bar — the core melody/chord data |
 | `chord_sequences.csv` | One row per chord event in song order, consecutive duplicates merged; includes key-transposed `chord_t` |
-| `phrases.csv` | Ready-made training examples: up to 8 bars of context + `next_chord` / `next_chord_t` targets |
+| `phrases.csv.gz` | Ready-made training examples: up to 8 bars of context + `next_chord` / `next_chord_t` targets (gzipped — 80MB raw; `pandas.read_csv` reads it directly) |
 | `songs.csv` | Per-song metadata (key, mode, bpm, transpose offset, split, consonance/coverage scores, inclusion + reason) |
 | `verify_report.json` | Results of verifying our extraction against SheetSage's reference MIDIs |
 | `verify_midi/` | Reconstructed melody+chord MIDIs for 5 songs (spread across the consonance range) — listen to spot-check |

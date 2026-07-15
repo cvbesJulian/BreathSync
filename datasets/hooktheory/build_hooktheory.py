@@ -414,7 +414,11 @@ def main():
                 "next_chord": target,
                 "next_chord_t": transpose_chord(target, tr)})
     phrases_df = pd.DataFrame(phrase_rows)
-    phrases_df.to_csv(os.path.join(OUT, "phrases.csv"), index=False)
+    # gzip: this is the largest table (~80MB raw) and highly compressible;
+    # keep the repo under GitHub's 50MB soft limit. pandas reads it back
+    # transparently via read_csv("phrases.csv.gz").
+    phrases_df.to_csv(os.path.join(OUT, "phrases.csv.gz"), index=False,
+                      compression="gzip")
 
     # verify our extraction against the reference TEST MIDIs
     print("verifying against reference MIDI ...")

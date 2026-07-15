@@ -14,7 +14,7 @@ from . import pipeline, features, model as models, dataset as ds, vocab, windows
 def load_checkpoint(path, device=None):
     ckpt = torch.load(path, map_location="cpu", weights_only=False)
     cfg = ckpt["cfg"]
-    vocab.load()
+    vocab.load(pipeline.vocab_path(cfg))
     spec = features.FeatureSpec(cfg)
     n_classes = ckpt["n_classes"]
     net = models.build_model(ckpt["model"], spec, n_classes, cfg)

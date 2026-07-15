@@ -2,4 +2,6 @@
 __pycache__/
 *.pyc
 artifacts/checkpoints/
+artifacts/hooktheory/checkpoints/
+artifacts/hooktheory/train.log
 .pytest_cache/
