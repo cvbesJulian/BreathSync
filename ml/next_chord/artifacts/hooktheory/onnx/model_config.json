@@ -1,0 +1,816 @@
+{
+ "model": "transformer",
+ "corpus": "hooktheory",
+ "n_classes": 76,
+ "calibration_T": 1.0,
+ "input_order": [
+  "global_ids",
+  "pc",
+  "octave",
+  "dt",
+  "dur",
+  "phase",
+  "downbeat",
+  "bar_offset",
+  "note_mask"
+ ],
+ "hold_id": 0,
+ "other_id": 75,
+ "families": [
+  "MAJ",
+  "DOM",
+  "MIN",
+  "HDIM",
+  "DIM",
+  "AUG",
+  "SUS"
+ ],
+ "vocab_classes": [
+  {
+   "root": 9,
+   "family": "MIN",
+   "count": 178114
+  },
+  {
+   "root": 0,
+   "family": "MAJ",
+   "count": 169271
+  },
+  {
+   "root": 5,
+   "family": "MAJ",
+   "count": 150171
+  },
+  {
+   "root": 7,
+   "family": "MAJ",
+   "count": 108368
+  },
+  {
+   "root": 2,
+   "family": "MIN",
+   "count": 63818
+  },
+  {
+   "root": 4,
+   "family": "MIN",
+   "count": 44673
+  },
+  {
+   "root": 4,
+   "family": "MAJ",
+   "count": 20598
+  },
+  {
+   "root": 10,
+   "family": "MAJ",
+   "count": 17955
+  },
+  {
+   "root": 2,
+   "family": "MAJ",
+   "count": 17733
+  },
+  {
+   "root": 7,
+   "family": "DOM",
+   "count": 16190
+  },
+  {
+   "root": 4,
+   "family": "DOM",
+   "count": 10581
+  },
+  {
+   "root": 9,
+   "family": "MAJ",
+   "count": 10011
+  },
+  {
+   "root": 7,
+   "family": "SUS",
+   "count": 8973
+  },
+  {
+   "root": 7,
+   "family": "MIN",
+   "count": 6772
+  },
+  {
+   "root": 0,
+   "family": "DOM",
+   "count": 6641
+  },
+  {
+   "root": 5,
+   "family": "MIN",
+   "count": 6559
+  },
+  {
+   "root": 8,
+   "family": "MAJ",
+   "count": 6435
+  },
+  {
+   "root": 9,
+   "family": "SUS",
+   "count": 5914
+  },
+  {
+   "root": 2,
+   "family": "DOM",
+   "count": 5516
+  },
+  {
+   "root": 0,
+   "family": "SUS",
+   "count": 5421
+  },
+  {
+   "root": 3,
+   "family": "MAJ",
+   "count": 5139
+  },
+  {
+   "root": 11,
+   "family": "MIN",
+   "count": 4785
+  },
+  {
+   "root": 5,
+   "family": "SUS",
+   "count": 4447
+  },
+  {
+   "root": 2,
+   "family": "SUS",
+   "count": 4039
+  },
+  {
+   "root": 9,
+   "family": "DOM",
+   "count": 3551
+  },
+  {
+   "root": 0,
+   "family": "MIN",
+   "count": 3512
+  },
+  {
+   "root": 11,
+   "family": "HDIM",
+   "count": 2943
+  },
+  {
+   "root": 4,
+   "family": "SUS",
+   "count": 2828
+  },
+  {
+   "root": 8,
+   "family": "DIM",
+   "count": 2727
+  },
+  {
+   "root": 6,
+   "family": "DIM",
+   "count": 2574
+  },
+  {
+   "root": 11,
+   "family": "DIM",
+   "count": 2375
+  },
+  {
+   "root": 11,
+   "family": "MAJ",
+   "count": 2339
+  },
+  {
+   "root": 5,
+   "family": "DOM",
+   "count": 2315
+  },
+  {
+   "root": 1,
+   "family": "MAJ",
+   "count": 2261
+  },
+  {
+   "root": 6,
+   "family": "HDIM",
+   "count": 2031
+  },
+  {
+   "root": 2,
+   "family": "HDIM",
+   "count": 1642
+  },
+  {
+   "root": 11,
+   "family": "DOM",
+   "count": 1603
+  },
+  {
+   "root": 9,
+   "family": "DIM",
+   "count": 1325
+  },
+  {
+   "root": 6,
+   "family": "MIN",
+   "count": 1314
+  },
+  {
+   "root": 10,
+   "family": "DOM",
+   "count": 1149
+  },
+  {
+   "root": 3,
+   "family": "DIM",
+   "count": 1015
+  },
+  {
+   "root": 10,
+   "family": "SUS",
+   "count": 996
+  },
+  {
+   "root": 10,
+   "family": "MIN",
+   "count": 984
+  },
+  {
+   "root": 4,
+   "family": "DIM",
+   "count": 880
+  },
+  {
+   "root": 1,
+   "family": "DIM",
+   "count": 819
+  },
+  {
+   "root": 6,
+   "family": "MAJ",
+   "count": 771
+  },
+  {
+   "root": 1,
+   "family": "MIN",
+   "count": 751
+  },
+  {
+   "root": 8,
+   "family": "MIN",
+   "count": 684
+  },
+  {
+   "root": 0,
+   "family": "AUG",
+   "count": 633
+  },
+  {
+   "root": 2,
+   "family": "DIM",
+   "count": 546
+  },
+  {
+   "root": 3,
+   "family": "MIN",
+   "count": 505
+  },
+  {
+   "root": 4,
+   "family": "HDIM",
+   "count": 412
+  },
+  {
+   "root": 8,
+   "family": "DOM",
+   "count": 409
+  },
+  {
+   "root": 0,
+   "family": "DIM",
+   "count": 398
+  },
+  {
+   "root": 3,
+   "family": "DOM",
+   "count": 332
+  },
+  {
+   "root": 9,
+   "family": "HDIM",
+   "count": 325
+  },
+  {
+   "root": 11,
+   "family": "SUS",
+   "count": 318
+  },
+  {
+   "root": 7,
+   "family": "AUG",
+   "count": 306
+  },
+  {
+   "root": 8,
+   "family": "AUG",
+   "count": 277
+  },
+  {
+   "root": 6,
+   "family": "DOM",
+   "count": 244
+  },
+  {
+   "root": 10,
+   "family": "DIM",
+   "count": 218
+  },
+  {
+   "root": 8,
+   "family": "SUS",
+   "count": 202
+  },
+  {
+   "root": 1,
+   "family": "DOM",
+   "count": 198
+  },
+  {
+   "root": 7,
+   "family": "DIM",
+   "count": 190
+  },
+  {
+   "root": 4,
+   "family": "AUG",
+   "count": 174
+  },
+  {
+   "root": 3,
+   "family": "SUS",
+   "count": 159
+  },
+  {
+   "root": 5,
+   "family": "DIM",
+   "count": 149
+  },
+  {
+   "root": 7,
+   "family": "HDIM",
+   "count": 127
+  },
+  {
+   "root": 1,
+   "family": "HDIM",
+   "count": 124
+  },
+  {
+   "root": 6,
+   "family": "SUS",
+   "count": 102
+  },
+  {
+   "root": 5,
+   "family": "AUG",
+   "count": 89
+  },
+  {
+   "root": 0,
+   "family": "HDIM",
+   "count": 87
+  },
+  {
+   "root": 1,
+   "family": "SUS",
+   "count": 86
+  },
+  {
+   "root": 5,
+   "family": "HDIM",
+   "count": 61
+  }
+ ],
+ "roman_major": [
+  "HOLD",
+  "vi",
+  "I",
+  "IV",
+  "V",
+  "ii",
+  "iii",
+  "III",
+  "bVII",
+  "II",
+  "V7",
+  "III7",
+  "VI",
+  "Vsus",
+  "v",
+  "I7",
+  "iv",
+  "bVI",
+  "VIsus",
+  "II7",
+  "Isus",
+  "bIII",
+  "vii",
+  "IVsus",
+  "IIsus",
+  "VI7",
+  "i",
+  "vii\u00f87",
+  "IIIsus",
+  "bvi\u00b0",
+  "#iv\u00b0",
+  "vii\u00b0",
+  "VII",
+  "IV7",
+  "bII",
+  "#iv\u00f87",
+  "ii\u00f87",
+  "VII7",
+  "vi\u00b0",
+  "#iv",
+  "bVII7",
+  "biii\u00b0",
+  "bVIIsus",
+  "bvii",
+  "iii\u00b0",
+  "bii\u00b0",
+  "#IV",
+  "bii",
+  "bvi",
+  "I+",
+  "ii\u00b0",
+  "biii",
+  "iii\u00f87",
+  "bVI7",
+  "i\u00b0",
+  "bIII7",
+  "vi\u00f87",
+  "VIIsus",
+  "V+",
+  "bVI+",
+  "#IV7",
+  "bvii\u00b0",
+  "bVIsus",
+  "bII7",
+  "v\u00b0",
+  "III+",
+  "bIIIsus",
+  "iv\u00b0",
+  "v\u00f87",
+  "bii\u00f87",
+  "#IVsus",
+  "IV+",
+  "i\u00f87",
+  "bIIsus",
+  "iv\u00f87",
+  "OTHER"
+ ],
+ "roman_minor": [
+  "HOLD",
+  "i",
+  "III",
+  "VI",
+  "VII",
+  "iv",
+  "v",
+  "V",
+  "bII",
+  "IV",
+  "VII7",
+  "V7",
+  "I",
+  "VIIsus",
+  "vii",
+  "III7",
+  "vi",
+  "VII+",
+  "Isus",
+  "IV7",
+  "IIIsus",
+  "#IV",
+  "ii",
+  "VIsus",
+  "IVsus",
+  "I7",
+  "iii",
+  "ii\u00f87",
+  "Vsus",
+  "vii+\u00b0",
+  "#vi\u00b0",
+  "ii\u00b0",
+  "II",
+  "VI7",
+  "#III",
+  "#vi\u00f87",
+  "iv\u00f87",
+  "II7",
+  "i\u00b0",
+  "#vi",
+  "bII7",
+  "#iv\u00b0",
+  "bIIsus",
+  "bii",
+  "v\u00b0",
+  "#iii\u00b0",
+  "#VI",
+  "#iii",
+  "vii+",
+  "III+",
+  "iv\u00b0",
+  "#iv",
+  "v\u00f87",
+  "VII+7",
+  "iii\u00b0",
+  "#IV7",
+  "i\u00f87",
+  "IIsus",
+  "VII+",
+  "VII++",
+  "#VI7",
+  "bii\u00b0",
+  "VII+sus",
+  "#III7",
+  "vii\u00b0",
+  "V+",
+  "#IVsus",
+  "vi\u00b0",
+  "vii\u00f87",
+  "#iii\u00f87",
+  "#VIsus",
+  "VI+",
+  "iii\u00f87",
+  "#IIIsus",
+  "vi\u00f87",
+  "OTHER"
+ ],
+ "function_major": [
+  0,
+  0,
+  0,
+  1,
+  2,
+  1,
+  0,
+  0,
+  1,
+  1,
+  2,
+  2,
+  0,
+  2,
+  2,
+  2,
+  1,
+  1,
+  2,
+  2,
+  2,
+  0,
+  2,
+  2,
+  2,
+  2,
+  0,
+  1,
+  2,
+  2,
+  2,
+  2,
+  2,
+  2,
+  0,
+  1,
+  1,
+  2,
+  2,
+  0,
+  2,
+  2,
+  2,
+  1,
+  2,
+  2,
+  0,
+  0,
+  1,
+  2,
+  2,
+  0,
+  1,
+  2,
+  2,
+  2,
+  1,
+  2,
+  2,
+  2,
+  2,
+  2,
+  2,
+  2,
+  2,
+  2,
+  2,
+  2,
+  1,
+  1,
+  2,
+  2,
+  1,
+  2,
+  1,
+  2
+ ],
+ "function_minor": [
+  0,
+  0,
+  0,
+  0,
+  1,
+  1,
+  2,
+  2,
+  0,
+  1,
+  2,
+  2,
+  0,
+  2,
+  1,
+  2,
+  0,
+  2,
+  2,
+  2,
+  2,
+  0,
+  1,
+  2,
+  2,
+  2,
+  0,
+  1,
+  2,
+  2,
+  2,
+  2,
+  1,
+  2,
+  0,
+  1,
+  1,
+  2,
+  2,
+  0,
+  2,
+  2,
+  2,
+  0,
+  2,
+  2,
+  0,
+  0,
+  2,
+  2,
+  2,
+  0,
+  1,
+  2,
+  2,
+  2,
+  1,
+  2,
+  2,
+  2,
+  2,
+  2,
+  2,
+  2,
+  2,
+  2,
+  2,
+  2,
+  1,
+  1,
+  2,
+  2,
+  1,
+  2,
+  1,
+  2
+ ],
+ "functions": [
+  "T",
+  "PD",
+  "D"
+ ],
+ "features": {
+  "global_slots": [
+   "CLS",
+   "MODE",
+   "METER",
+   "PREVCHORD",
+   "PREVFUNC",
+   "WLEN",
+   "HYPER",
+   "GRIDPOS"
+  ],
+  "note_feats": [
+   "pc",
+   "octave",
+   "dt",
+   "dur",
+   "phase",
+   "downbeat",
+   "bar_offset"
+  ],
+  "note_card": {
+   "pc": 13,
+   "octave": 5,
+   "dt": 25,
+   "dur": 9,
+   "phase": 13,
+   "downbeat": 3,
+   "bar_offset": 6
+  },
+  "global_card": {
+   "CLS": 1,
+   "MODE": 2,
+   "METER": 9,
+   "PREVCHORD": 78,
+   "PREVFUNC": 5,
+   "WLEN": 7,
+   "HYPER": 9,
+   "GRIDPOS": 3
+  },
+  "octave_base": 48,
+  "octave_buckets": 4,
+  "phase_bins": 12,
+  "max_bar_offset": 4,
+  "max_seq_len": 64,
+  "max_notes": 56,
+  "meters": [
+   2,
+   3,
+   4,
+   5,
+   6,
+   8,
+   9,
+   12
+  ],
+  "dt_edges": [
+   0.5,
+   0.6072873136472859,
+   0.737595762633874,
+   0.8958650984950931,
+   1.0880950181108926,
+   1.321572601083118,
+   1.6051485494032458,
+   1.9495727011438702,
+   2.367901536875488,
+   2.8759931266207897,
+   3.493108279867196,
+   4.242640687119283,
+   5.153003731302689,
+   6.258707586394502,
+   7.601667434090811,
+   9.232792390578132,
+   11.213915376674594,
+   13.620137089137414,
+   16.54267292874005,
+   20.092310806880448,
+   24.40361090975352,
+   29.640006625355632,
+   35.99999999999996
+  ],
+  "dur_edges": [
+   0.25,
+   0.44544935907016964,
+   0.7937005259840997,
+   1.414213562373095,
+   2.519842099789746,
+   4.489848193237491,
+   7.999999999999998
+  ],
+  "lengths_bars": [
+   0.5,
+   1.0,
+   1.5,
+   2.0,
+   3.0,
+   4.0
+  ]
+ },
+ "query_contract": "Query at beat gridpoints (downbeats and integer beats). Notes padded to max_notes; note_mask marks real notes. Bucketing per features spec is applied outside the graph."
+}
