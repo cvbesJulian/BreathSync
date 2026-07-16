@@ -30,6 +30,48 @@ changes. The reranker emits a hard top-1 (no distribution), so its top3/nll
 cells are blank. Full report:
 [artifacts/reports/eval_test.md](artifacts/reports/eval_test.md).
 
+## Pop corpus — Hooktheory (same pipeline, larger + simpler data)
+
+The identical melody-conditioned pipeline also trains on the
+[Hooktheory / SheetSage](../../datasets/hooktheory) corpus — **22,866**
+hand-annotated pop lead sheets (18,583 / 1,873 / 2,410 train/val/test, the
+upstream SheetSage split), ~150× more songs than OpenBook. A CSV loader
+([data_hooktheory.py](nextchord/data_hooktheory.py)) parses that dataset's
+per-bar melody/chord tokens into the same `Song`/`Note`/`DecisionPoint`
+structures, transposing to the shared C-major / A-minor space (Hooktheory's
+finer scale modes are collapsed to maj/min); everything downstream —
+decision grid, windows, features, model — is unchanged. Vocab is rebuilt from
+this corpus: **76 classes** (`(root × family)`, ≥40 in train → 99.8% coverage)
+vs OpenBook's jazz 42.
+
+### Results (test split, 2,410 songs, 115,949 decisions, 25.7% changes)
+
+| model | top1 | top3 | nll | change_top1 | hold_f1 |
+|---|---|---|---|---|---|
+| Prev-chord floor (melody-blind) | 0.751 | 0.873 | 1.178 | 0.030 | 0.863 |
+| Transformer (melody-masked) | 0.770 | 0.881 | 1.241 | 0.150 | 0.885 |
+| **Transformer (melody)** | 0.748 | 0.884 | 1.206 | **0.233** | 0.884 |
+
+**Go/no-go: melody helps** — on `change_top1` (the honest metric; overall
+`top1` is inflated by HOLD, ~74% of pop beats) the melody model scores **0.233**
+vs **0.150** masked (**+0.083**) and **0.030** for the prev-chord floor
+(**+0.202**). Overall `top1` is a touch lower for the melody model than the
+masked one because the masked model leans harder on HOLD — the same trade the
+OpenBook jazz model shows. Absolute change-accuracy is below the jazz model
+(0.377): pop harmony over a bigger vocab is more one-to-many from a short
+melody, and this is a small (432K-param) untuned model. Report:
+[artifacts/hooktheory/reports/eval_test.md](artifacts/hooktheory/reports/eval_test.md).
+
+### Reproduce
+
+```bash
+cd ml/next_chord
+.venv/bin/python scripts/build_hooktheory_splits.py   # -> artifacts/hooktheory/splits.json
+.venv/bin/python scripts/build_hooktheory_vocab.py    # -> artifacts/hooktheory/vocab.json (99.8%)
+.venv/bin/python -m nextchord.train --model transformer --config configs/hooktheory.json
+.venv/bin/python scripts/eval_hooktheory.py --split test
+```
+
 ## Architecture
 
 ```
