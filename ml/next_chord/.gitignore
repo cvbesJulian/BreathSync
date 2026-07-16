@@ -5,3 +5,5 @@ artifacts/checkpoints/
 artifacts/hooktheory/checkpoints/
 artifacts/hooktheory/train.log
 .pytest_cache/
+artifacts/combined/checkpoints/
+artifacts/combined/onnx/

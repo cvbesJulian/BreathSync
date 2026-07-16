@@ -132,6 +132,8 @@ coct_d = dial([800, 60, 40, 36], [248, lab_row, 40, 36], "ChordOct", "Oct", -2, 
 wait_d = dial([850, 60, 40, 36], [296, lab_row, 40, 36], "WaitBars", "Wait", 0, 32, 2, ptype=1)
 chan_m = menu([900, 60, 40, 22], [344, lab_row + 6, 46, 15], "Channel", "Ch",
               [str(i + 1) for i in range(16)], 0)
+genre_m = menu([950, 60, 40, 22], [344, lab_row + 26, 46, 15], "Genre", "Genre",
+               ["Auto", "Pop", "Folk", "Jazz"], 0)
 panic_b = button([600, 120, 24, 24], [406, lab_row, 24, 24], "Panic", "Panic")
 
 # param message boxes -> v8
@@ -147,6 +149,7 @@ m_vel = pmsg("vel $1", [600, 160, 70, 22])
 m_coct = pmsg("chordoct $1", [680, 160, 90, 22])
 m_wait = pmsg("waitbars $1", [780, 160, 90, 22])
 m_chan = pmsg("channel $1", [880, 160, 90, 22])
+m_genre = pmsg("genre $1", [960, 160, 80, 22])
 m_panic = pmsg("panic", [600, 200, 50, 22])
 
 # labels
@@ -192,6 +195,7 @@ line(vel_d, 0, m_vel, 0); line(m_vel, 0, v8, 0)
 line(coct_d, 0, m_coct, 0); line(m_coct, 0, v8, 0)
 line(wait_d, 0, m_wait, 0); line(m_wait, 0, v8, 0)
 line(chan_m, 0, m_chan, 0); line(m_chan, 0, v8, 0)
+line(genre_m, 0, m_genre, 0); line(m_genre, 0, v8, 0)
 line(panic_b, 0, m_panic, 0); line(m_panic, 0, v8, 0); line(panic_b, 0, mflush, 0)
 
 patcher = {

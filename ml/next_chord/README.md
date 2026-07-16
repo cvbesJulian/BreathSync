@@ -8,9 +8,12 @@ picks the move that fits the melody and the harmonic context. Realization
 (which 7th/9th/tension) and voicing are left to later layers, exactly like the
 Improspira Complexity knob.
 
-Trained **only on the OpenBook** jazz lead-sheet corpus (152 standards) —
-chosen over Nottingham because jazz harmony (ii–V–I, secondary dominants,
-tritone subs, half-diminished ii-of-minor) is the interesting problem.
+The original (v1) model was trained **only on the OpenBook** jazz lead-sheet
+corpus (152 standards) — chosen because jazz harmony (ii–V–I, secondary
+dominants, tritone subs, half-diminished ii-of-minor) is the interesting
+problem. The **deployed model is now the combined POP909 + Nottingham +
+OpenBook model** (see the Combined-corpus section below), which beats v1 on
+the same held-out jazz songs and adds a genre knob.
 
 ## Results (test split, 15 held-out songs, 2,516 decisions)
 
@@ -78,6 +81,59 @@ in the identical graph/sidecar contract as the OpenBook export, so the same
 Node-for-Max deploy code reads it unchanged (bucketing stays outside the graph;
 the sidecar carries the 76-class pop vocab + roman/function maps).
 
+## Combined corpus — POP909 + Nottingham + OpenBook (the deployed model)
+
+One SOURCE-conditioned model trained on all three corpora of
+[datasets/melody_chord](../../datasets/melody_chord): **2,076 songs**, 171,374
+train decisions (**124,578 real chord changes** — ~50× OpenBook alone). A 9th
+global token carries the corpus; **10% source-dropout** during training makes
+id 0 a genuine "genre unknown" input, exposed on the device as the **Genre
+menu (Auto / Pop / Folk / Jazz)**. The vocab is refit on the combined train
+split — **68 classes** (≥20 occurrences), ≥99.6% coverage per corpus, all the
+jazz HDIM/DOM/DIM classes intact. Glue lives in
+[combined.py](nextchord/combined.py) (spec/datasets/model/inference wrappers,
+strictly additive — the OpenBook and Hooktheory paths are untouched);
+artifacts under `artifacts/combined/`. OpenBook songs keep their v1 split
+assignment, so the jazz test slice is the **same 15 songs** as v1.
+
+### Results (test split, 208 held-out songs, 52,904 decisions, 29.0% changes)
+
+`change_top1` per corpus (the honest metric — top1 is inflated by HOLD):
+
+| slice | Markov floor | melody-masked | auto-genre | **Transformer** | +reranker |
+|---|---|---|---|---|---|
+| all | 0.008 | 0.102 | 0.233 | **0.252** | 0.246 |
+| pop909 | 0.003 | 0.010 | 0.146 | **0.151** | 0.156 |
+| nottingham | 0.020 | 0.291 | 0.444 | **0.469** | 0.434 |
+| openbook (jazz) | 0.009 | 0.305 | 0.283 | **0.419** | 0.421 |
+
+- **Beats v1 on jazz**: 0.421 (reranked) vs 0.382 on the identical 15 test
+  songs, over a strictly harder label space (68 vs 42 classes); overall top1
+  ties (0.740). More data — even pop/folk data — helps the jazz case.
+- **Melody helps everywhere**: masking it costs −0.114 (jazz) to −0.178
+  (folk) change-accuracy.
+- **The genre knob is load-bearing for jazz**: Auto-genre drops jazz
+  change_top1 to 0.283 (−0.136), while pop/folk barely care (−0.005/−0.025).
+  Set the device to Jazz when comping standards.
+
+Full report: [artifacts/combined/reports/eval_test.md](artifacts/combined/reports/eval_test.md).
+
+### Reproduce
+
+```bash
+cd ml/next_chord
+.venv/bin/python scripts/build_combined_splits.py    # openbook split pinned to v1
+.venv/bin/python scripts/build_combined_vocab.py     # 68 classes, per-corpus coverage gate
+.venv/bin/python scripts/train_combined.py           # ~16 epochs, early-stopped
+.venv/bin/python scripts/calibrate_combined.py       # T=0.805
+.venv/bin/python scripts/eval_combined.py --split test
+.venv/bin/python scripts/export_combined_onnx.py     # -> artifacts/combined/onnx (PARITY OK)
+cp artifacts/combined/onnx/model.onnx* artifacts/combined/onnx/model_config.json artifacts/onnx/
+.venv/bin/python scripts/make_combined_deploy_fixtures.py   # refreeze JS parity fixtures
+(cd deploy && node test_parity.mjs)                  # 245 checks vs the deployed model
+node ../../max4live/test/chord.harness.mjs           # 26 device checks incl. Genre
+```
+
 ## Architecture
 
 ```
@@ -120,11 +176,17 @@ nextchord/
   markov.py     first-order melody-blind baseline (train-split only)
   rerank.py     theory reranker (pure, config-driven)
   calibrate.py  temperature scaling on val
+  combined.py   combined-corpus glue: SOURCE-conditioned spec/datasets/model
   train.py evaluate.py export_onnx.py demo.py   (CLIs, run via -m)
 scripts/  make_splits.py  build_vocab.py  tune_reranker.py  make_test_vectors.py
+          build_combined_{splits,vocab}.py  train/calibrate/eval/export_combined*.py
+          make_combined_deploy_fixtures.py
 artifacts/ splits.json vocab.json reranker_config.json test_vectors.json
-           reports/  onnx/{model.onnx, model_config.json}   (checkpoints/ gitignored)
+           reports/  onnx/{model.onnx, model_config.json}   <- DEPLOY SLOT (combined model)
+           combined/{splits,vocab,test_vectors}.json  combined/reports/
+           (checkpoints/ + combined/{checkpoints,onnx}/ gitignored)
 tests/    test_vocab / test_windows / test_no_leakage / test_rerank_vectors
+          test_rerank_combined_vectors
 ```
 
 ## Reproduce end-to-end
@@ -156,10 +218,14 @@ Demo:
 
 The inference core is ported to JS and **verified bit-for-bit against Python**
 (`deploy/test_parity.mjs` — 245 checks: feature encoding, `onnxruntime-node`
-logits within 1e-3, reranker, and live melody-context derivation). `export_onnx.py`
-writes `artifacts/onnx/model.onnx` + `model_config.json` (full feature spec, vocab,
-roman/function maps, query contract); the JS side reads those directly, so
-retrain → re-export updates the device with no code changes.
+logits within 1e-3, reranker, and live melody-context derivation). The deploy
+slot `artifacts/onnx/` (model.onnx + model_config.json) holds whatever model
+the device runs — **currently the combined SOURCE-conditioned model** (68
+classes, 9 global slots). The JS side is driven entirely by model_config.json
+(`features.sources` present ⇒ the encoder appends the SOURCE id; absent ⇒
+legacy 8-slot layout), so retrain → re-export → re-freeze fixtures updates the
+device with no code changes, and rolling back to an OpenBook-only export also
+just works.
 
 ```bash
 cd deploy && npm install && node test_parity.mjs   # PASS: 245 checks

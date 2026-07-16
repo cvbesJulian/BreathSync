@@ -43,7 +43,7 @@ export function buildEncoding(spec, notes, t, ctx, maskNotes = false) {
 export function buildFeed(ort, spec, encoding) {
   const M = spec.maxNotes;
   const gi = BigInt64Array.from(encoding.global_ids.map((x) => BigInt(x)));
-  const feed = { global_ids: new ort.Tensor("int64", gi, [1, N_GLOBALS]) };
+  const feed = { global_ids: new ort.Tensor("int64", gi, [1, spec.nGlobals ?? N_GLOBALS]) };
   const n = encoding.notes.pc.length;
   for (const k of NOTE_FEATS) {
     const arr = new BigInt64Array(M);

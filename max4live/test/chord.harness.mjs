@@ -59,7 +59,7 @@ function makeInstance() {
   }
   const EXPORTS = ["init", "state", "lead", "hello", "watchdog", "modelchord",
     "enabled", "active", "complexity", "freedom", "wlenbars", "vel", "channel",
-    "chordoct", "waitbars", "panic", "notifydeleted", "anything"];
+    "chordoct", "waitbars", "genre", "panic", "notifydeleted", "anything"];
   const factory = new Function("outlet", "post", "LiveAPI",
     SRC + "\n;return {" + EXPORTS.map((n) => n + ":" + n).join(",") + "};");
   const api = factory(outlet, post, FakeLiveAPI);
@@ -267,6 +267,25 @@ section("h. key change resets previous-chord context; panic clears MIDI");
   api.panic();
   check("h2: panic sends all-notes-off + clears held",
     currentHeld(ctx).length === 0, JSON.stringify(currentHeld(ctx)));
+}
+
+// ============================================================================
+section("i. genre menu -> source tag in predict requests");
+{
+  const { api, ctx } = makeInstance();
+  api.init(); api.waitbars(0);
+  api.state(mkstate({ key: "C", mode: "major" }));
+  setTime(ctx, 0); fireTransport(ctx, 1);
+  setTime(ctx, 0); api.lead(72, 1);
+  setTime(ctx, 1); api.watchdog();
+  const req = ctx.preds[0];
+  check("i1: default genre Auto -> empty source", req && req.source === "", JSON.stringify(req && req.source));
+  api.genre(3);                                  // Jazz -> openbook
+  setTime(ctx, 2); api.watchdog();
+  const req2 = ctx.preds[1];
+  check("i2: genre Jazz -> source openbook", req2 && req2.source === "openbook", JSON.stringify(req2 && req2.source));
+  await pump(api, ctx);                          // full model round-trip still works
+  check("i3: model replies with genre set", ctx._lastReply != null);
 }
 
 // --- summary ----------------------------------------------------------------

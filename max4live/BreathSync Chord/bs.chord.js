@@ -44,6 +44,10 @@ const CHORD_BASE = 48;              // sounding root voiced in octave 3 (C3)
 const MAX_WINDOW_BARS = 4;          // melody buffer horizon
 const BOS = -1;                     // previous-chord sentinel for node
 
+// Genre menu index -> model source tag ("" = Auto: the model's trained
+// unknown-genre slot). Names must match model_config.features.sources.
+const GENRE_SOURCES = ["", "pop909", "nottingham", "openbook"];
+
 // FAMILIES order must match model_config.families; core chord tones per family.
 const FAMILIES = ["MAJ", "DOM", "MIN", "HDIM", "DIM", "AUG", "SUS"];
 const FAMILY_CORE = {
@@ -62,7 +66,8 @@ const cfg = {
   vel: 90,          // live.dial 1..127
   channel: 0,       // live.menu index 0..15
   chordoct: 0,      // live.dial -2..2
-  waitbars: 2       // live.dial 0..32 bars to listen before first comp (0 = now)
+  waitbars: 2,      // live.dial 0..32 bars to listen before first comp (0 = now)
+  genre: 0          // live.menu: 0 Auto / 1 Pop / 2 Folk / 3 Jazz (GENRE_SOURCES)
 };
 
 // --- link / bus state -------------------------------------------------------
@@ -219,7 +224,8 @@ function firePredict(t, bpb) {
     hyper: ((bar - firstBar) % 8 + 8) % 8,
     grid: (t - bar * bpb) < 1e-6 ? 0 : 1,
     transposeOffset: offset,
-    freedom: cfg.freedom
+    freedom: cfg.freedom,
+    source: GENRE_SOURCES[cfg.genre] || ""
   };
   pendingT = t;
   outlet(2, "predict", JSON.stringify(req));
@@ -376,6 +382,7 @@ function vel(v) { if (typeof v !== "number") return; cfg.vel = clamp(1, 127, Mat
 function channel(i) { if (typeof i !== "number") return; const ch = clamp(0, 15, Math.round(i)); if (ch === cfg.channel) return; releaseAll(false); cfg.channel = ch; }
 function chordoct(v) { if (typeof v !== "number") return; const o = clamp(-2, 2, Math.round(v)); if (o === cfg.chordoct) return; cfg.chordoct = o; revoiceHeld(); }
 function waitbars(v) { if (typeof v !== "number") return; cfg.waitbars = clamp(0, 32, Math.round(v)); }
+function genre(i) { if (typeof i !== "number") return; cfg.genre = clamp(0, GENRE_SOURCES.length - 1, Math.round(i)); }
 
 function panic() { releaseAll(true); }
 function notifydeleted() { releaseAll(true); }

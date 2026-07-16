@@ -32,7 +32,8 @@
     "ornament_dropout": 0.15,
     "ornament_max_dur": 0.5,
     "octave_shift_prob": 0.20,
-    "minor_oversample": 1
+    "minor_oversample": 1,
+    "source_dropout": 0.10
   },
   "model": {
     "d_model": 128,

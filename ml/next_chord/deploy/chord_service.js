@@ -21,6 +21,7 @@ export function buildContext(model, req) {
       wlenBars: req.wlenBars, hyper: req.hyper, grid: req.grid,
       soundingClass, transposeOffset: req.transposeOffset ?? 0,
       windowPcs, strongPcs, freedom: req.freedom ?? 0.0,
+      source: req.source ?? null,   // genre conditioning (combined models)
     },
   };
 }

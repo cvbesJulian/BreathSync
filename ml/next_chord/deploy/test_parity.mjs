@@ -30,7 +30,10 @@ function check(name, ok, detail = "") {
 }
 
 // ---- A. reranker golden vectors ----
-const gv = readJSON(join(ART, "test_vectors.json"));
+// Combined (source-conditioned) deployments freeze their vectors under
+// artifacts/combined/ — the top-level file describes the OpenBook-only model.
+const gv = readJSON(spec.sources
+  ? join(ART, "combined", "test_vectors.json") : join(ART, "test_vectors.json"));
 for (let i = 0; i < gv.vectors.length; i++) {
   const { input: inp } = gv.vectors[i];
   const res = rerank(vocab, gv.reranker_config, inp.model_logprobs, {
@@ -53,7 +56,7 @@ for (let i = 0; i < pf.fixtures.length; i++) {
   const c = fx.context;
   const enc = buildEncoding(spec, notes, fx.t, {
     mode: c.mode, meter: c.meter, prevClass: c.prev_class, prevFunc: c.prev_func,
-    wlenBars: c.wlen_bars, hyper: c.hyper, grid: c.grid,
+    wlenBars: c.wlen_bars, hyper: c.hyper, grid: c.grid, source: c.source,
   });
   check(`fixture[${i}] global_ids`, enc.global_ids.join(",") === fx.expected_encoding.global_ids.join(","),
     `${enc.global_ids} vs ${fx.expected_encoding.global_ids}`);
@@ -95,7 +98,7 @@ if (ort) {
     const c = fx.context;
     const enc = buildEncoding(spec, notes, fx.t, {
       mode: c.mode, meter: c.meter, prevClass: c.prev_class, prevFunc: c.prev_func,
-      wlenBars: c.wlen_bars, hyper: c.hyper, grid: c.grid,
+      wlenBars: c.wlen_bars, hyper: c.hyper, grid: c.grid, source: c.source,
     });
     const feed = buildFeed(ort, spec, enc);
     const out = await session.run(feed);

@@ -109,22 +109,38 @@ class CombinedSpec(features.FeatureSpec):
         return c
 
 
-def _tag_example(ex, spec, song):
-    ex["global_ids"] = ex["global_ids"] + [spec.source_id(song.collection)]
-    ex["meta"]["source"] = song.collection
+def _tag_example(ex, source_id, source):
+    ex["global_ids"] = ex["global_ids"] + [source_id]
+    ex["meta"]["source"] = source
     return ex
 
 
 class TrainDataset(ds.TrainDataset):
+    """Adds the SOURCE id, dropped to 0 ("unknown") with cfg.augment.source_dropout
+    probability so the device's Auto-genre mode (id 0) is a trained input."""
+
     def __getitem__(self, i):
         ex = super().__getitem__(i)
-        return _tag_example(ex, self.spec, self.refs[i][0])
+        song = self.refs[i][0]
+        sid = self.spec.source_id(song.collection)
+        if self._rng.random() < self.aug.get("source_dropout", 0.0):
+            sid = 0
+        return _tag_example(ex, sid, song.collection)
 
 
 class EvalDataset(ds.EvalDataset):
+    """Adds the true SOURCE id; source_override=0 evaluates Auto-genre mode."""
+
+    def __init__(self, *args, source_override=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.source_override = source_override
+
     def __getitem__(self, i):
         ex = super().__getitem__(i)
-        return _tag_example(ex, self.spec, self.refs[i][0])
+        song = self.refs[i][0]
+        sid = self.spec.source_id(song.collection) \
+            if self.source_override is None else self.source_override
+        return _tag_example(ex, sid, song.collection)
 
 
 def collate(batch, spec):

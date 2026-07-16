@@ -30,7 +30,11 @@ export function makeSpec(featuresConfig) {
   const f = featuresConfig;
   const meterIndex = new Map(f.meters.map((m, i) => [m, i]));
   const wlenIndex = new Map(f.lengths_bars.map((L, i) => [Math.round(L * 1e4) / 1e4, i]));
+  const sources = f.sources || null;   // combined models: trailing SOURCE slot
   return {
+    sources,
+    sourceIndex: sources ? new Map(sources.map((s, i) => [s, i])) : null,
+    nGlobals: f.global_slots ? f.global_slots.length : N_GLOBALS,
     octaveBase: f.octave_base,
     octaveBuckets: f.octave_buckets,
     phaseBins: f.phase_bins,
@@ -59,12 +63,14 @@ export function phaseId(spec, onsetInBar, bpb) {
   return b + 1;
 }
 
-// ctx: { mode:"maj"|"min", meter, prevClass, prevFunc, wlenBars, hyper, grid }
+// ctx: { mode:"maj"|"min", meter, prevClass, prevFunc, wlenBars, hyper, grid,
+//        source? }  — source only for combined models (spec.sources set);
+//        unknown/absent source encodes as 0 (the trained Auto-genre slot).
 export function encodeGlobals(spec, ctx) {
   const meterId = (spec.meterIndex.has(pyRound(ctx.meter)) ? spec.meterIndex.get(pyRound(ctx.meter)) : -1) + 1;
   const key = Math.round(ctx.wlenBars * 1e4) / 1e4;
   const wlenId = (spec.wlenIndex.has(key) ? spec.wlenIndex.get(key) : 0) + 1;
-  return [
+  const ids = [
     0,                                     // CLS
     ctx.mode === "maj" ? 0 : 1,            // MODE
     meterId,                               // METER (0 = unknown)
@@ -74,6 +80,11 @@ export function encodeGlobals(spec, ctx) {
     ctx.hyper + 1,                         // HYPER
     ctx.grid + 1,                          // GRIDPOS
   ];
+  if (spec.sources) {
+    ids.push(ctx.source && spec.sourceIndex.has(ctx.source)
+      ? spec.sourceIndex.get(ctx.source) + 1 : 0);  // SOURCE (0 = auto)
+  }
+  return ids;
 }
 
 // notes: [{pitch, onset, dur, onsetInBar, beatsPerBar}] with onset absolute; t = decision beat.
