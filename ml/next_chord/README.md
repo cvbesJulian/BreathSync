@@ -23,7 +23,7 @@ the same held-out jazz songs and adds a genre knob.
 | Transformer (melody-masked) | 0.695 | 0.829 | 1.430 | 0.121 | 0.218 | 0.835 |
 | BiGRU baseline | 0.735 | 0.836 | 1.195 | 0.164 | 0.362 | 0.874 |
 | **Transformer** | 0.735 | 0.840 | 1.197 | 0.174 | 0.377 | 0.881 |
-| **Transformer + reranker** | 0.740 | — | — | 0.180 | 0.382 | 0.881 |
+| **Transformer + reranker** | 0.739 | — | — | 0.176 | 0.383 | 0.881 |
 
 `change_top1` (accuracy on beats where the chord actually changes) is the
 honest harmonic metric — overall `top1` is inflated by HOLD (≈62% of beats).
@@ -102,9 +102,9 @@ assignment, so the jazz test slice is the **same 15 songs** as v1.
 
 | slice | Markov floor | melody-masked | auto-genre | **Transformer** | +reranker |
 |---|---|---|---|---|---|
-| all | 0.008 | 0.102 | 0.233 | **0.252** | 0.246 |
-| pop909 | 0.003 | 0.010 | 0.146 | **0.151** | 0.156 |
-| nottingham | 0.020 | 0.291 | 0.444 | **0.469** | 0.434 |
+| all | 0.008 | 0.102 | 0.233 | **0.252** | 0.260 |
+| pop909 | 0.003 | 0.010 | 0.146 | **0.151** | 0.168 |
+| nottingham | 0.020 | 0.291 | 0.444 | **0.469** | 0.457 |
 | openbook (jazz) | 0.009 | 0.305 | 0.283 | **0.419** | 0.421 |
 
 - **Beats v1 on jazz**: 0.421 (reranked) vs 0.382 on the identical 15 test
@@ -158,9 +158,14 @@ melody window + context  ->  Embedder  ->  3-layer Transformer encoder  ->  CLS
   meter, previous chord class, previous T/PD/D function, window length,
   hypermeter position, grid position). No future-melody leakage: the window for
   a decision at beat `t` holds only notes with `onset < t`.
-- **Reranker:** `score = logp_model + α·melody_fit + β·log T_func[f_prev→f] − δ·clash`
-  (γ·Markov dropped by tuning — it duplicated the model and biased toward HOLD).
-  Constants in [artifacts/reranker_config.json](artifacts/reranker_config.json);
+- **Reranker:** `score = logp_model + β·log T_func[f_prev→f] − δ·clash`. Both the
+  `α·melody_fit` and `γ·Markov` terms are **off** (α=0, γ=0): melody_fit scored the
+  *next* chord against the *past* half-bar (which belongs to the *old* chord) —
+  causally backwards and net-negative on `change_top1` (overall 0.252 raw →
+  0.246 with α=0.8 → **0.260 with α=0**; folk regressed −0.035 at α=0.8);
+  γ·Markov duplicated the model and biased toward HOLD. The function-transition
+  prior (β) is the one term that earns its place. Constants in
+  [artifacts/reranker_config.json](artifacts/reranker_config.json);
   `freedom` knob wired (softmax temperature), tension/complexity/evolution stubbed.
 
 ## Layout

@@ -219,11 +219,7 @@
     },
     {
      "class": 2,
-     "score": -4.880075
-    },
-    {
-     "class": 4,
-     "score": -6.531937
+     "score": -5.680075
     },
     {
      "class": 3,
@@ -232,6 +228,10 @@
     {
      "class": 7,
      "score": -6.717857
+    },
+    {
+     "class": 4,
+     "score": -7.331937
     }
    ]
   },
@@ -585,23 +585,23 @@
    "expected_reranked": [
     {
      "class": 0,
-     "score": -0.90658
+     "score": -1.439913
     },
     {
      "class": 66,
-     "score": -8.057365
-    },
-    {
-     "class": 65,
-     "score": -8.61171
-    },
-    {
-     "class": 62,
-     "score": -8.672223
+     "score": -8.324032
     },
     {
      "class": 64,
      "score": -8.874916
+    },
+    {
+     "class": 65,
+     "score": -8.878376
+    },
+    {
+     "class": 62,
+     "score": -8.938889
     }
    ]
   },
@@ -984,23 +984,23 @@
    "expected_reranked": [
     {
      "class": 7,
-     "score": -1.857844
+     "score": -2.391177
     },
     {
      "class": 5,
-     "score": -2.350727
+     "score": -2.617394
     },
     {
      "class": 1,
-     "score": -2.910352
+     "score": -3.443686
     },
     {
      "class": 3,
-     "score": -3.588164
+     "score": -3.854831
     },
     {
      "class": 0,
-     "score": -4.340113
+     "score": -4.60678
     }
    ]
   },
@@ -1322,19 +1322,19 @@
    "expected_reranked": [
     {
      "class": 0,
-     "score": -0.638789
+     "score": -1.438789
     },
     {
      "class": 66,
-     "score": -7.920149
+     "score": -8.320149
     },
     {
      "class": 65,
-     "score": -8.501067
+     "score": -8.901067
     },
     {
      "class": 58,
-     "score": -8.563811
+     "score": -8.963811
     },
     {
      "class": 61,
@@ -1721,15 +1721,11 @@
    "expected_reranked": [
     {
      "class": 0,
-     "score": -1.395883
+     "score": -1.662549
     },
     {
      "class": 2,
-     "score": -7.987872
-    },
-    {
-     "class": 48,
-     "score": -8.652608
+     "score": -8.521205
     },
     {
      "class": 64,
@@ -1738,6 +1734,10 @@
     {
      "class": 65,
      "score": -8.847136
+    },
+    {
+     "class": 48,
+     "score": -8.919275
     }
    ]
   },
@@ -2028,19 +2028,19 @@
     },
     {
      "class": 0,
-     "score": -1.725571
+     "score": -2.525571
     },
     {
      "class": 2,
      "score": -3.375407
     },
     {
-     "class": 7,
-     "score": -4.732591
-    },
-    {
      "class": 4,
      "score": -4.912957
+    },
+    {
+     "class": 7,
+     "score": -5.532591
     }
    ]
   },
@@ -2680,23 +2680,23 @@
    "expected_reranked": [
     {
      "class": 2,
-     "score": -0.988467
+     "score": -1.188467
     },
     {
      "class": 4,
-     "score": -6.660675
+     "score": -6.860675
     },
     {
      "class": 0,
-     "score": -6.714109
-    },
-    {
-     "class": 1,
-     "score": -8.257277
+     "score": -7.314109
     },
     {
      "class": 11,
      "score": -8.324445
+    },
+    {
+     "class": 1,
+     "score": -8.457277
     }
    ]
   },
@@ -2963,15 +2963,15 @@
    "expected_reranked": [
     {
      "class": 0,
-     "score": 0.201768
+     "score": -0.518232
     },
     {
      "class": 7,
-     "score": -4.080648
+     "score": -4.800648
     },
     {
      "class": 37,
-     "score": -4.943737
+     "score": -5.663737
     },
     {
      "class": 42,
@@ -2979,7 +2979,7 @@
     },
     {
      "class": 66,
-     "score": -7.163989
+     "score": -7.243989
     }
    ]
   },
@@ -3363,23 +3363,23 @@
    "expected_reranked": [
     {
      "class": 39,
-     "score": -1.969565
-    },
-    {
-     "class": 0,
-     "score": -3.069888
-    },
-    {
-     "class": 43,
-     "score": -3.326337
+     "score": -2.369565
     },
     {
      "class": 25,
-     "score": -3.465719
+     "score": -3.665719
+    },
+    {
+     "class": 0,
+     "score": -3.669888
     },
     {
      "class": 28,
      "score": -3.779242
+    },
+    {
+     "class": 43,
+     "score": -3.926337
     }
    ]
   },
@@ -3727,23 +3727,23 @@
    "expected_reranked": [
     {
      "class": 0,
-     "score": -1.159219
+     "score": -1.479219
     },
     {
      "class": 13,
-     "score": -5.446631
-    },
-    {
-     "class": 2,
-     "score": -5.486971
-    },
-    {
-     "class": 10,
-     "score": -5.862103
+     "score": -5.766631
     },
     {
      "class": 3,
      "score": -5.891634
+    },
+    {
+     "class": 10,
+     "score": -6.182103
+    },
+    {
+     "class": 2,
+     "score": -6.286971
     }
    ]
   },
@@ -4394,15 +4394,15 @@
    "expected_reranked": [
     {
      "class": 0,
-     "score": -0.326318
-    },
-    {
-     "class": 4,
-     "score": -3.00307
+     "score": -1.126318
     },
     {
      "class": 3,
      "score": -3.008283
+    },
+    {
+     "class": 4,
+     "score": -3.16307
     },
     {
      "class": 5,
@@ -4410,7 +4410,7 @@
     },
     {
      "class": 6,
-     "score": -3.312353
+     "score": -3.952353
     }
    ]
   },
@@ -4881,23 +4881,23 @@
    "expected_reranked": [
     {
      "class": 0,
-     "score": 0.19729
+     "score": -0.469377
     },
     {
      "class": 12,
-     "score": -4.627276
+     "score": -5.160609
     },
     {
      "class": 3,
-     "score": -6.160896
+     "score": -6.827563
     },
     {
      "class": 13,
-     "score": -6.801899
+     "score": -7.068566
     },
     {
      "class": 62,
-     "score": -7.93613
+     "score": -8.469463
     }
    ]
   },
@@ -5317,16 +5317,16 @@
    ],
    "expected_reranked": [
     {
+     "class": 5,
+     "score": -1.625218
+    },
+    {
      "class": 0,
-     "score": -0.876468
+     "score": -1.676468
     },
     {
      "class": 4,
-     "score": -0.987465
-    },
-    {
-     "class": 5,
-     "score": -1.625218
+     "score": -1.787465
     },
     {
      "class": 3,
@@ -5729,19 +5729,19 @@
    "expected_reranked": [
     {
      "class": 0,
-     "score": -0.760747
+     "score": -1.460747
     },
     {
      "class": 3,
-     "score": -5.287314
-    },
-    {
-     "class": 9,
-     "score": -7.37153
+     "score": -5.387314
     },
     {
      "class": 8,
      "score": -7.379768
+    },
+    {
+     "class": 9,
+     "score": -7.57153
     },
     {
      "class": 6,
@@ -6097,11 +6097,11 @@
    "expected_reranked": [
     {
      "class": 0,
-     "score": -0.259709
+     "score": -0.526376
     },
     {
      "class": 12,
-     "score": -4.43898
+     "score": -4.705646
     },
     {
      "class": 3,
@@ -6109,7 +6109,7 @@
     },
     {
      "class": 4,
-     "score": -5.036784
+     "score": -5.836784
     },
     {
      "class": 6,
@@ -6747,7 +6747,7 @@
    "expected_reranked": [
     {
      "class": 0,
-     "score": -1.15433
+     "score": -1.47433
     },
     {
      "class": 3,
@@ -6755,15 +6755,15 @@
     },
     {
      "class": 9,
-     "score": -3.038842
+     "score": -3.518842
     },
     {
      "class": 4,
-     "score": -3.459619
+     "score": -4.259619
     },
     {
      "class": 1,
-     "score": -4.243386
+     "score": -4.723386
     }
    ]
   },
@@ -6979,15 +6979,15 @@
    "expected_reranked": [
     {
      "class": 0,
-     "score": 0.204562
-    },
-    {
-     "class": 13,
-     "score": -3.513052
+     "score": -0.595438
     },
     {
      "class": 3,
      "score": -3.640746
+    },
+    {
+     "class": 13,
+     "score": -4.313052
     },
     {
      "class": 6,
@@ -7339,23 +7339,23 @@
    "expected_reranked": [
     {
      "class": 0,
-     "score": -1.213372
+     "score": -2.013372
     },
     {
      "class": 1,
-     "score": -1.261538
+     "score": -2.061538
     },
     {
      "class": 2,
      "score": -3.671134
     },
     {
-     "class": 9,
-     "score": -3.795182
-    },
-    {
      "class": 4,
      "score": -4.020275
+    },
+    {
+     "class": 9,
+     "score": -4.595182
     }
    ]
   },
@@ -7702,23 +7702,23 @@
    "expected_reranked": [
     {
      "class": 0,
-     "score": 0.229263
+     "score": -0.470737
     },
     {
      "class": 3,
-     "score": -4.225435
-    },
-    {
-     "class": 9,
-     "score": -5.31602
+     "score": -4.925435
     },
     {
      "class": 6,
      "score": -5.547542
     },
     {
+     "class": 9,
+     "score": -6.11602
+    },
+    {
      "class": 20,
-     "score": -5.705271
+     "score": -6.405271
     }
    ]
   },

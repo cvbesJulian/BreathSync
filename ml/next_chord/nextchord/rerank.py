@@ -22,7 +22,11 @@ import os
 from . import vocab
 
 DEFAULT_CONFIG = {
-    "alpha": 1.0, "beta": 0.5, "gamma": 0.5, "delta": 1.0,
+    # alpha=0: melody_fit scores the NEXT chord against the PAST half-bar of
+    # melody (which belongs to the OLD chord) — causally backwards, net-negative
+    # on change_top1. gamma=0: the Markov prior duplicates the model and biases
+    # toward HOLD. Both are foot-guns if defaults are ever used; keep them off.
+    "alpha": 0.0, "beta": 0.5, "gamma": 0.0, "delta": 1.0,
     "topk": 5,
     "func_transition": {
         "T":  {"T": 0.35, "PD": 0.45, "D": 0.20},

@@ -12,7 +12,7 @@
 | Transformer(melody-masked) | 0.695 | 0.829 | 1.430 | 0.121 | 0.218 | 0.835 |
 | BiGRU | 0.735 | 0.836 | 1.195 | 0.164 | 0.362 | 0.874 |
 | Transformer | 0.735 | 0.840 | 1.197 | 0.174 | 0.377 | 0.881 |
-| Transformer+reranker | 0.740 |  |  | 0.180 | 0.382 | 0.881 |
+| Transformer+reranker | 0.739 |  |  | 0.176 | 0.383 | 0.881 |
 
 ## Transformer accuracy vs window length (bars)
 
