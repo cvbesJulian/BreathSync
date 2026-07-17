@@ -1,6 +1,7 @@
 """Freeze 50 reranker input->output cases from the val split into
 artifacts/test_vectors.json. tests/test_rerank_vectors.py replays them; the
 future JS port must reproduce the same scores/order (bit-approximately)."""
+import argparse
 import json
 import os
 import sys
@@ -13,9 +14,17 @@ from nextchord import pipeline, infer, dataset as ds, markov as mk, rerank as rr
 
 
 def main():
-    cfg, songs, spec, splits = pipeline.load_everything()
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--config", default=None,
+                    help="config json; checkpoint/output dirs resolve from it "
+                         "(default: OpenBook top-level artifacts)")
+    args = ap.parse_args()
+
+    cfg0 = pipeline.load_cfg(args.config) if args.config else None
+    cfg, songs, spec, splits = pipeline.load_everything(cfg0)
+    art_base = os.path.dirname(pipeline.checkpoint_dir(cfg0))
     device = pipeline.pick_device()
-    h = infer.load_checkpoint(os.path.join(ROOT, "artifacts", "checkpoints", "transformer.pt"), device)
+    h = infer.load_checkpoint(os.path.join(pipeline.checkpoint_dir(cfg0), "transformer.pt"), device)
     val_ds = ds.EvalDataset(songs, splits["val"], spec, cfg, fixed_wlen=2.0)
     logp, tgt, metas = infer.logprobs_over(h["net"], val_ds, spec, device, T=h["T"])
     logp = logp.numpy()
@@ -46,7 +55,7 @@ def main():
         out = [{"class": r["class"], "score": round(float(r["score"]), 6)} for r in res]
         vectors.append({"input": inp, "expected": out})
 
-    path = os.path.join(ROOT, "artifacts", "test_vectors.json")
+    path = os.path.join(art_base, "test_vectors.json")
     json.dump({"reranker_config": rcfg, "vectors": vectors}, open(path, "w"), indent=1)
     print(f"wrote {len(vectors)} vectors -> {path}")
 

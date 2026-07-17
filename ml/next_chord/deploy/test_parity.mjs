@@ -15,9 +15,14 @@ import { logSoftmax, buildEncoding, buildFeed, melodyContext } from "./predict.j
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ART = join(HERE, "..", "artifacts");
+// Corpus selector: "" (default) = OpenBook top-level artifacts; otherwise a
+// subdir (e.g. NEXTCHORD_CORPUS=hooktheory -> artifacts/hooktheory/). The
+// reranker config is shared (theory-based, corpus-agnostic in structure).
+const CORPUS = process.env.NEXTCHORD_CORPUS || "";
+const ART_C = CORPUS ? join(ART, CORPUS) : ART;
 const readJSON = (p) => JSON.parse(readFileSync(p, "utf8"));
 
-const modelConfig = readJSON(join(ART, "onnx", "model_config.json"));
+const modelConfig = readJSON(join(ART_C, "onnx", "model_config.json"));
 const rerankerConfig = readJSON(join(ART, "reranker_config.json"));
 const spec = makeSpec(modelConfig.features);
 const vocab = makeVocab(modelConfig);
@@ -30,10 +35,12 @@ function check(name, ok, detail = "") {
 }
 
 // ---- A. reranker golden vectors ----
-// Combined (source-conditioned) deployments freeze their vectors under
-// artifacts/combined/ — the top-level file describes the OpenBook-only model.
-const gv = readJSON(spec.sources
-  ? join(ART, "combined", "test_vectors.json") : join(ART, "test_vectors.json"));
+// With a corpus selected, vectors live beside its model (artifacts/<corpus>/).
+// Otherwise: combined (source-conditioned) deployments freeze theirs under
+// artifacts/combined/; the top-level file describes the OpenBook-only model.
+const gv = readJSON(CORPUS
+  ? join(ART_C, "test_vectors.json")
+  : (spec.sources ? join(ART, "combined", "test_vectors.json") : join(ART, "test_vectors.json")));
 for (let i = 0; i < gv.vectors.length; i++) {
   const { input: inp } = gv.vectors[i];
   const res = rerank(vocab, gv.reranker_config, inp.model_logprobs, {
@@ -48,7 +55,7 @@ for (let i = 0; i < gv.vectors.length; i++) {
 }
 
 // ---- B & C. encoding + rerank from parity fixtures ----
-const pf = readJSON(join(ART, "parity_fixtures.json"));
+const pf = readJSON(join(ART_C, "parity_fixtures.json"));
 for (let i = 0; i < pf.fixtures.length; i++) {
   const fx = pf.fixtures[i];
   const notes = fx.raw_notes.map(([pitch, onset, dur, onsetInBar, beatsPerBar]) =>
@@ -89,7 +96,7 @@ try { ort = (await import("onnxruntime-node")).default; }
 catch { console.log("  (onnxruntime-node not installed — skipping ONNX path D)"); }
 
 if (ort) {
-  const session = await ort.InferenceSession.create(join(ART, "onnx", "model.onnx"));
+  const session = await ort.InferenceSession.create(join(ART_C, "onnx", "model.onnx"));
   let maxDiff = 0;
   for (let i = 0; i < pf.fixtures.length; i++) {
     const fx = pf.fixtures[i];
@@ -114,5 +121,6 @@ if (ort) {
   check(`onnx logits parity (max|diff|=${maxDiff.toExponential(2)})`, maxDiff < 1e-3, `maxDiff=${maxDiff}`);
 }
 
-console.log(`\n${fail === 0 ? "PASS" : "FAIL"}: ${pass} checks passed, ${fail} failed`);
+console.log(`\n[${CORPUS || "openbook"} · ${modelConfig.n_classes} classes] ` +
+  `${fail === 0 ? "PASS" : "FAIL"}: ${pass} checks passed, ${fail} failed`);
 process.exit(fail === 0 ? 0 : 1);

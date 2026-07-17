@@ -26,16 +26,21 @@ import { respond } from "./chord_service.js";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ART = join(HERE, "..", "artifacts");
+// Corpus selector: "" (default) = OpenBook top-level artifacts; otherwise a
+// subdir (NEXTCHORD_CORPUS=hooktheory -> artifacts/hooktheory/onnx/). The
+// reranker config is shared across corpora.
+const CORPUS = process.env.NEXTCHORD_CORPUS || "";
+const ONNX_DIR = CORPUS ? join(ART, CORPUS, "onnx") : join(ART, "onnx");
 const readJSON = (p) => JSON.parse(readFileSync(p, "utf8"));
 
 let model = null;
 let modelConfig = null;
 
 async function init() {
-  modelConfig = readJSON(join(ART, "onnx", "model_config.json"));
+  modelConfig = readJSON(join(ONNX_DIR, "model_config.json"));
   const rerankerConfig = readJSON(join(ART, "reranker_config.json"));
-  model = await loadModel(ort, join(ART, "onnx", "model.onnx"), modelConfig, rerankerConfig);
-  maxApi.post(`nextchord: model loaded (${modelConfig.n_classes} classes)`);
+  model = await loadModel(ort, join(ONNX_DIR, "model.onnx"), modelConfig, rerankerConfig);
+  maxApi.post(`nextchord: ${CORPUS || "openbook"} model loaded (${modelConfig.n_classes} classes)`);
 }
 
 maxApi.addHandler("predict", async (payload) => {

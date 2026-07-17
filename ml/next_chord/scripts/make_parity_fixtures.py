@@ -5,6 +5,7 @@ Python-encoded feature ids, the ONNX raw logits, the calibrated log-probs, and
 the Python reranker output. deploy/test_parity.mjs replays all of it so the JS
 feature encoder + onnxruntime-node + JS reranker must match Python bit-closely.
 """
+import argparse
 import json
 import os
 import sys
@@ -22,13 +23,23 @@ from nextchord import pipeline, infer, dataset as ds, features, windows, rerank 
 
 
 def main():
-    cfg, songs, spec, splits = pipeline.load_everything()
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--config", default=None,
+                    help="config json; checkpoint/onnx/output dirs resolve from "
+                         "it (default: OpenBook top-level artifacts)")
+    args = ap.parse_args()
+
+    cfg0 = pipeline.load_cfg(args.config) if args.config else None
+    cfg, songs, spec, splits = pipeline.load_everything(cfg0)
+    # artifacts base for this corpus: parent of the checkpoint dir
+    #   OpenBook -> artifacts/ ; hooktheory -> artifacts/hooktheory/
+    art_base = os.path.dirname(pipeline.checkpoint_dir(cfg0))
     device = torch.device("cpu")
-    h = infer.load_checkpoint(os.path.join(ROOT, "artifacts", "checkpoints", "transformer.pt"), device)
+    h = infer.load_checkpoint(os.path.join(pipeline.checkpoint_dir(cfg0), "transformer.pt"), device)
     T = h["T"]
-    onnx_path = os.path.join(ROOT, "artifacts", "onnx", "model.onnx")
+    onnx_path = os.path.join(art_base, "onnx", "model.onnx")
     sess = ort.InferenceSession(onnx_path, providers=["CPUExecutionProvider"])
-    order = json.load(open(os.path.join(ROOT, "artifacts", "onnx", "model_config.json")))["input_order"]
+    order = json.load(open(os.path.join(art_base, "onnx", "model_config.json")))["input_order"]
     rcfg = rr.load_config()
 
     val_ds = ds.EvalDataset(songs, splits["val"], spec, cfg, fixed_wlen=2.0)
@@ -82,7 +93,7 @@ def main():
             "expected_reranked": [{"class": r["class"], "score": round(float(r["score"]), 6)} for r in res],
         })
 
-    out = os.path.join(ROOT, "artifacts", "parity_fixtures.json")
+    out = os.path.join(art_base, "parity_fixtures.json")
     json.dump({"calibration_T": T, "n": len(fixtures), "fixtures": fixtures}, open(out, "w"), indent=1)
     print(f"wrote {len(fixtures)} fixtures -> {out}")
 

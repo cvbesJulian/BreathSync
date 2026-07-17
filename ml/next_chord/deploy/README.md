@@ -16,26 +16,45 @@ reranker against frozen fixtures).
 | `nextchord.node.js` | `node.script` entry — loads the model, answers `predict` requests. |
 | `test_parity.mjs` | headless parity harness (245 checks). |
 
-All model-specific numbers come from `../artifacts/onnx/model_config.json`,
-`../artifacts/reranker_config.json`, and `../artifacts/onnx/model.onnx` — retrain
-in `ml/next_chord/` and re-export to update the device with no code changes.
+All model-specific numbers come from the selected corpus's `model_config.json`,
+the shared `../artifacts/reranker_config.json`, and that corpus's `model.onnx` —
+retrain in `ml/next_chord/` and re-export to update the device with no code changes.
+
+### Selecting a corpus
+
+The device loads OpenBook (jazz) by default. Set `NEXTCHORD_CORPUS` to load a
+different exported model from `../artifacts/<corpus>/onnx/` instead — the code is
+identical; only the frozen artifacts differ (the sidecar carries that corpus's
+vocab, roman/function maps, and calibration T).
+
+| `NEXTCHORD_CORPUS` | model | artifacts |
+|---|---|---|
+| _(unset)_ | OpenBook jazz | `../artifacts/onnx/` |
+| `hooktheory` | Hooktheory pop (76-class) | `../artifacts/hooktheory/onnx/` |
+
+The reranker config is shared (it's theory-based — a function-transition table +
+clash penalties — and corpus-agnostic in structure; the pop model reuses the
+OpenBook-tuned constants, which is a reasonable start but not pop-tuned).
 
 ## Setup & verify (no Max needed)
 
 ```bash
 cd ml/next_chord/deploy
 npm install                 # onnxruntime-node
-node test_parity.mjs        # -> "PASS: 245 checks passed, 0 failed"
+node test_parity.mjs                          # OpenBook -> "PASS: 245 checks ..."
+NEXTCHORD_CORPUS=hooktheory node test_parity.mjs   # pop -> "PASS: 245 checks ..."
 ```
 
-The harness proves the JS pipeline matches Python:
-- **A** reranker golden vectors (`artifacts/test_vectors.json`),
-- **B** feature encoding, bit-exact (`artifacts/parity_fixtures.json`),
+The harness proves the JS pipeline matches Python (paths below are relative to
+the selected corpus dir — top-level for OpenBook, `artifacts/hooktheory/` for pop):
+- **A** reranker golden vectors (`test_vectors.json`),
+- **B** feature encoding, bit-exact (`parity_fixtures.json`),
 - **C/melodyContext** window/strong pitch-class derivation,
 - **D** full `onnxruntime-node` logits (max|Δ| < 1e-3) + end-to-end chosen chord.
 
-Regenerate fixtures after retraining: `python -m ... scripts/make_parity_fixtures.py`
-and `scripts/make_test_vectors.py` in `ml/next_chord/`.
+Regenerate fixtures after retraining (add `--config configs/hooktheory.json` for
+pop): `scripts/make_parity_fixtures.py` and `scripts/make_test_vectors.py` in
+`ml/next_chord/`.
 
 ## Message protocol (Max ⇄ node.script)
 
