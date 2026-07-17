@@ -27,8 +27,12 @@ def fit_temperature(logits, targets):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--model", default="transformer")
+    ap.add_argument("--config", default=None,
+                    help="config json; checkpoint dir is resolved from it "
+                         "(default: OpenBook artifacts/checkpoints)")
     args = ap.parse_args()
-    path = os.path.join(pipeline.ROOT, "artifacts", "checkpoints", f"{args.model}.pt")
+    cfg0 = pipeline.load_cfg(args.config) if args.config else None
+    path = os.path.join(pipeline.checkpoint_dir(cfg0), f"{args.model}.pt")
     h = infer.load_checkpoint(path)
     cfg, songs, spec, splits = pipeline.load_everything(h["cfg"])
     val_ds = ds.EvalDataset(songs, splits["val"], spec, cfg, fixed_wlen=2.0)

@@ -2,7 +2,7 @@
  "model": "transformer",
  "corpus": "hooktheory",
  "n_classes": 76,
- "calibration_T": 1.0,
+ "calibration_T": 0.6983046531677246,
  "input_order": [
   "global_ids",
   "pc",
