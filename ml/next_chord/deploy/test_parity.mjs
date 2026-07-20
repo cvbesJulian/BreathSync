@@ -4,7 +4,7 @@
 //   B. feature encoding, bit-exact (artifacts/parity_fixtures.json)
 //   C. reranker on frozen logprobs (parity_fixtures)
 //   D. full ONNX path via onnxruntime-node, if installed (logits + end-to-end)
-import { readFileSync } from "node:fs";
+import { readFileSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 
@@ -23,7 +23,9 @@ const ART_C = CORPUS ? join(ART, CORPUS) : ART;
 const readJSON = (p) => JSON.parse(readFileSync(p, "utf8"));
 
 const modelConfig = readJSON(join(ART_C, "onnx", "model_config.json"));
-const rerankerConfig = readJSON(join(ART, "reranker_config.json"));
+// Corpus-tuned reranker if present, else the shared default (sections B/C/D).
+const rerankerConfig = readJSON(CORPUS && existsSync(join(ART_C, "reranker_config.json"))
+  ? join(ART_C, "reranker_config.json") : join(ART, "reranker_config.json"));
 const spec = makeSpec(modelConfig.features);
 const vocab = makeVocab(modelConfig);
 

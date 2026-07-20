@@ -32,7 +32,8 @@ def main():
     tr_fixed, tr_hold = windows.split_decisions(songs, splits["train"])
     markov = mk.MarkovBaseline().fit(list(tr_fixed) + list(tr_hold))
     mlp = markov.log_dist_batch([mm["prev_class"] for mm in metas])
-    rcfg = rr.load_config()
+    rcfg_path = os.path.join(art_base, "reranker_config.json")
+    rcfg = rr.load_config(rcfg_path if os.path.exists(rcfg_path) else None)
 
     idxs = list(range(0, len(refs), max(1, len(refs) // 50)))[:50]
     vectors = []

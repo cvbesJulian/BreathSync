@@ -16,7 +16,7 @@
 //     familyIdx < 0  => HOLD / OTHER (device sustains the current chord)
 //   top <classId> <prob> ...   (model top-5, for UI)
 import maxApi from "max-api";
-import { readFileSync } from "node:fs";
+import { readFileSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import ort from "onnxruntime-node";
@@ -32,13 +32,17 @@ const ART = join(HERE, "..", "artifacts");
 const CORPUS = process.env.NEXTCHORD_CORPUS || "";
 const ONNX_DIR = CORPUS ? join(ART, CORPUS, "onnx") : join(ART, "onnx");
 const readJSON = (p) => JSON.parse(readFileSync(p, "utf8"));
+// Prefer a corpus-tuned reranker (artifacts/<corpus>/reranker_config.json);
+// fall back to the shared default.
+const rerankerPath = CORPUS && existsSync(join(ART, CORPUS, "reranker_config.json"))
+  ? join(ART, CORPUS, "reranker_config.json") : join(ART, "reranker_config.json");
 
 let model = null;
 let modelConfig = null;
 
 async function init() {
   modelConfig = readJSON(join(ONNX_DIR, "model_config.json"));
-  const rerankerConfig = readJSON(join(ART, "reranker_config.json"));
+  const rerankerConfig = readJSON(rerankerPath);
   model = await loadModel(ort, join(ONNX_DIR, "model.onnx"), modelConfig, rerankerConfig);
   maxApi.post(`nextchord: ${CORPUS || "openbook"} model loaded (${modelConfig.n_classes} classes)`);
 }

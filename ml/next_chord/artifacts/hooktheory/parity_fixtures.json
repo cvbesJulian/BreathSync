@@ -244,23 +244,23 @@
    "expected_reranked": [
     {
      "class": 2,
-     "score": -0.482129
+     "score": -0.378157
     },
     {
      "class": 3,
-     "score": -3.034845
+     "score": -2.854249
     },
     {
      "class": 1,
-     "score": -3.310662
+     "score": -3.20669
     },
     {
      "class": 5,
-     "score": -4.369306
+     "score": -4.18871
     },
     {
      "class": 4,
-     "score": -5.063526
+     "score": -4.82211
     }
    ]
   },
@@ -586,23 +586,23 @@
    "expected_reranked": [
     {
      "class": 2,
-     "score": -1.408222
+     "score": -1.123654
     },
     {
      "class": 0,
-     "score": -2.224642
+     "score": -2.067169
     },
     {
      "class": 4,
-     "score": -2.327025
+     "score": -2.223054
     },
     {
      "class": 1,
-     "score": -3.158846
+     "score": -2.874278
     },
     {
      "class": 5,
-     "score": -3.795098
+     "score": -3.637625
     }
    ]
   },
@@ -903,23 +903,23 @@
    "expected_reranked": [
     {
      "class": 0,
-     "score": -1.711287
+     "score": -0.46987
     },
     {
      "class": 2,
-     "score": -3.522628
+     "score": -3.45801
     },
     {
      "class": 3,
-     "score": -6.477509
-    },
-    {
-     "class": 13,
-     "score": -7.030437
+     "score": -5.192941
     },
     {
      "class": 4,
-     "score": -7.502694
+     "score": -6.261278
+    },
+    {
+     "class": 13,
+     "score": -6.789021
     }
    ]
   },
@@ -1229,23 +1229,23 @@
    "expected_reranked": [
     {
      "class": 0,
-     "score": -0.577445
+     "score": -0.419972
     },
     {
      "class": 4,
-     "score": -3.185827
+     "score": -2.944411
     },
     {
      "class": 2,
-     "score": -4.443515
+     "score": -4.286042
     },
     {
      "class": 6,
-     "score": -4.707531
+     "score": -4.550058
     },
     {
      "class": 3,
-     "score": -6.334356
+     "score": -5.21458
     }
    ]
   },
@@ -1475,23 +1475,23 @@
    "expected_reranked": [
     {
      "class": 0,
-     "score": -1.210328
-    },
-    {
-     "class": 3,
-     "score": -2.672028
+     "score": -1.052855
     },
     {
      "class": 4,
-     "score": -2.852636
+     "score": -1.73286
+    },
+    {
+     "class": 3,
+     "score": -2.514556
     },
     {
      "class": 2,
-     "score": -3.279495
+     "score": -3.122022
     },
     {
      "class": 6,
-     "score": -4.433576
+     "score": -3.192159
     }
    ]
   },
@@ -1800,23 +1800,23 @@
    "expected_reranked": [
     {
      "class": 3,
-     "score": -1.7994
+     "score": -0.679624
     },
     {
      "class": 1,
-     "score": -2.630515
+     "score": -2.473042
     },
     {
      "class": 4,
-     "score": -3.048232
-    },
-    {
-     "class": 0,
-     "score": -3.162331
+     "score": -2.806816
     },
     {
      "class": 5,
-     "score": -4.100345
+     "score": -2.980569
+    },
+    {
+     "class": 0,
+     "score": -3.004858
     }
    ]
   },
@@ -2158,23 +2158,23 @@
    "expected_reranked": [
     {
      "class": 0,
-     "score": -0.474939
-    },
-    {
-     "class": 2,
-     "score": -5.078604
+     "score": -0.317466
     },
     {
      "class": 4,
-     "score": -5.428477
+     "score": -4.308701
     },
     {
-     "class": 3,
-     "score": -6.705508
+     "class": 2,
+     "score": -4.921131
     },
     {
      "class": 6,
-     "score": -6.747463
+     "score": -5.506047
+    },
+    {
+     "class": 3,
+     "score": -5.548035
     }
    ]
   },
@@ -2586,23 +2586,23 @@
    "expected_reranked": [
     {
      "class": 0,
-     "score": -1.680102
-    },
-    {
-     "class": 9,
-     "score": -3.778023
-    },
-    {
-     "class": 1,
-     "score": -4.331333
+     "score": -0.522629
     },
     {
      "class": 4,
-     "score": -4.721336
+     "score": -3.47992
+    },
+    {
+     "class": 9,
+     "score": -3.658247
     },
     {
      "class": 6,
-     "score": -5.206473
+     "score": -4.049001
+    },
+    {
+     "class": 1,
+     "score": -4.173861
     }
    ]
   },
@@ -3057,23 +3057,23 @@
    "expected_reranked": [
     {
      "class": 0,
-     "score": -2.087654
+     "score": -0.930181
     },
     {
      "class": 3,
-     "score": -3.34674
+     "score": -2.226964
     },
     {
      "class": 4,
-     "score": -4.041101
+     "score": -2.799685
     },
     {
      "class": 5,
-     "score": -4.614897
+     "score": -3.495121
     },
     {
      "class": 1,
-     "score": -4.995477
+     "score": -3.838005
     }
    ]
   },
@@ -3375,24 +3375,24 @@
    ],
    "expected_reranked": [
     {
-     "class": 21,
-     "score": -1.994871
+     "class": 2,
+     "score": -1.188594
     },
     {
-     "class": 2,
-     "score": -2.253211
+     "class": 21,
+     "score": -1.930254
     },
     {
      "class": 0,
-     "score": -4.018782
+     "score": -2.777366
     },
     {
      "class": 15,
-     "score": -4.936653
+     "score": -3.695237
     },
     {
      "class": 17,
-     "score": -5.06673
+     "score": -3.782162
     }
    ]
   },
@@ -3651,23 +3651,23 @@
    "expected_reranked": [
     {
      "class": 0,
-     "score": -0.549998
+     "score": -0.392526
     },
     {
      "class": 6,
-     "score": -3.232411
+     "score": -3.12844
     },
     {
      "class": 2,
-     "score": -5.036724
+     "score": -4.752156
     },
     {
      "class": 1,
-     "score": -5.0539
+     "score": -4.769332
     },
     {
      "class": 3,
-     "score": -5.249565
+     "score": -4.964997
     }
    ]
   },
@@ -3932,23 +3932,23 @@
    "expected_reranked": [
     {
      "class": 0,
-     "score": -0.532389
+     "score": -0.374916
     },
     {
      "class": 4,
-     "score": -4.026682
+     "score": -3.785266
     },
     {
      "class": 3,
-     "score": -4.530273
+     "score": -4.410497
     },
     {
      "class": 2,
-     "score": -4.636016
+     "score": -4.478543
     },
     {
      "class": 6,
-     "score": -5.078967
+     "score": -4.921494
     }
    ]
   },
@@ -4343,23 +4343,23 @@
    "expected_reranked": [
     {
      "class": 0,
-     "score": -1.700663
+     "score": -0.54319
     },
     {
      "class": 4,
-     "score": -2.863968
-    },
-    {
-     "class": 6,
-     "score": -4.134882
+     "score": -2.744191
     },
     {
      "class": 3,
-     "score": -4.562828
+     "score": -3.405355
     },
     {
      "class": 2,
-     "score": -4.864267
+     "score": -3.706794
+    },
+    {
+     "class": 6,
+     "score": -3.893466
     }
    ]
   },
@@ -4687,23 +4687,23 @@
    "expected_reranked": [
     {
      "class": 0,
-     "score": -1.482553
+     "score": -0.32508
     },
     {
      "class": 4,
-     "score": -3.939246
+     "score": -3.697829
     },
     {
      "class": 6,
-     "score": -5.485661
+     "score": -5.328188
     },
     {
      "class": 2,
-     "score": -6.990911
+     "score": -5.833438
     },
     {
      "class": 3,
-     "score": -7.432433
+     "score": -6.312657
     }
    ]
   },
@@ -5072,23 +5072,23 @@
    "expected_reranked": [
     {
      "class": 0,
-     "score": -0.549879
-    },
-    {
-     "class": 2,
-     "score": -4.276272
+     "score": -0.392406
     },
     {
      "class": 4,
-     "score": -4.830867
+     "score": -3.726895
     },
     {
-     "class": 10,
-     "score": -5.647525
+     "class": 2,
+     "score": -3.991704
     },
     {
      "class": 6,
-     "score": -5.812183
+     "score": -4.527615
+    },
+    {
+     "class": 10,
+     "score": -4.543553
     }
    ]
   },
@@ -5393,23 +5393,23 @@
    "expected_reranked": [
     {
      "class": 0,
-     "score": -0.704829
+     "score": -0.547356
     },
     {
      "class": 1,
-     "score": -3.052683
+     "score": -2.768115
     },
     {
      "class": 2,
-     "score": -3.968929
-    },
-    {
-     "class": 6,
-     "score": -3.993652
+     "score": -3.684361
     },
     {
      "class": 3,
-     "score": -4.15115
+     "score": -3.866582
+    },
+    {
+     "class": 6,
+     "score": -3.88968
     }
    ]
   },
@@ -5668,23 +5668,23 @@
    "expected_reranked": [
     {
      "class": 0,
-     "score": -0.436652
+     "score": -0.279179
     },
     {
      "class": 1,
-     "score": -5.96813
-    },
-    {
-     "class": 5,
-     "score": -6.886539
+     "score": -5.810658
     },
     {
      "class": 4,
-     "score": -7.415709
+     "score": -6.295933
+    },
+    {
+     "class": 5,
+     "score": -6.766763
     },
     {
      "class": 6,
-     "score": -8.302194
+     "score": -7.060778
     }
    ]
   },
@@ -6088,23 +6088,23 @@
    "expected_reranked": [
     {
      "class": 0,
-     "score": -0.452263
+     "score": -0.29479
     },
     {
      "class": 3,
-     "score": -5.101503
-    },
-    {
-     "class": 1,
-     "score": -6.038932
+     "score": -4.981727
     },
     {
      "class": 4,
-     "score": -6.527971
+     "score": -5.286555
+    },
+    {
+     "class": 1,
+     "score": -5.881459
     },
     {
      "class": 5,
-     "score": -6.555997
+     "score": -6.436221
     }
    ]
   },
@@ -6473,23 +6473,23 @@
    "expected_reranked": [
     {
      "class": 0,
-     "score": -1.385147
-    },
-    {
-     "class": 4,
-     "score": -2.502987
+     "score": -1.227674
     },
     {
      "class": 3,
-     "score": -2.744455
+     "score": -1.624679
+    },
+    {
+     "class": 4,
+     "score": -2.261571
     },
     {
      "class": 1,
-     "score": -2.888865
+     "score": -2.731392
     },
     {
      "class": 5,
-     "score": -4.871878
+     "score": -3.752102
     }
    ]
   },
@@ -6794,23 +6794,23 @@
    "expected_reranked": [
     {
      "class": 2,
-     "score": -0.762121
+     "score": -0.697504
     },
     {
      "class": 1,
-     "score": -1.754938
+     "score": -1.690321
     },
     {
      "class": 3,
-     "score": -2.526578
+     "score": -2.24201
     },
     {
      "class": 5,
-     "score": -4.236506
+     "score": -3.951938
     },
     {
      "class": 6,
-     "score": -5.753933
+     "score": -4.689316
     }
    ]
   },
@@ -7294,23 +7294,23 @@
    "expected_reranked": [
     {
      "class": 4,
-     "score": -1.326992
+     "score": -1.207216
     },
     {
      "class": 0,
-     "score": -1.470455
+     "score": -1.312982
     },
     {
      "class": 2,
-     "score": -2.6619
+     "score": -2.504427
     },
     {
      "class": 1,
-     "score": -3.225833
+     "score": -3.06836
     },
     {
      "class": 5,
-     "score": -3.4037
+     "score": -3.283924
     }
    ]
   },
@@ -7649,23 +7649,23 @@
    "expected_reranked": [
     {
      "class": 1,
-     "score": -2.443644
+     "score": -1.159076
     },
     {
      "class": 3,
-     "score": -2.822684
+     "score": -1.538116
     },
     {
      "class": 0,
-     "score": -3.378775
+     "score": -3.221302
     },
     {
      "class": 5,
-     "score": -4.073789
+     "score": -3.916317
     },
     {
      "class": 9,
-     "score": -4.291712
+     "score": -4.134239
     }
    ]
   },
@@ -7984,23 +7984,23 @@
    "expected_reranked": [
     {
      "class": 0,
-     "score": -1.481695
+     "score": -0.324222
     },
     {
      "class": 4,
-     "score": -4.205338
+     "score": -4.085562
     },
     {
      "class": 6,
-     "score": -5.072979
-    },
-    {
-     "class": 5,
-     "score": -5.799854
+     "score": -4.831563
     },
     {
      "class": 1,
-     "score": -6.432841
+     "score": -5.275368
+    },
+    {
+     "class": 5,
+     "score": -5.680078
     }
    ]
   },
@@ -8422,23 +8422,23 @@
    "expected_reranked": [
     {
      "class": 1,
-     "score": -1.039497
-    },
-    {
-     "class": 2,
-     "score": -2.683648
+     "score": -0.882025
     },
     {
      "class": 0,
-     "score": -3.429802
+     "score": -2.272329
     },
     {
      "class": 4,
-     "score": -3.580554
+     "score": -2.460778
+    },
+    {
+     "class": 2,
+     "score": -2.526175
     },
     {
      "class": 5,
-     "score": -4.010499
+     "score": -2.890723
     }
    ]
   }

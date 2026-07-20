@@ -40,7 +40,9 @@ def main():
     onnx_path = os.path.join(art_base, "onnx", "model.onnx")
     sess = ort.InferenceSession(onnx_path, providers=["CPUExecutionProvider"])
     order = json.load(open(os.path.join(art_base, "onnx", "model_config.json")))["input_order"]
-    rcfg = rr.load_config()
+    # corpus-specific reranker if present (tuned per corpus), else shared default
+    rcfg_path = os.path.join(art_base, "reranker_config.json")
+    rcfg = rr.load_config(rcfg_path if os.path.exists(rcfg_path) else None)
 
     val_ds = ds.EvalDataset(songs, splits["val"], spec, cfg, fixed_wlen=2.0)
     refs = val_ds.refs
@@ -68,7 +70,11 @@ def main():
         ctx = infer.rerank_context(song, dp)
         pf = vocab.function_of(dp.prev_class, song.mode) \
             if dp.prev_class != windows.bos_id() else len(vocab.FUNCTIONS)
-        res = rr.rerank(logp.tolist(), dp.prev_class, pf, dp.sounding_class, song.mode,
+        # rerank from the SAME rounded logprobs the fixture stores — the JS
+        # replay only sees 6dp values, and near-ties in the reranked tail can
+        # flip order if the frozen expectation used full precision
+        logp_r = [round(float(x), 6) for x in logp]
+        res = rr.rerank(logp_r, dp.prev_class, pf, dp.sounding_class, song.mode,
                         ctx["window_pcs"], ctx["strong_pcs"], [0.0] * vocab.n_classes(), cfg=rcfg)
 
         fixtures.append({
@@ -89,7 +95,7 @@ def main():
                 "notes": {k: [int(x) for x in ex["notes"][k]] for k in features.NOTE_FEATS},
             },
             "expected_logits": [round(float(x), 5) for x in logits],
-            "expected_logprobs": [round(float(x), 6) for x in logp],
+            "expected_logprobs": logp_r,
             "expected_reranked": [{"class": r["class"], "score": round(float(r["score"]), 6)} for r in res],
         })
 

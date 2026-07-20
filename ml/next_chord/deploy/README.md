@@ -32,9 +32,15 @@ vocab, roman/function maps, and calibration T).
 | _(unset)_ | OpenBook jazz | `../artifacts/onnx/` |
 | `hooktheory` | Hooktheory pop (76-class) | `../artifacts/hooktheory/onnx/` |
 
-The reranker config is shared (it's theory-based — a function-transition table +
-clash penalties — and corpus-agnostic in structure; the pop model reuses the
-OpenBook-tuned constants, which is a reasonable start but not pop-tuned).
+Each corpus can carry its own tuned reranker at
+`../artifacts/<corpus>/reranker_config.json` (loaded automatically when present,
+else the shared `../artifacts/reranker_config.json`). Pop ships a tuned one
+(`hooktheory`: α0 β0.25 γ0 δ0); note the reranker barely moves pop metrics
+(change_top1 +0.002 on val — the model is already near the reranker's ceiling),
+and the clash penalty tuned to 0 because pop melodies sit on non-chord tones
+often enough that penalizing strong-beat clashes hurt agreement. γ is fixed at 0
+for any deployed reranker: the device supplies no Markov distribution, so only
+γ=0 configs rank identically in Python and on the device.
 
 ## Setup & verify (no Max needed)
 

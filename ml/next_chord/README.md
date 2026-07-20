@@ -73,8 +73,16 @@ cd ml/next_chord
 .venv/bin/python scripts/build_hooktheory_vocab.py    # -> artifacts/hooktheory/vocab.json (99.8%)
 .venv/bin/python -m nextchord.train --model transformer --config configs/hooktheory.json
 .venv/bin/python scripts/eval_hooktheory.py --split test
+.venv/bin/python -m nextchord.calibrate --config configs/hooktheory.json   # temp scaling -> T=0.698
+.venv/bin/python scripts/tune_reranker.py --config configs/hooktheory.json  # -> artifacts/hooktheory/reranker_config.json
 .venv/bin/python scripts/export_hooktheory_onnx.py   # -> artifacts/hooktheory/onnx/ (+ parity, max|diff| < 1e-4)
 ```
+
+The reranker tune is deploy-faithful (γ fixed 0 — the device has no Markov —
+and α spans 0 because `melody_fit` is causally backward). On pop it barely helps
+(change_top1 0.230 → 0.232 on val; the clash penalty tuned to δ=0), so the
+shipped pop reranker is near-neutral — the transformer already captures the
+functional signal the reranker encodes, the same change_top1 ceiling OpenBook hits.
 
 The exporter writes `artifacts/hooktheory/onnx/{model.onnx, model_config.json}`
 in the identical graph/sidecar contract as the OpenBook export, so the same
