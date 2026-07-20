@@ -110,19 +110,28 @@ assignment, so the jazz test slice is the **same 15 songs** as v1.
 
 | slice | Markov floor | melody-masked | auto-genre | **Transformer** | +reranker |
 |---|---|---|---|---|---|
-| all | 0.008 | 0.102 | 0.233 | **0.252** | 0.260 |
-| pop909 | 0.003 | 0.010 | 0.146 | **0.151** | 0.168 |
-| nottingham | 0.020 | 0.291 | 0.444 | **0.469** | 0.457 |
-| openbook (jazz) | 0.009 | 0.305 | 0.283 | **0.419** | 0.421 |
+| all | 0.008 | 0.102 | 0.233 | **0.252** | 0.269 |
+| pop909 | 0.003 | 0.010 | 0.146 | **0.151** | 0.175 |
+| nottingham | 0.020 | 0.291 | 0.444 | **0.469** | 0.473 |
+| openbook (jazz) | 0.009 | 0.305 | 0.283 | **0.419** | 0.414 |
 
-- **Beats v1 on jazz**: 0.421 (reranked) vs 0.382 on the identical 15 test
-  songs, over a strictly harder label space (68 vs 42 classes); overall top1
-  ties (0.740). More data — even pop/folk data — helps the jazz case.
+- **Beats v1 on jazz**: 0.419 (0.414 reranked) vs 0.377/0.383 on the
+  identical 15 test songs, over a strictly harder label space (68 vs 42
+  classes); overall top1 ties (0.740). More data — even pop/folk data —
+  helps the jazz case.
 - **Melody helps everywhere**: masking it costs −0.114 (jazz) to −0.178
   (folk) change-accuracy.
 - **The genre knob is load-bearing for jazz**: Auto-genre drops jazz
   change_top1 to 0.283 (−0.136), while pop/folk barely care (−0.005/−0.025).
   Set the device to Jazz when comping standards.
+- **Reranker fully retuned on the combined val split**
+  (`tune_combined_reranker.py`, deploy-faithful: γ pinned 0, grid spans 0):
+  best is **α=0, β=0.4, δ=0** — melody_fit stays off (causally backward) and
+  the clash penalty goes too; only the T/PD/D function-transition prior
+  survives. Net +0.017 change_top1 over the raw model, positive on every
+  corpus but jazz (−0.005 there, within noise of a 15-song slice; val said
+  +0.006). The Hooktheory per-corpus tune independently converged on the
+  same shape (α=0, β=0.25, δ=0).
 
 Full report: [artifacts/combined/reports/eval_test.md](artifacts/combined/reports/eval_test.md).
 
@@ -134,6 +143,7 @@ cd ml/next_chord
 .venv/bin/python scripts/build_combined_vocab.py     # 68 classes, per-corpus coverage gate
 .venv/bin/python scripts/train_combined.py           # ~16 epochs, early-stopped
 .venv/bin/python scripts/calibrate_combined.py       # T=0.805
+.venv/bin/python scripts/tune_combined_reranker.py   # -> artifacts/reranker_config.json (a0 b0.4 d0)
 .venv/bin/python scripts/eval_combined.py --split test
 .venv/bin/python scripts/export_combined_onnx.py     # -> artifacts/combined/onnx (PARITY OK)
 cp artifacts/combined/onnx/model.onnx* artifacts/combined/onnx/model_config.json artifacts/onnx/

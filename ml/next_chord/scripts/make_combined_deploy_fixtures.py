@@ -60,7 +60,10 @@ def main():
         ctx = infer.rerank_context(song, dp)
         pf = vocab.function_of(dp.prev_class, song.mode) \
             if dp.prev_class != windows.bos_id() else len(vocab.FUNCTIONS)
-        res = rr.rerank(logp.tolist(), dp.prev_class, pf, dp.sounding_class, song.mode,
+        # rerank from the stored (6dp-rounded) logprobs so the JS replay,
+        # which only sees the rounded values, can't flip near-tied tail ranks
+        logp_r = [round(float(x), 6) for x in logp]
+        res = rr.rerank(logp_r, dp.prev_class, pf, dp.sounding_class, song.mode,
                         ctx["window_pcs"], ctx["strong_pcs"],
                         [0.0] * vocab.n_classes(), cfg=rcfg)
 
@@ -83,7 +86,7 @@ def main():
                 "notes": {k: [int(x) for x in ex["notes"][k]] for k in features.NOTE_FEATS},
             },
             "expected_logits": [round(float(x), 5) for x in logits],
-            "expected_logprobs": [round(float(x), 6) for x in logp],
+            "expected_logprobs": logp_r,
             "expected_reranked": [{"class": r["class"], "score": round(float(r["score"]), 6)}
                                   for r in res],
         })

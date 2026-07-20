@@ -11,7 +11,7 @@
 | Transformer(melody-masked) | 0.733 | 0.877 | 1.110 | 0.057 | 0.102 | 0.847 |
 | Transformer(auto-genre) | 0.726 | 0.884 | 1.003 | 0.076 | 0.233 | 0.854 |
 | Transformer | 0.728 | 0.886 | 0.982 | 0.092 | 0.252 | 0.858 |
-| Transformer+reranker | 0.725 |  |  | 0.091 | 0.260 | 0.857 |
+| Transformer+reranker | 0.726 |  |  | 0.092 | 0.269 | 0.858 |
 
 ## pop909 (91 held-out songs, 33227 decisions)
 
@@ -21,7 +21,7 @@
 | Transformer(melody-masked) | 0.689 | 0.854 | 1.268 | 0.020 | 0.010 | 0.816 |
 | Transformer(auto-genre) | 0.672 | 0.866 | 1.177 | 0.043 | 0.146 | 0.817 |
 | Transformer | 0.672 | 0.864 | 1.170 | 0.045 | 0.151 | 0.818 |
-| Transformer+reranker | 0.667 |  |  | 0.043 | 0.168 | 0.818 |
+| Transformer+reranker | 0.669 |  |  | 0.046 | 0.175 | 0.819 |
 
 ## nottingham (102 held-out songs, 17161 decisions)
 
@@ -31,7 +31,7 @@
 | Transformer(melody-masked) | 0.821 | 0.929 | 0.762 | 0.042 | 0.291 | 0.907 |
 | Transformer(auto-genre) | 0.833 | 0.930 | 0.601 | 0.058 | 0.444 | 0.924 |
 | Transformer | 0.834 | 0.933 | 0.584 | 0.059 | 0.469 | 0.928 |
-| Transformer+reranker | 0.835 |  |  | 0.058 | 0.457 | 0.926 |
+| Transformer+reranker | 0.835 |  |  | 0.059 | 0.473 | 0.930 |
 
 ## openbook (15 held-out songs, 2516 decisions)
 
@@ -41,7 +41,7 @@
 | Transformer(melody-masked) | 0.707 | 0.832 | 1.393 | 0.097 | 0.305 | 0.842 |
 | Transformer(auto-genre) | 0.702 | 0.816 | 1.455 | 0.093 | 0.283 | 0.843 |
 | Transformer | 0.738 | 0.845 | 1.213 | 0.118 | 0.419 | 0.886 |
-| Transformer+reranker | 0.740 |  |  | 0.122 | 0.421 | 0.888 |
+| Transformer+reranker | 0.734 |  |  | 0.116 | 0.414 | 0.884 |
 
 ## By mode (transformer)
 
