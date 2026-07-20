@@ -79,10 +79,15 @@ cd ml/next_chord
 ```
 
 The reranker tune is deploy-faithful (γ fixed 0 — the device has no Markov —
-and α spans 0 because `melody_fit` is causally backward). On pop it barely helps
-(change_top1 0.230 → 0.232 on val; the clash penalty tuned to δ=0), so the
-shipped pop reranker is near-neutral — the transformer already captures the
-functional signal the reranker encodes, the same change_top1 ceiling OpenBook hits.
+and α spans 0 because `melody_fit` is causally backward). On pop the reranker
+barely moves accuracy (change_top1 0.230 → 0.232 on val) — the transformer
+already captures the functional signal it encodes, the same change_top1 ceiling
+OpenBook hits. The accuracy-optimal tune drops the clash penalty (δ=0), but the
+shipped pop config keeps a **deliberate small δ=0.25 clash guard for musical
+safety**: it steers off strong-beat semitone clashes only on near-ties (it can't
+override a confident model pick), moving ~1300 val picks at a change_top1 cost of
+−0.002 (noise; top1 is unchanged/slightly better). Dial δ in
+`artifacts/hooktheory/reranker_config.json` (0.1 lighter, 0.5 firmer).
 
 The exporter writes `artifacts/hooktheory/onnx/{model.onnx, model_config.json}`
 in the identical graph/sidecar contract as the OpenBook export, so the same

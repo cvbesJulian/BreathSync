@@ -35,12 +35,13 @@ vocab, roman/function maps, and calibration T).
 Each corpus can carry its own tuned reranker at
 `../artifacts/<corpus>/reranker_config.json` (loaded automatically when present,
 else the shared `../artifacts/reranker_config.json`). Pop ships a tuned one
-(`hooktheory`: α0 β0.25 γ0 δ0); note the reranker barely moves pop metrics
-(change_top1 +0.002 on val — the model is already near the reranker's ceiling),
-and the clash penalty tuned to 0 because pop melodies sit on non-chord tones
-often enough that penalizing strong-beat clashes hurt agreement. γ is fixed at 0
-for any deployed reranker: the device supplies no Markov distribution, so only
-γ=0 configs rank identically in Python and on the device.
+(`hooktheory`: α0 β0.25 γ0 δ0.25); note the reranker barely moves pop metrics
+(change_top1 +0.002 on val — the model is already near the reranker's ceiling).
+The accuracy-optimal δ is 0, but pop keeps a deliberate small **δ=0.25 clash
+guard for musical safety** — it only nudges off strong-beat semitone clashes on
+near-ties (never overriding a confident pick), at a change_top1 cost within noise.
+γ is fixed at 0 for any deployed reranker: the device supplies no Markov
+distribution, so only γ=0 configs rank identically in Python and on the device.
 
 ## Setup & verify (no Max needed)
 
