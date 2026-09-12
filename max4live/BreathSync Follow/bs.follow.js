@@ -46,6 +46,19 @@ const KEY_SET_MIN_INTERVAL_MS = 10000;  // hard rate limit between LiveAPI sets
 const CHORD_BASE = 48;                  // chord root voiced in octave 3 (C3)
 const SCALE_NAME_MAP = { major: "Major", minor: "Minor" }; // Live 12 scale_name
 
+// --- grid clock ---------------------------------------------------------------
+// The transport's fixed 480 PPQ. A single [metro 40 ticks] feeds a `grid`
+// message; 40 = GCD of straight (120-tick 1/16) and triplet (80-tick 1/16T)
+// divisions, so one clock classifies every menu division. Boundary tolerance is
+// half the base-grid step so a metro tick landing a few ticks late still counts.
+const PPQ = 480;
+const BASE_GRID_TICKS = 40;
+const GRID_TOL = 5;
+// Quantize menu index -> division ticks (0 Off; -1 = whole bar, resolved live).
+const QUANT_DIV = [0, 120, 240, 160, 480, 960, -1];
+// Gate menu index -> division ticks (0 Off). Chord voice only.
+const GATE_DIV = [0, 480, 240, 160, 120, 80];
+
 // --- parameters (raw widget values, wired in bs.follow.maxpat) ---------------
 
 const cfg = {
@@ -61,7 +74,18 @@ const cfg = {
   keyconf: 0.5, // live.dial float 0.20..0.90 (gate on state.keyConfidence)
   keyhold: 5,   // live.dial int 1..30 s (candidate stability before commit)
   waitmode: 1,  // live.menu index: 0 Off / 1 Bars / 2 Clip (engage delay source)
-  waitbars: 4   // live.dial int 1..32 bars (Bars mode wait; Clip-mode fallback)
+  waitbars: 4,  // live.dial int 1..32 bars (Bars mode wait; Clip-mode fallback)
+  // --- performability params (all defaults are a musical no-op) ---
+  quantize: 0,  // live.menu index: 0 Off / 1 1/16 / 2 1/8 / 3 1/8T / 4 1/4 / 5 1/2 / 6 1 Bar
+  gate: 0,      // live.menu index: 0 Off / 1 1/4 / 2 1/8 / 3 1/8T / 4 1/16 / 5 1/16T
+  gatelen: 50,  // live.dial int 5..100 % (gate note length as fraction of interval)
+  chance: 100,  // live.dial int 0..100 % (probability a physical note-on sounds)
+  spread: 0,    // live.dial int 0..3 (octave-spread voicing stages)
+  voices: 4,    // live.dial int 1..4 (chord tone budget)
+  strum: 0,     // live.dial int 0..60 ms (per-tone chord stagger, low->high)
+  human: 0,     // live.dial int 0..100 % (timing + velocity humanize)
+  hold: 0,      // live.text toggle 0/1 (freeze current harmony)
+  kill: 0       // live.text toggle 0/1 (mute output, keep tracking)
 };
 
 // --- link / protocol state ----------------------------------------------------
@@ -78,14 +102,25 @@ const srcSeen = new Map();  // src -> last seen ms (collision detection window)
 
 const held = new Map();     // pitch -> refcount (lead + chord may share a pitch)
 
+// Physical ledger — the notes ACTUALLY sounding downstream and the channel each
+// was struck on. Touched ONLY by emitOn/emitOff/releaseAll. Offs derive from it,
+// so channel changes and chance-skips stay correct by construction.
+const sounding = new Map(); // pitch -> channel (0..15) currently sounding
+
 let heldLead = null;        // { pitch, onAt } | null
 let leadQueued;             // undefined = none; else { target: int|null, conf }
 let heldChord = null;       // { sig, notes: int[], onAt } | null
 let chordQueued;            // undefined = none; else { sig, notes, conf }
 
 // Cached raw events for instant re-apply on mode/channel/octave/enable changes.
+// These ALWAYS update from events, even while held/killed (before any gate).
 let lastLeadEvent = null;   // { midi, conf } | null (null = cleared / none)
 let lastChordEvent = null;  // { rootPc, quality, score, pcs } | null
+
+// Frozen harmony while Hold is on. undefined = not holding; null = frozen silence
+// (e.g. after Panic while holding). Source of harmony = hold ? snapshot : cache.
+let heldSnapshotLead = undefined;   // { midi, conf } | null | undefined
+let heldSnapshotChord = undefined;  // { rootPc, quality, score, pcs } | null | undefined
 
 // --- key sync state -------------------------------------------------------------
 
@@ -104,6 +139,19 @@ let engaged = true;        // notes may flow (true = jam mode while stopped)
 let waitArmed = false;     // counting down (transport playing, waitmode != 0)
 let waitStartBeat = 0;     // song position (beats) when the countdown armed
 let waitTargetBeats = 0;   // beats to stay silent from waitStartBeat
+
+// --- grid clock state ----------------------------------------------------------
+
+let gridTempo = 120;       // cached from LiveAPI (init/watchdog)
+let gridSigNum = 4;
+let gridSigDen = 4;
+let lastGridTicks = -1;    // absolute-tick idempotency guard (dup/loop-wrap safe)
+let transportPlaying = false; // grid clock only runs while the transport plays
+
+// Pending quantized CHANGES (latest-wins), flushed on the next matching
+// boundary. undefined = nothing parked.
+let leadPendingGrid;       // { target:int|null, conf } | undefined
+let chordPendingGrid;      // { sig, notes, conf } | undefined
 
 // --- helpers --------------------------------------------------------------------
 
@@ -129,6 +177,18 @@ function chordEngineOn() {
   return cfg.mode === 2 || cfg.mode === 3;
 }
 
+// A grid scheduler "owns" a voice when a boundary-driven feature is live and the
+// transport is running. While owned, changes are parked to the grid and Min-Dur
+// is bypassed (the grid is the flap guard). Stopped transport = jam mode: never
+// owned, so the engine falls back to today's immediate/Min-Dur path verbatim.
+function gridOwnsLead() {
+  return cfg.quantize !== 0 && transportPlaying && engaged;
+}
+
+function gridOwnsChord() {
+  return (cfg.quantize !== 0 || cfg.gate !== 0) && transportPlaying && engaged;
+}
+
 function velocityFor(conf) {
   if (!cfg.velconf) return cfg.vel;
   return clamp(1, 127, Math.round(cfg.vel * (0.4 + 0.6 * clamp01(conf))));
@@ -146,35 +206,169 @@ function firstSymbol(v) {
   return raw == null ? "" : String(raw);
 }
 
-// --- refcounted note emission ------------------------------------------------
-// MIDI leaves the device only on 0<->1 refcount transitions, so a pitch shared
-// by the lead and a chord tone sounds once and survives either owner releasing.
+// --- physical emit layer + timeline scheduler --------------------------------
+// Two-layer note model. The LOGICAL layer (held refcount, heldLead, heldChord)
+// decides what should sound; strum/human/gate/chance never corrupt it. The
+// PHYSICAL layer is the `sounding` ledger + these emit functions — the only
+// code that writes MIDI note bytes. emitOn/emitOff may fire immediately or be
+// parked in the timeline queue (strum spacing, humanize delay, gate offs); with
+// every performability param at its default the queue stays empty and emits are
+// synchronous, so the byte stream is identical to the pre-refactor engine.
 
-function noteOn(pitch, vel) {
-  const count = held.get(pitch) || 0;
-  held.set(pitch, count + 1);
-  if (count === 0) outlet(0, 0x90 | cfg.channel, pitch, vel);
+// RNG: swappable so the harness can seed deterministically via `srand`.
+// Production never sends srand, so rng stays Math.random. Fixed consumption
+// order per emitted note: chance roll, then time jitter, then velocity jitter.
+let rng = Math.random;
+
+function mulberry32(seed) {
+  let a = seed >>> 0;
+  return function () {
+    a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
 }
 
-function noteOff(pitch) {
+// Chance gate (0..100 %); rolled per PHYSICAL note-on only, never on an off.
+let chancePct = 100;
+function chanceRoll() {
+  if (chancePct >= 100) return true;
+  if (chancePct <= 0) return false;
+  return rng() * 100 < chancePct;
+}
+
+// Pure physical note-on: ledger + byte, no chance/human logic (those are decided
+// upstream in physOn). Called immediately or from the timeline drain.
+function emitOn(pitch, vel, ch) {
+  sounding.set(pitch, ch);
+  outlet(0, 0x90 | ch, pitch, clamp(1, 127, vel));
+}
+
+// Off derives from the ledger: a note that was chance-skipped (or already
+// released) has no entry, so its off is a harmless no-op on the right channel.
+function emitOff(pitch) {
+  if (!sounding.has(pitch)) return;
+  const ch = sounding.get(pitch);
+  sounding.delete(pitch);
+  outlet(0, 0x80 | ch, pitch, 0);
+}
+
+// The scheduled time of the most recent physical-on attempt, so a legato off can
+// ride its partner's humanized time (order preserved). Set by physOn even when
+// the note is chance-skipped (falls back to the requested base time).
+let lastPhysAt = 0;
+
+// Physical note-on decision point. Fixed RNG consumption order per emitted note:
+// chance roll, then time jitter, then velocity jitter. baseAt already includes
+// any strum offset. Chance-skipped notes consume only the chance roll and never
+// touch the ledger.
+function physOn(pitch, baseVel, ch, baseAt) {
+  if (!chanceRoll()) { lastPhysAt = baseAt; return; }
+  let at = baseAt;
+  let vel = baseVel;
+  if (cfg.human > 0) {
+    const h = cfg.human / 100;
+    at = baseAt + rng() * 20 * h;                              // [0, 20ms*h]
+    vel = clamp(1, 127, baseVel + Math.round((rng() * 2 - 1) * 12 * h)); // ±12*h
+  }
+  lastPhysAt = at;
+  if (at <= Date.now()) emitOn(pitch, vel, ch);
+  else tlPush(at, "on", pitch, vel, ch);
+}
+
+// Timeline queue — ONE Task draining a sorted list of physical actions. Used by
+// strum/human/gate; O(1) global cancel via tlClear() inside releaseAll.
+let tl = [];        // { at, seq, kind:'on'|'off', pitch, vel, ch }
+let tlSeq = 0;
+
+function tlSchedule() {
+  if (tl.length === 0) { tlTask.cancel(); return; }
+  let earliest = tl[0].at;
+  for (const e of tl) if (e.at < earliest) earliest = e.at;
+  tlTask.schedule(Math.max(0, earliest - Date.now()));
+}
+
+function tlDrain() {
+  const t = Date.now();
+  tl.sort((a, b) => (a.at - b.at) || (a.seq - b.seq));
+  // Extract due events before executing so a logoff's tlPurgeOn can't disturb
+  // the iteration.
+  const due = [];
+  while (tl.length && tl[0].at <= t) due.push(tl.shift());
+  for (const e of due) {
+    if (e.kind === "on") emitOn(e.pitch, e.vel, e.ch);
+    else if (e.kind === "logoff") noteOff(e.pitch); // logical off (refcount) at fire time
+    else emitOff(e.pitch);                           // physical-only off
+  }
+  tlSchedule();
+}
+
+function tlPush(at, kind, pitch, vel, ch) {
+  tl.push({ at: at, seq: tlSeq++, kind: kind, pitch: pitch, vel: vel, ch: ch });
+  tlSchedule();
+}
+
+function tlClear() {
+  tl = [];
+  tlTask.cancel();
+}
+
+// Cancel an unfired physical-on for a pitch (a new change / removed chord tone
+// supersedes a strum on still parked in the queue — "new change cancels unfired
+// strum ons"). Leaves already-sounding notes to emitOff.
+function tlPurgeOn(pitch) {
+  const before = tl.length;
+  tl = tl.filter((e) => !(e.kind === "on" && e.pitch === pitch));
+  if (tl.length !== before) tlSchedule();
+}
+
+const tlTask = new Task(tlDrain);
+
+// --- refcounted logical note layer -------------------------------------------
+// MIDI leaves the device only on 0<->1 refcount transitions, so a pitch shared
+// by the lead and a chord tone sounds once and survives either owner releasing.
+// The logical refcount advances immediately; the physical emit may be strummed
+// / humanized / gated later. strumMs = extra on-delay for chord strum spacing.
+
+function noteOn(pitch, vel, strumMs) {
+  const count = held.get(pitch) || 0;
+  held.set(pitch, count + 1);
+  if (count === 0) physOn(pitch, vel, cfg.channel, Date.now() + (strumMs || 0));
+}
+
+// at = optional absolute time to schedule the physical off (gate offs; legato
+// pair riding its on). An immediate off also purges any unfired on for the pitch.
+function noteOff(pitch, at) {
   const count = held.get(pitch) || 0;
   if (count <= 1) {
     held.delete(pitch);
-    if (count === 1) outlet(0, 0x80 | cfg.channel, pitch, 0);
+    if (count === 1) {
+      if (at != null && at > Date.now()) {
+        tlPush(at, "off", pitch, 0, 0);
+      } else {
+        tlPurgeOn(pitch);
+        emitOff(pitch);
+      }
+    }
   } else {
     held.set(pitch, count - 1);
   }
 }
 
-// Note-off every held pitch on the CURRENT channel, clear all voice state and
-// pending Tasks. sendCC additionally fires CC123 (all notes off) value 0 on
-// all 16 channels — mirrors the web app's allNotesOff().
+// Note-off every SOUNDING pitch on the channel it was struck on, clear all voice
+// state and pending Tasks (timeline + both Min-Dur). sendCC additionally fires
+// CC123 (all notes off) value 0 on all 16 channels — mirrors allNotesOff().
 function releaseAll(sendCC) {
+  tlClear();
   leadTask.cancel();
   chordTask.cancel();
   leadQueued = undefined;
   chordQueued = undefined;
-  for (const pitch of held.keys()) outlet(0, 0x80 | cfg.channel, pitch, 0);
+  leadPendingGrid = undefined;
+  chordPendingGrid = undefined;
+  for (const [pitch, ch] of sounding) outlet(0, 0x80 | ch, pitch, 0);
+  sounding.clear();
   held.clear();
   heldLead = null;
   heldChord = null;
@@ -196,8 +390,10 @@ function leadTargetFor(ev) {
 function doLeadChange(target, conf) {
   const old = heldLead ? heldLead.pitch : null;
   if (target !== null) {
-    noteOn(target, velocityFor(conf)); // legato: new note on first
-    if (old !== null) noteOff(old);
+    noteOn(target, velocityFor(conf)); // legato: new note on first (sets lastPhysAt)
+    // The off rides the new note's humanized time so the pair moves together and
+    // the on always precedes the off (offs are themselves never jittered).
+    if (old !== null) noteOff(old, lastPhysAt);
     heldLead = { pitch: target, onAt: Date.now() };
   } else {
     if (old !== null) noteOff(old);
@@ -207,6 +403,21 @@ function doLeadChange(target, conf) {
 
 function leadTransition(target, conf) {
   const now = Date.now();
+  if (gridOwnsLead()) {
+    // Grid scheduler owns the voice: Min-Dur bypassed. Releases are never
+    // quantized — apply immediately; changes park latest-wins to the boundary.
+    if (target === null) {
+      leadPendingGrid = undefined;
+      releaseLead();
+      return;
+    }
+    if (heldLead && heldLead.pitch === target) {
+      leadPendingGrid = undefined; // sustain / flap resolved to current
+      return;
+    }
+    leadPendingGrid = { target: target, conf: conf };
+    return;
+  }
   if (!heldLead) {
     leadQueued = undefined;
     leadTask.cancel();
@@ -254,9 +465,18 @@ function releaseLead() {
   }
 }
 
+// Source of harmony: the frozen snapshot while Hold is on, else the live cache.
+function sourceLead() {
+  return cfg.hold ? heldSnapshotLead : lastLeadEvent;
+}
+function sourceChord() {
+  return cfg.hold ? heldSnapshotChord : lastChordEvent;
+}
+
 function reapplyLead() {
-  if (!lastLeadEvent) return;
-  leadTransition(leadTargetFor(lastLeadEvent), lastLeadEvent.conf);
+  const ev = sourceLead();
+  if (!ev) return;
+  leadTransition(leadTargetFor(ev), ev.conf);
 }
 
 // --- chord lifecycle -------------------------------------------------------------
@@ -266,39 +486,119 @@ function reapplyLead() {
 // applying a change diffs voicings so common tones sustain untouched
 // (refcounting keeps this safe against the lead).
 
+// Voicing octave, tone budget and spread are all part of the chord identity so a
+// change to any of them revoices live (the sustain branch won't swallow it); the
+// diff then keeps common tones ringing.
 function chordSigFor(ev) {
-  return ev.rootPc + "|" + ev.quality + "|" + cfg.chordoct;
+  return ev.rootPc + "|" + ev.quality + "|" + cfg.chordoct + "|" +
+    cfg.voices + "|" + cfg.spread;
 }
 
+// Voices budget: 4 = all, 3 = drop the 5th (shell), 2 = root + quality tone,
+// 1 = root. Classification is by interval above the root.
+function limitVoices(tones) {
+  const v = cfg.voices;
+  if (v >= 4 || tones.length <= v) return tones.slice();
+  const root = tones.find((t) => t.interval === 0) || tones[0];
+  const fifth = tones.find((t) => t.interval === 6 || t.interval === 7 || t.interval === 8);
+  const third = tones.find((t) => t.interval === 3 || t.interval === 4);
+  if (v === 1) return [root];
+  if (v === 2) {
+    const quality = third
+      || tones.find((t) => t !== root && t !== fifth)
+      || tones.find((t) => t !== root);
+    return quality ? [root, quality] : [root];
+  }
+  // v === 3: shell — drop the fifth if there is one, else trim to three tones.
+  if (fifth) return tones.filter((t) => t !== fifth);
+  return tones.slice().sort((a, b) => a.pitch - b.pitch).slice(0, 3);
+}
+
+// Spread: stage +12 octave lifts over the ascending tones — odd indices first,
+// then even indices >= 2 (root at index 0 never lifts). Cmaj7 s2 -> C3 G3 E4 B4.
+function applySpread(tones, spread) {
+  if (spread <= 0) return;
+  const order = [];
+  for (let i = 1; i < tones.length; i += 2) order.push(i); // odd indices
+  for (let i = 2; i < tones.length; i += 2) order.push(i); // even indices >= 2
+  const n = Math.min(spread, order.length);
+  for (let k = 0; k < n; k++) tones[order[k]].pitch += 12;
+}
+
+// Pure voicing pipeline: base tones -> Voices limit -> Spread lift -> clamp/dedupe.
 function voiceChord(rootPc, pcs) {
-  const root = CHORD_BASE + rootPc + 12 * cfg.chordoct;
-  const notes = [];
+  const rootBase = CHORD_BASE + rootPc + 12 * cfg.chordoct;
+  const tones = [];
   for (const pcRaw of pcs) {
     const pc = ((Math.round(pcRaw) % 12) + 12) % 12;
-    const pitch = clamp(0, 127, root + ((pc - rootPc + 12) % 12));
-    if (notes.indexOf(pitch) < 0) notes.push(pitch);
+    const interval = (pc - rootPc + 12) % 12;
+    if (!tones.some((t) => t.interval === interval)) {
+      tones.push({ pitch: rootBase + interval, interval: interval });
+    }
+  }
+  const kept = limitVoices(tones);
+  kept.sort((a, b) => a.pitch - b.pitch); // ascending for indexed spread
+  applySpread(kept, cfg.spread);
+  const notes = [];
+  for (const t of kept) {
+    const p = clamp(0, 127, t.pitch);
+    if (notes.indexOf(p) < 0) notes.push(p);
   }
   return notes;
+}
+
+// Strum step (ms) between consecutive struck chord tones. Under gate the spacing
+// is clamped so the whole strum fits inside the gate window (gateOffMs set by the
+// gate strike; -1 = no gate limit).
+let gateOffMs = -1;
+let gateConf = 1; // confidence/velocity source for the current gate pulse
+function chordStrumStep(count) {
+  if (cfg.strum <= 0 || count <= 1) return 0;
+  if (gateOffMs > 0) return Math.min(cfg.strum, Math.max(0, (gateOffMs - 5) / (count - 1)));
+  return cfg.strum;
+}
+
+// Strike a set of chord tones low->high with strum spacing + per-tone humanize.
+function strikeChordTones(tones, conf) {
+  const added = tones.slice().sort((a, b) => a - b);
+  const step = chordStrumStep(added.length);
+  const v = velocityFor(conf);
+  for (let i = 0; i < added.length; i++) noteOn(added[i], v, i * step);
 }
 
 function doChordChange(sig, notes, conf) {
   const oldNotes = heldChord ? heldChord.notes : [];
   for (const n of oldNotes) {
-    if (notes.indexOf(n) < 0) noteOff(n); // removed tones off
+    if (notes.indexOf(n) < 0) noteOff(n); // removed tones off at t=0 (purges unfired on)
   }
-  for (const n of notes) {
-    if (oldNotes.indexOf(n) < 0) noteOn(n, velocityFor(conf)); // added tones on
-  }
+  const added = [];
+  for (const n of notes) if (oldNotes.indexOf(n) < 0) added.push(n);
+  strikeChordTones(added, conf); // diff-added only, strummed low->high
   heldChord = sig !== null ? { sig: sig, notes: notes, onAt: Date.now() } : null;
 }
 
 function chordTransition(sig, notes, conf) {
   const now = Date.now();
+  if (gridOwnsChord()) {
+    // Grid scheduler owns the voice: Min-Dur bypassed. Chord reset is never
+    // quantized — release immediately; changes park latest-wins to the boundary.
+    if (sig === null) {
+      chordPendingGrid = undefined;
+      releaseChord();
+      return;
+    }
+    if (heldChord && heldChord.sig === sig) {
+      chordPendingGrid = undefined; // sustain
+      return;
+    }
+    chordPendingGrid = { sig: sig, notes: notes, conf: conf };
+    return;
+  }
   if (!heldChord) {
     chordQueued = undefined;
     chordTask.cancel();
     if (sig !== null) {
-      for (const n of notes) noteOn(n, velocityFor(conf));
+      strikeChordTones(notes, conf); // full-chord onset, strummed low->high
       heldChord = { sig: sig, notes: notes, onAt: now };
     }
     return;
@@ -342,15 +642,75 @@ function releaseChord() {
 }
 
 function reapplyChord() {
-  if (!lastChordEvent) return;
-  const ev = lastChordEvent;
+  const ev = sourceChord();
+  if (!ev) return;
   chordTransition(chordSigFor(ev), voiceChord(ev.rootPc, ev.pcs), ev.score);
 }
 
 function reapplyActive() {
-  if (!engaged) return; // still listening — the engage step re-applies later
+  if (!cfg.enabled || cfg.kill || !engaged) return; // master predicate
   if (leadEngineOn()) reapplyLead();
   if (chordEngineOn()) reapplyChord();
+}
+
+// Re-strike from the current source (snapshot while held, else the live cache),
+// releasing a voice whose source has gone empty. Used on Kill-off / Hold-off.
+function reapplyFromSource() {
+  if (!cfg.enabled || cfg.kill || !engaged) return;
+  if (leadEngineOn()) { if (sourceLead()) reapplyLead(); else releaseLead(); }
+  else releaseLead();
+  if (chordEngineOn()) { if (sourceChord()) reapplyChord(); else releaseChord(); }
+  else releaseChord();
+}
+
+// --- Hold / Kill / Re-Wait (performance switches) ------------------------------
+// Master predicate: a voice may emit iff enabled && !kill && engaged &&
+// engineOn(voice). Source of harmony = hold ? frozen snapshot : live cache.
+// Precedence (strongest first): Panic/delete > enabled 0 > Kill > stale > wait.
+
+// Hold on = freeze what you hear: snapshot the live caches, discard every pending
+// change (Min-Dur queue + grid buffers). Off = apply the live caches through the
+// normal pipeline (lands on the grid if Quantize on; empty caches -> release).
+function setHold(on) {
+  if (on === cfg.hold) return;
+  cfg.hold = on;
+  if (on) {
+    heldSnapshotLead = lastLeadEvent
+      ? { midi: lastLeadEvent.midi, conf: lastLeadEvent.conf } : null;
+    heldSnapshotChord = lastChordEvent ? {
+      rootPc: lastChordEvent.rootPc, quality: lastChordEvent.quality,
+      score: lastChordEvent.score, pcs: lastChordEvent.pcs.slice(),
+    } : null;
+    leadQueued = undefined;      // discard Min-Dur pending: freeze what you hear
+    chordQueued = undefined;
+    leadTask.cancel();
+    chordTask.cancel();
+    leadPendingGrid = undefined; // cancel pending grid buffers
+    chordPendingGrid = undefined;
+  } else {
+    heldSnapshotLead = undefined;
+    heldSnapshotChord = undefined;
+    if (cfg.enabled && !cfg.kill) reapplyFromSource();
+  }
+}
+
+// Kill wins over Hold. On = immediate mute + cancel every scheduled action; the
+// caches keep tracking. Off = re-strike from source through the pipeline.
+function setKill(on) {
+  if (on === cfg.kill) return;
+  cfg.kill = on;
+  if (on) {
+    releaseAll(false); // tlClear + Min-Dur cancel + off every ledger entry
+  } else if (cfg.enabled) {
+    reapplyFromSource(); // respects Hold (re-strikes the frozen snapshot)
+  }
+}
+
+// Re-Wait: re-arm the engage countdown from the current position regardless of
+// Wait Mode (Off falls back to the Bars rule). No-op when stopped.
+function doReWait() {
+  if (!transportPlaying || !liveSet) return;
+  armWaitWith(cfg.waitmode === 0 ? 1 : cfg.waitmode);
 }
 
 // Min-Dur Tasks (one each; flaps coalesce into the queued slot).
@@ -495,7 +855,8 @@ function setEngaged(on) {
   if (on === engaged) return;
   engaged = on;
   if (!on) {
-    releaseAll(false); // go silent NOW; caches keep the current harmony
+    // Hold survives the wait gate: the frozen pad keeps ringing while counting.
+    if (!cfg.hold) releaseAll(false); // go silent NOW; caches keep the harmony
     return;
   }
   if (cfg.enabled) reapplyActive(); // join in on whatever is sounding
@@ -505,14 +866,20 @@ function setEngaged(on) {
 // Transport started (or wait settings changed mid-wait): go silent and start
 // the countdown. Fail-open: without a Live API there are no bars to count.
 function armWait() {
-  if (cfg.waitmode === 0 || !liveSet) {
+  armWaitWith(cfg.waitmode);
+}
+
+// mode: 0 Off (engage now) / 1 Bars / 2 Clip. Re-Wait passes an effective mode
+// so it can force a wait even when Wait Mode is Off.
+function armWaitWith(mode) {
+  if (mode === 0 || !liveSet) {
     waitArmed = false;
     setEngaged(true);
     return;
   }
   try {
     let beats = cfg.waitbars * beatsPerBar();
-    if (cfg.waitmode === 2) {
+    if (mode === 2) {
       const clipBeats = longestPlayingClipBeats();
       if (clipBeats > 0) beats = clipBeats; // else fall back to Wait Bars
     }
@@ -549,6 +916,124 @@ function waitStep() {
   }
 }
 
+// --- grid clock ----------------------------------------------------------------
+// Sig/tempo cached from LiveAPI (init + watchdog). Boundary math is pure integer
+// tick arithmetic so straight and triplet divisions classify from one clock.
+
+function refreshTransportCache() {
+  if (!liveSet) return;
+  try {
+    const t = firstNumber(liveSet.get("tempo"));
+    if (isFinite(t) && t > 0) gridTempo = t;
+    const num = firstNumber(liveSet.get("signature_numerator"));
+    const den = firstNumber(liveSet.get("signature_denominator"));
+    if (num > 0) gridSigNum = num;
+    if (den > 0) gridSigDen = den;
+  } catch (err) { /* LiveAPI context — never throw */ }
+}
+
+// Whole-bar length in ticks from the cached signature (4/4 -> 1920, 3/4 -> 1440).
+function barTicks() {
+  const beats = gridSigNum > 0 && gridSigDen > 0
+    ? gridSigNum * (4 / gridSigDen) : 4;
+  return Math.round(beats * PPQ);
+}
+
+// A boundary hits when the in-bar tick position sits within tolerance of a
+// multiple of the division. divTicks < 0 means "whole bar", resolved live.
+function isBoundary(ticksInBar, divTicks) {
+  const d = divTicks < 0 ? barTicks() : divTicks;
+  if (d <= 0) return false;
+  return (ticksInBar % d) < GRID_TOL;
+}
+
+// grid <bar> <beat> <unit> — one message per [metro 40 ticks] bang while the
+// transport plays. bar/beat are 1-based; unit is 0..479 ticks within the beat.
+// The absolute-tick guard makes duplicate / loop-wrap bangs idempotent.
+function grid(bar, beat, unit) {
+  if (typeof bar !== "number" || typeof beat !== "number" ||
+      typeof unit !== "number") return;
+  const b = Math.round(bar);
+  const be = Math.round(beat);
+  const u = Math.round(unit);
+  const ticksInBar = (be - 1) * PPQ + u;
+  const absTicks = (b - 1) * barTicks() + ticksInBar;
+  if (absTicks === lastGridTicks) return; // duplicate / loop-wrap bang
+  lastGridTicks = absTicks;
+  onGridBoundary(ticksInBar);
+}
+
+// ms per tick at the cached tempo (480 PPQ).
+function ticksToMs(ticks) {
+  return ticks * (60000 / gridTempo) / PPQ;
+}
+
+// Grid bang pipeline. Lead quantize flush FIRST (lead is never gated). Then the
+// chord voice: gate owns it if on (change lands into the pulse record, strikes
+// once on the shared boundary); otherwise quantize flush applies the change.
+function onGridBoundary(ticksInBar) {
+  if (leadPendingGrid !== undefined && cfg.quantize !== 0 &&
+      leadEngineOn() && isBoundary(ticksInBar, QUANT_DIV[cfg.quantize])) {
+    const q = leadPendingGrid;
+    leadPendingGrid = undefined;
+    doLeadChange(q.target, q.conf);
+  }
+  if (cfg.gate !== 0) {
+    gateBoundary(ticksInBar);
+  } else if (chordPendingGrid !== undefined && cfg.quantize !== 0 &&
+      chordEngineOn() && isBoundary(ticksInBar, QUANT_DIV[cfg.quantize])) {
+    const q = chordPendingGrid;
+    chordPendingGrid = undefined;
+    doChordChange(q.sig, q.notes, q.conf);
+  }
+}
+
+// Gate boundary: adopt any parked chord change into the pulse record (the change
+// lands here, so a quantize+gate shared boundary strikes the new chord once),
+// then strike the full current chord. Chance/strum/human apply per strike.
+function gateBoundary(ticksInBar) {
+  if (!transportPlaying || !engaged) return;
+  if (!isBoundary(ticksInBar, GATE_DIV[cfg.gate])) return;
+  if (chordPendingGrid !== undefined) {
+    const q = chordPendingGrid;
+    chordPendingGrid = undefined;
+    if (q.sig === null) {
+      heldChord = null;
+    } else {
+      heldChord = { sig: q.sig, notes: q.notes, onAt: Date.now() };
+      gateConf = q.conf;
+    }
+  }
+  if (!cfg.enabled || cfg.kill || !chordEngineOn() || !heldChord) return;
+  gateStrike(heldChord.notes, gateConf);
+}
+
+// Strike the full chord and schedule each tone's off mid-interval (staccato).
+// noteOn takes the refcount up now; a scheduled logical off drops it later, so a
+// lead-shared tone keeps ringing across gate pulses (sustained lead over pumping
+// chords). gateOffMs bounds the strum spread so the whole strum fits the window.
+function gateStrike(notes, conf) {
+  const at = Date.now();
+  const interval = ticksToMs(GATE_DIV[cfg.gate]);
+  const offMs = clamp(10, Math.max(10, interval - 10), (cfg.gatelen / 100) * interval);
+  const sorted = notes.slice().sort((a, b) => a - b);
+  gateOffMs = offMs;
+  const step = chordStrumStep(sorted.length);
+  const v = velocityFor(conf);
+  for (let i = 0; i < sorted.length; i++) {
+    noteOn(sorted[i], v, i * step);         // chance/human/strum per strike
+    tlPush(at + offMs, "logoff", sorted[i], 0, 0); // release mid-interval
+  }
+  gateOffMs = -1;
+}
+
+// srand <int> — swap in a seeded mulberry32 so the harness is deterministic.
+// Never sent in production (rng stays Math.random).
+function srand(seed) {
+  if (typeof seed !== "number") return;
+  rng = mulberry32(Math.round(seed) >>> 0);
+}
+
 // --- transport observer -------------------------------------------------------------
 
 function onLiveSetProperty(args) {
@@ -569,13 +1054,29 @@ function onLiveSetProperty(args) {
       // analyzer's lead -1 / chord reset events clear the caches first.
       // The wait gate reopens quietly (jam mode) — no reapply here, the
       // pendingRestrike path owns the re-strike.
-      releaseAll(false);
-      pendingRestrike = true;
+      transportPlaying = false;
+      lastGridTicks = -1;
+      leadPendingGrid = undefined; // grid buffers can't outlive the grid clock
+      chordPendingGrid = undefined;
       waitArmed = false;
       engaged = true;
+      if (cfg.hold) {
+        // Hold survives transport stop: re-establish the frozen pad as a clean
+        // sustain (gate is bypassed while stopped), keep it ringing.
+        tlClear();
+        releaseLead();
+        releaseChord();
+        if (cfg.enabled && !cfg.kill) reapplyFromSource();
+      } else {
+        releaseAll(false);
+        pendingRestrike = true;
+      }
       refreshStatus(); // clear a mid-countdown "wait n bars" readout
     }
     if (wasPlaying === 0 && playing === 1) {
+      transportPlaying = true;
+      lastGridTicks = -1;
+      refreshTransportCache();
       armWait(); // start silent; join after the countdown
     }
     wasPlaying = playing;
@@ -592,6 +1093,8 @@ function init() {
     playObserver = new LiveAPI(onLiveSetProperty, "live_set");
     playObserver.property = "is_playing";
     wasPlaying = firstNumber(playObserver.get("is_playing")) ? 1 : 0;
+    transportPlaying = wasPlaying === 1;
+    refreshTransportCache();
   } catch (err) {
     liveSet = null;
     playObserver = null;
@@ -639,8 +1142,9 @@ function state(jsonSym) {
 function lead(midi, conf) {
   if (typeof midi !== "number") return;
   const c = typeof conf === "number" ? clamp01(conf) : 1;
-  lastLeadEvent = midi >= 0 ? { midi: midi, conf: c } : null;
-  if (!cfg.enabled || !engaged || !leadEngineOn()) return;
+  lastLeadEvent = midi >= 0 ? { midi: midi, conf: c } : null; // cache always updates
+  if (cfg.hold) return; // frozen: the snapshot drives the voice, not live events
+  if (!cfg.enabled || cfg.kill || !engaged || !leadEngineOn()) return;
   leadTransition(leadTargetFor(lastLeadEvent), c);
 }
 
@@ -658,7 +1162,8 @@ function chord(rootPc, quality, score, ...pcs) {
   } else {
     lastChordEvent = null;
   }
-  if (!cfg.enabled || !engaged || !chordEngineOn()) return;
+  if (cfg.hold) return; // frozen: the snapshot drives the voice, not live events
+  if (!cfg.enabled || cfg.kill || !engaged || !chordEngineOn()) return;
   if (lastChordEvent) {
     const ev = lastChordEvent;
     chordTransition(chordSigFor(ev), voiceChord(ev.rootPc, ev.pcs), ev.score);
@@ -685,6 +1190,7 @@ function hello(v, src) {
 // staleness check: 3000 ms without state/hello => analyzer gone: release
 // everything it drove, clear caches, show stale.
 function watchdog() {
+  refreshTransportCache(); // keep sig/tempo fresh for the grid clock
   waitStep();
   if (!linked) return;
   if (Date.now() - lastStateAt <= STALE_MS) return;
@@ -693,8 +1199,14 @@ function watchdog() {
   lastChordEvent = null;
   keyCand = null;
   pendingRestrike = false;
-  releaseAll(false);
-  disp("status", "stale");
+  // Hold survives staleness: the frozen pad keeps ringing (it plays the snapshot,
+  // not the now-empty cache). Everything else releases.
+  if (cfg.hold) {
+    disp("status", "stale hold");
+  } else {
+    releaseAll(false);
+    disp("status", "stale");
+  }
   disp("inchord", "-");
   disp("inkey", "-");
 }
@@ -752,7 +1264,7 @@ function leadoct(v) {
   const oct = clamp(-2, 2, Math.round(v));
   if (oct === cfg.leadoct) return;
   cfg.leadoct = oct;
-  if (cfg.enabled && leadEngineOn()) reapplyLead(); // retranspose live
+  if (cfg.enabled && !cfg.kill && leadEngineOn()) reapplyLead(); // retranspose live
 }
 
 function chordoct(v) {
@@ -760,7 +1272,7 @@ function chordoct(v) {
   const oct = clamp(-2, 2, Math.round(v));
   if (oct === cfg.chordoct) return;
   cfg.chordoct = oct;
-  if (cfg.enabled && chordEngineOn()) reapplyChord(); // revoice live
+  if (cfg.enabled && !cfg.kill && chordEngineOn()) reapplyChord(); // revoice live
 }
 
 function mindur(v) {
@@ -812,10 +1324,119 @@ function waitbars(v) {
   }
 }
 
+// --- performability parameter setters -----------------------------------------
+// All numerically type-guarded like mode(i). Defaults are a no-op; behaviour is
+// layered in across the implementation milestones.
+
+// quantize <0..6> from live.menu: Off, 1/16, 1/8, 1/8T, 1/4, 1/2, 1 Bar.
+function quantize(v) {
+  if (typeof v !== "number") return;
+  const q = clamp(0, 6, Math.round(v));
+  if (q === cfg.quantize) return;
+  cfg.quantize = q;
+  // Turning quantize off (and no gate holding the chord) strands any parked
+  // change — apply it now so the voice never sticks on a stale note.
+  if (!gridOwnsLead() && leadPendingGrid !== undefined) {
+    const p = leadPendingGrid;
+    leadPendingGrid = undefined;
+    doLeadChange(p.target, p.conf);
+  }
+  if (!gridOwnsChord() && chordPendingGrid !== undefined) {
+    const p = chordPendingGrid;
+    chordPendingGrid = undefined;
+    doChordChange(p.sig, p.notes, p.conf);
+  }
+}
+
+// gate <0..5> from live.menu: Off, 1/4, 1/8, 1/8T, 1/16, 1/16T (chord voice).
+// Gate is bypassed while the transport is stopped (jam mode = sustain).
+function gate(v) {
+  if (typeof v !== "number") return;
+  const g = clamp(0, 5, Math.round(v));
+  if (g === cfg.gate) return;
+  const wasOff = cfg.gate === 0;
+  cfg.gate = g;
+  if (!transportPlaying || !engaged || cfg.kill) return; // stopped/killed: gate inert
+  if (g !== 0 && wasOff) {
+    // Gate on mid-sustain: release the sustained chord now (lead-shared tones
+    // survive via refcount); pulsing starts from the next boundary.
+    gateConf = lastChordEvent ? lastChordEvent.score : 1;
+    if (heldChord) for (const n of heldChord.notes) noteOff(n);
+  } else if (g === 0 && !wasOff) {
+    // Gate off mid-cycle: cancel pending gate offs, restore the sustained chord.
+    tlClear();
+    releaseChord();
+    if (cfg.enabled && chordEngineOn()) reapplyChord();
+  }
+}
+
+// gatelen <5..100> from live.dial (% of the gate interval the note sustains).
+function gatelen(v) {
+  if (typeof v !== "number") return;
+  cfg.gatelen = clamp(5, 100, Math.round(v));
+}
+
+// chance <0..100> from live.dial (% probability each physical note-on sounds).
+function chance(v) {
+  if (typeof v !== "number") return;
+  cfg.chance = clamp(0, 100, Math.round(v));
+  chancePct = cfg.chance;
+}
+
+// spread <0..3> from live.dial (octave-spread voicing stages).
+function spread(v) {
+  if (typeof v !== "number") return;
+  const s = clamp(0, 3, Math.round(v));
+  if (s === cfg.spread) return;
+  cfg.spread = s;
+  if (cfg.enabled && !cfg.kill && engaged && chordEngineOn()) reapplyChord(); // revoice
+}
+
+// voices <1..4> from live.dial (chord tone budget).
+function voices(v) {
+  if (typeof v !== "number") return;
+  const n = clamp(1, 4, Math.round(v));
+  if (n === cfg.voices) return;
+  cfg.voices = n;
+  if (cfg.enabled && !cfg.kill && engaged && chordEngineOn()) reapplyChord(); // revoice
+}
+
+// strum <0..60> from live.dial (ms per diff-added chord tone, low->high).
+function strum(v) {
+  if (typeof v !== "number") return;
+  cfg.strum = clamp(0, 60, Math.round(v));
+}
+
+// human <0..100> from live.dial (one knob: timing jitter + velocity jitter).
+function human(v) {
+  if (typeof v !== "number") return;
+  cfg.human = clamp(0, 100, Math.round(v));
+}
+
+// hold <0|1> from live.text toggle (freeze current harmony) — milestone 6.
+function hold(b) {
+  setHold(b ? 1 : 0);
+}
+
+// kill <0|1> from live.text toggle (mute output, keep tracking) — milestone 6.
+function kill(b) {
+  setKill(b ? 1 : 0);
+}
+
+// rewait — live.text button; re-arm the engage countdown — milestone 6.
+function rewait() {
+  doReWait();
+}
+
 // --- lifecycle -----------------------------------------------------------------------------
 
 function panic() {
   releaseAll(true); // offs + CC123 x 16 channels
+  // Panic clears the frozen snapshot too: a held pad becomes frozen silence.
+  if (cfg.hold) {
+    heldSnapshotLead = null;
+    heldSnapshotChord = null;
+  }
 }
 
 // Called by Max when the device is deleted / the patcher closes: never leave

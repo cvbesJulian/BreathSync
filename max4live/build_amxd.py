@@ -22,7 +22,8 @@ Validation (all hard failures):
   - no message-box text contains "---" ('---' substitutes only in object-box args)
   - every js/v8 newobj box is embedded (textfile.embed == 1) unless --allow-external
   - parameter_longname values unique across all boxes
-  - every presentation==1 box's presentation_rect lies inside [0,0,460,169]
+  - every presentation==1 box's presentation_rect lies inside the device's
+    declared presentation area, read from the patcher (devicewidth / openrect)
   - project.amxdtype (if present) matches --type
 """
 import argparse
@@ -32,7 +33,31 @@ import struct
 import sys
 
 DEVICE_TYPES = {"audio": b"aaaa", "midi": b"mmmm", "instrument": b"iiii"}
-PRESENTATION_BOUNDS = (0.0, 0.0, 460.0, 169.0)  # x, y, width, height
+DEFAULT_PRESENTATION_SIZE = (460.0, 169.0)  # width, height fallback
+
+
+def presentation_bounds(patcher: dict) -> tuple:
+    """Device presentation area as (x, y, width, height), read from the patcher's
+    declared size so devices of different widths validate against their own bounds.
+
+    Width is taken from `devicewidth` (the device's width in the Live rack),
+    falling back to the 3rd element of `openrect`; height from the 4th element of
+    `openrect`. Either dimension falls back to DEFAULT_PRESENTATION_SIZE when the
+    field is absent. The origin is always (0, 0): presentation_rects are positioned
+    relative to the device's top-left corner, not the patching window's screen
+    position (openrect's x/y)."""
+    default_w, default_h = DEFAULT_PRESENTATION_SIZE
+    openrect = patcher.get("openrect")
+    has_rect = isinstance(openrect, list) and len(openrect) == 4
+    width = patcher.get("devicewidth")
+    if width is None and has_rect:
+        width = openrect[2]
+    height = openrect[3] if has_rect else None
+    if width is None:
+        width = default_w
+    if height is None:
+        height = default_h
+    return (0.0, 0.0, float(width), float(height))
 
 
 def iter_patchers(patcher: dict, where: str = "patcher"):
@@ -96,6 +121,7 @@ def validate(root: dict, allow_external: list) -> list:
     """Return a list of validation error strings (empty = patch is good)."""
     errors = []
     longnames = {}
+    bounds = presentation_bounds(root["patcher"])
     for where, pat in iter_patchers(root["patcher"]):
         boxes = {}
         for entry in pat.get("boxes", []):
@@ -136,7 +162,7 @@ def validate(root: dict, allow_external: list) -> list:
             # (d) presentation rects must fit the device view (top-level patcher only)
             if where == "patcher" and box.get("presentation") == 1:
                 rect = box.get("presentation_rect")
-                bx, by, bw, bh = PRESENTATION_BOUNDS
+                bx, by, bw, bh = bounds
                 if not rect or len(rect) != 4:
                     errors.append(f"{bid}: presentation==1 but no presentation_rect")
                 elif not (rect[0] >= bx and rect[1] >= by
