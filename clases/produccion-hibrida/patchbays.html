@@ -220,7 +220,14 @@ footer .wrap{padding-block:28px;display:flex;flex-wrap:wrap;gap:16px;justify-con
 .l3.dev{font-family:var(--f-display);font-weight:700;font-size:12.5px;border-color:var(--fg)}
 .l3.jk{font-size:10px;color:var(--muted)}
 .l3.row{font-size:10px;color:var(--muted);border-style:dashed}
-.l3.tag{border:2px solid var(--lc,var(--fg));font-weight:600}
+.l3.tag{border:2px solid var(--lc,var(--fg));font-weight:600;pointer-events:auto;cursor:pointer;font-size:11px}
+.l3.tag:hover,.l3.tag:focus-visible{background:var(--surface);outline:2px solid var(--lc,var(--fg));outline-offset:1px}
+.l3.dim{opacity:.35}
+.l3.cut{border:2px solid var(--hot);color:var(--hot);font-weight:700;font-size:11px}
+.paths3d{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-block:0 12px}
+.paths3d .pl{font-family:var(--f-mono);font-size:.75rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-right:4px}
+.paths3d .btn{min-height:32px;padding:4px 12px;font-family:var(--f-mono);font-size:.85rem}
+.pathinfo{margin-top:12px;padding:12px 14px;border:1px solid var(--line);border-left:4px solid var(--brand);border-radius:var(--radius);background:var(--surface);max-width:none}
 .l3.tag::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--lc,var(--fg));margin-right:5px;vertical-align:0}
 .wires{width:100%;border-collapse:collapse;font-size:.9rem;min-width:560px}
 .wires th,.wires td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--line);vertical-align:top}
@@ -527,7 +534,9 @@ h2::after{content:"";display:block;width:40px;height:4px;border-radius:99px;back
         <button type="button" class="btn" data-view="top" aria-pressed="false">Arriba</button>
         <label for="lbl-toggle"><input type="checkbox" id="lbl-toggle" checked> Nombres de conectores y cables</label>
       </div>
-      <div class="stage3d" id="stage3d"><div class="lbl3d" id="lbl3d" aria-hidden="true"></div><span class="hint">arrastrar · zoom</span></div>
+      <div class="paths3d" id="paths3d" role="group" aria-label="Sigue la señal"><span class="pl">Sigue la señal</span><button type="button" class="btn" data-path="P1" aria-pressed="false">P1</button><button type="button" class="btn" data-path="P2" aria-pressed="false">P2</button><button type="button" class="btn" data-path="C1" aria-pressed="false">C1</button><button type="button" class="btn" data-path="C2" aria-pressed="false">C2</button><button type="button" class="btn" data-path="C3" aria-pressed="false">C3</button><button type="button" class="btn" data-path="C4" aria-pressed="false">C4</button><button type="button" class="btn" data-path="C5" aria-pressed="false">C5</button><button type="button" class="btn" data-path="C6" aria-pressed="false">C6</button><button type="button" class="btn" data-path="none" aria-pressed="false">Quitar</button></div>
+      <div class="stage3d" id="stage3d"><div class="lbl3d" id="lbl3d"></div><span class="hint">arrastrar · zoom · clic en un cable</span></div>
+      <p class="pathinfo" id="pathinfo" aria-live="polite">Haz clic en un cable o en su etiqueta (por ejemplo <b>P1</b>). El rack gira y muestra por dónde viaja la señal: al frente y atrás.</p>
       <div class="tblwrap"><table class="wires">
         <thead><tr><th>Cable</th><th>C·a: sale de</th><th>llega a</th><th>C·b: sale de la fila de abajo y llega a</th></tr></thead>
         <tbody><tr><td><span class="sw" style="background:var(--c1)"></span><b>C1</b></td><td>Preamplificador OUT 1</td><td>PB 1 arriba (trasera)</td><td>PB 1 abajo → Interfaz IN 1</td></tr><tr><td><span class="sw" style="background:var(--c2)"></span><b>C2</b></td><td>Sintetizador OUT</td><td>PB 3 arriba (trasera)</td><td>PB 3 abajo → Interfaz IN 2</td></tr><tr><td><span class="sw" style="background:var(--c3)"></span><b>C3</b></td><td>Caja de ritmos OUT</td><td>PB 5 arriba (trasera)</td><td>PB 5 abajo → Interfaz IN 3</td></tr><tr><td><span class="sw" style="background:var(--c4)"></span><b>C4</b></td><td>Interfaz OUT 3</td><td>PB 7 arriba (trasera)</td><td>PB 7 abajo → Compresor IN</td></tr><tr><td><span class="sw" style="background:var(--c5)"></span><b>C5</b></td><td>Compresor OUT</td><td>PB 9 arriba (trasera)</td><td>PB 9 abajo → Ecualizador IN</td></tr><tr><td><span class="sw" style="background:var(--c6)"></span><b>C6</b></td><td>Ecualizador OUT</td><td>PB 11 arriba (trasera)</td><td>PB 11 abajo → Interfaz IN 4</td></tr>
@@ -937,7 +946,8 @@ if('IntersectionObserver' in window){
   };
   var labels=[]; // {el,p,n}
   function label(text,p,n,cls,color){
-    var el=document.createElement('span'); el.className='l3 '+(cls||''); el.textContent=text;
+    var isTag=/tag/.test(cls||''), el=document.createElement(isTag?'button':'span'); el.className='l3 '+(cls||''); el.textContent=text;
+    if(isTag){el.type='button';el.setAttribute('data-seg',text);el.setAttribute('aria-label','Seguir la señal del cable '+text);} else el.setAttribute('aria-hidden','true');
     if(color){el.style.setProperty('--lc',color);}
     lblHost.appendChild(el); var o={el:el,p:p.clone(),n:n?n.clone():null,tokColor:color||null}; labels.push(o); return o;
   }
@@ -1027,7 +1037,12 @@ if('IntersectionObserver' in window){
   label('abajo: entradas',new THREE.Vector3(jx(18),rowY(1),1),FRONT,'row');
 
   /* ---- cables ---- */
-  function tube(points,m,rad){var cu=new THREE.CatmullRomCurve3(points);g.add(new THREE.Mesh(new THREE.TubeGeometry(cu,80,rad||.38,10,false),m));return cu;}
+  var SEG={}, pickables=[];
+  function tube(points,tokName,rad,id){
+    var cu=new THREE.CatmullRomCurve3(points), m=new THREE.MeshStandardMaterial({roughness:.4,metalness:.05,transparent:true,opacity:1});
+    var me=new THREE.Mesh(new THREE.TubeGeometry(cu,80,rad||.38,10,false),m); g.add(me);
+    SEG[id]={mesh:me,curve:cu,tok:tokName,mat:m}; me.userData.seg=id; pickables.push(me); return cu;
+  }
   function plug(p,m,facing){var pl=new THREE.Mesh(new THREE.CylinderGeometry(.62,.62,2.4,14),m);pl.rotation.x=Math.PI/2;pl.position.set(p.x,p.y,p.z+1.3*facing);g.add(pl);}
   function devJack(ref){
     if(ref[0]==='synth') return synthJack.clone(); if(ref[0]==='drum') return drumJack.clone();
@@ -1037,22 +1052,26 @@ if('IntersectionObserver' in window){
     var A=a.clone(), B=b.clone(), out=-1;
     var p1=A.clone().add(new THREE.Vector3(0,0,-2.5)), p4=B.clone().add(new THREE.Vector3(0,0,-2.5));
     var mid=A.clone().lerp(B,.5); mid.z=Math.min(A.z,B.z)-depth; mid.y=Math.min(A.y,B.y)-1-depth*.06;
-    var cu=tube([A.clone().add(new THREE.Vector3(0,0,-1.2)),p1,mid,p4,B.clone().add(new THREE.Vector3(0,0,-1.2))],m);
-    plug(A,m,out); plug(B,m,out);
+    var cu=tube([A.clone().add(new THREE.Vector3(0,0,-1.2)),p1,mid,p4,B.clone().add(new THREE.Vector3(0,0,-1.2))],color,.38,tag);
+    plug(A,SEG[tag].mat,out); plug(B,SEG[tag].mat,out);
     if(tag) label(tag,cu.getPoint(tAt),BACK,'tag',color);
   }
+  var CUTP={};
   COLS.forEach(function(col,i){
     var m=mat.cab[i], cn='--c'+(i+1), tA=new THREE.Vector3(jx(2*i),rowY(0),ZB-.3), tB=new THREE.Vector3(jx(2*i),rowY(1),ZB-.3);
     var d=4+i*1.6;
     rearCable(devJack(col.src),tA,m,d,'C'+(i+1)+'a',cn,.14);
     rearCable(tB,devJack(col.dst),m,d+2,'C'+(i+1)+'b',cn,.86);
+    // internal normal link (top jack -> bottom jack), only shown while a path uses it
+    var nid='N'+(2*i+1); tube([tA.clone().add(new THREE.Vector3(0,.2,-.9)),tA.clone().lerp(tB,.5).add(new THREE.Vector3(0,0,-1.2)),tB.clone().add(new THREE.Vector3(0,-.2,-.9))],cn,.22,nid);
+    SEG[nid].mesh.visible=false; SEG[nid].normal=true; CUTP[2*i+1]=tB.clone().add(new THREE.Vector3(0,-1.2,-1.5));
   });
   // front patch cords
   function patch(c1,r1,c2,r2,sag,tag){
     var a=new THREE.Vector3(jx(c1),rowY(r1),.7), b=new THREE.Vector3(jx(c2),rowY(r2),.7);
     var mid=a.clone().lerp(b,.5); mid.y-=sag; mid.z+=6+sag*.4;
-    var cu=tube([a.clone().add(new THREE.Vector3(0,0,1.2)),new THREE.Vector3(a.x,a.y-.3,3.4),mid,new THREE.Vector3(b.x,b.y-.3,3.4),b.clone().add(new THREE.Vector3(0,0,1.2))],mat.patch,.42);
-    plug(a,mat.patch,1); plug(b,mat.patch,1);
+    var cu=tube([a.clone().add(new THREE.Vector3(0,0,1.2)),new THREE.Vector3(a.x,a.y-.3,3.4),mid,new THREE.Vector3(b.x,b.y-.3,3.4),b.clone().add(new THREE.Vector3(0,0,1.2))],'--fg',.42,tag);
+    plug(a,SEG[tag].mat,1); plug(b,SEG[tag].mat,1);
     label(tag,cu.getPoint(.5),FRONT,'tag patch','--fg');
   }
   patch(4,0,6,1,5,'P1');
@@ -1071,6 +1090,7 @@ if('IntersectionObserver' in window){
     mat.patch.color.set(tok('--fg'));
     drawStrip(stF); drawStrip(stB);
     labels.forEach(function(o){if(o.tokColor) o.el.style.setProperty('--lc',tok(o.tokColor));});
+    paintSegs();
     render();
   }
 
@@ -1084,13 +1104,91 @@ if('IntersectionObserver' in window){
       var facing=true;
       if(o.n){camDir.copy(cam.position).sub(v); facing=camDir.dot(o.n)>0;}
       v.project(cam);
-      var vis=!hideJk&&facing&&v.z<1&&v.x>-1.1&&v.x<1.1&&v.y>-1.1&&v.y<1.1;
+      var vis=o.on!==false&&!hideJk&&facing&&v.z<1&&v.x>-1.1&&v.x<1.1&&v.y>-1.1&&v.y<1.1;
       el.hidden=!vis;
       if(vis){var px=(v.x+1)/2*w, hw=el.offsetWidth/2+4; px=Math.min(Math.max(px,hw),w-hw); el.style.transform='translate('+px.toFixed(1)+'px,'+((1-v.y)/2*h).toFixed(1)+'px) translate(-50%,-50%)';}
     });
   }
+  /* ---- follow the signal ---- */
+  var PATHS={
+    P1:{c:'--c3',flow:['C3a','P1','C4b'],also:['N5','C3b'],cut:['C4a'],at:7,front:true,
+      t:'<b>P1</b> · La caja de ritmos sale por su OUT y el cable C3a la lleva a PB 5 arriba. Al frente, P1 la lleva a PB 7 abajo. Atrás, C4b la entrega al <b>Compresor IN</b>. PB 5 es semi-normal: la caja también sigue a Interfaz IN 3 por C3b. En PB 7 el normal se rompe: Interfaz OUT 3 (C4a) ya no llega al compresor.'},
+    P2:{c:'--c6',flow:['C6a','P2','C2b'],also:['N11','C6b'],cut:['C2a'],at:3,front:true,
+      t:'<b>P2</b> · La salida del EQ va por C6a a PB 11 arriba. Al frente, P2 la lleva a PB 3 abajo. Atrás, C2b la entrega a <b>Interfaz IN 2</b>. PB 11 es semi-normal: el EQ también sigue a Interfaz IN 4 por C6b. En PB 3 el normal se rompe: el sintetizador (C2a) ya no llega a IN 2.'},
+    C1:{c:'--c1',flow:['C1a','N1','C1b'],t:'<b>C1</b> · Preamp OUT 1 → C1a → PB 1 arriba → normal interno → PB 1 abajo → C1b → <b>Interfaz IN 1</b>. No hay cable al frente, así que la señal pasa sola.'},
+    C2:{c:'--c2',flow:['C2a'],cut:['N3','C2b'],at:3,t:'<b>C2</b> · El sintetizador llega por C2a a PB 3 arriba. Pero P2 está en PB 3 abajo y rompe el normal: el sinte <b>no llega</b> a Interfaz IN 2. Para oírlo, quita P2.'},
+    C3:{c:'--c3',flow:['C3a','N5','C3b'],also:['P1','C4b'],t:'<b>C3</b> · Caja de ritmos → C3a → PB 5 arriba → normal → PB 5 abajo → C3b → <b>Interfaz IN 3</b>. Además P1 toma una copia en PB 5 arriba (semi-normal no corta) y la lleva al compresor.'},
+    C4:{c:'--c4',flow:['C4a'],cut:['N7','C4b'],at:7,t:'<b>C4</b> · Interfaz OUT 3 llega por C4a a PB 7 arriba. P1 entra en PB 7 abajo y rompe el normal: el compresor recibe la caja de ritmos, <b>no</b> OUT 3.'},
+    C5:{c:'--c5',flow:['C5a','N9','C5b'],t:'<b>C5</b> · Compresor OUT → C5a → PB 9 arriba → normal → PB 9 abajo → C5b → <b>Ecualizador IN</b>.'},
+    C6:{c:'--c6',flow:['C6a','N11','C6b'],also:['P2','C2b'],t:'<b>C6</b> · EQ OUT → C6a → PB 11 arriba → normal → PB 11 abajo → C6b → <b>Interfaz IN 4</b>. Además P2 toma una copia en PB 11 arriba y la manda a Interfaz IN 2.'}
+  };
+  var active=null, info=$('#pathinfo'), INFO0=info?info.innerHTML:'';
+  var cutLbl=label('normal roto',new THREE.Vector3(),BACK,'cut'); cutLbl.on=false;
+  var pulseGeo=new THREE.SphereGeometry(.62,14,10), pulseMat=new THREE.MeshBasicMaterial(), pulses=[];
+  for(var q=0;q<24;q++){var pm=new THREE.Mesh(pulseGeo,pulseMat);pm.visible=false;g.add(pm);pulses.push(pm);}
+  function paintSegs(){
+    Object.keys(SEG).forEach(function(id){
+      var S=SEG[id], m=S.mat, inF=active&&active.flow.indexOf(id)>=0, inA=active&&(active.also||[]).indexOf(id)>=0, inC=active&&(active.cut||[]).indexOf(id)>=0;
+      m.color.set(tok(inF||inA?active.c:S.tok));
+      m.emissive=new THREE.Color(inF||inA?tok(active.c):'#000000'); m.emissiveIntensity=inF?.55:inA?.3:0;
+      m.opacity=!active||inF||inA?1:inC?.45:.12; m.depthWrite=m.opacity>.5;
+      if(S.normal) S.mesh.visible=!!(inF||inA);
+    });
+    if(active) pulseMat.color.set(tok(active.c));
+    labels.forEach(function(o){var sg=o.el.getAttribute('data-seg'); if(!sg) return; var on=!active||active.flow.indexOf(sg+'')>=0||(active.flow.concat(active.also||[],active.cut||[])).some(function(x){return x.indexOf(sg)===0;}); o.el.classList.toggle('dim',!on); o.el.style.setProperty('--lc',tok(on&&active&&(active.flow.indexOf(sg)>=0||(active.also||[]).indexOf(sg)>=0)?active.c:(o.tokColor||'--fg')));});
+  }
+  function flyTo(k,dur,cb){
+    var s0=Math.max(1,1.6/cam.aspect), to=new THREE.Vector3().fromArray(VIEWS[k]).multiplyScalar(s0), tt=new THREE.Vector3().fromArray(TGT[k]);
+    var t0v=controls?controls.target.clone():new THREE.Vector3(0,-2,-10);
+    if(reduce||!dur){cam.position.copy(to); if(controls){controls.target.copy(tt);controls.update();} else cam.lookAt(tt); render(); if(cb)cb(); return;}
+    var a=new THREE.Spherical().setFromVector3(cam.position.clone().sub(t0v)), b=new THREE.Spherical().setFromVector3(to.clone().sub(tt));
+    var dth=b.theta-a.theta; if(dth>Math.PI)dth-=2*Math.PI; if(dth<-Math.PI)dth+=2*Math.PI;
+    fly={a:a,b:b,dth:dth,t0v:t0v,tt:tt,start:performance.now(),dur:dur,cb:cb}; if(controls) controls.enabled=false;
+  }
+  var fly=null, timer=0;
+  function stepFly(now){
+    if(!fly) return; var f=fly, u=Math.min(1,(now-f.start)/f.dur), e=u<.5?2*u*u:1-Math.pow(-2*u+2,2)/2;
+    var sp=new THREE.Spherical(f.a.radius+(f.b.radius-f.a.radius)*e, f.a.phi+(f.b.phi-f.a.phi)*e, f.a.theta+f.dth*e);
+    var tg=f.t0v.clone().lerp(f.tt,e); cam.position.copy(new THREE.Vector3().setFromSpherical(sp).add(tg));
+    if(controls) controls.target.copy(tg); cam.lookAt(tg);
+    if(u>=1){fly=null; if(controls){controls.enabled=true;controls.update();} if(f.cb) f.cb();}
+  }
+  function setView(k){$$('#views3d [data-view]').forEach(function(x){x.setAttribute('aria-pressed',x.getAttribute('data-view')===k?'true':'false');});}
+  function select(key){
+    clearTimeout(timer); active=key&&PATHS[key]?PATHS[key]:null;
+    $$('#paths3d [data-path]').forEach(function(b){b.setAttribute('aria-pressed',b.getAttribute('data-path')===(key||'none')&&key?'true':'false');});
+    if(info) info.innerHTML=active?active.t:INFO0;
+    if(active&&active.at){cutLbl.p.copy(CUTP[active.at]); cutLbl.on=true;} else cutLbl.on=false;
+    paintSegs(); render();
+    if(!active) return;
+    if(active.front){ setView('front'); flyTo('front',700,function(){ timer=setTimeout(function(){setView('rear');flyTo('rear',1500);},reduce?1200:900); }); }
+    else { setView('rear'); flyTo('rear',1100); }
+  }
+  function pathOf(id){ if(!id) return null; if(id.charAt(0)==='P') return id; if(id.charAt(0)==='C') return id.slice(0,2); return null; }
+  lblHost.addEventListener('click',function(e){var b=e.target.closest('[data-seg]'); if(b) select(pathOf(b.getAttribute('data-seg')));});
+  $$('#paths3d [data-path]').forEach(function(b){b.addEventListener('click',function(){var k=b.getAttribute('data-path');select(k==='none'?null:k);});});
+  var ray=new THREE.Raycaster(), ndc=new THREE.Vector2(), down=null;
+  renderer.domElement.addEventListener('pointerdown',function(e){down=[e.clientX,e.clientY];});
+  renderer.domElement.addEventListener('pointerup',function(e){
+    if(!down||Math.abs(e.clientX-down[0])+Math.abs(e.clientY-down[1])>6) return; down=null;
+    var r=renderer.domElement.getBoundingClientRect(); ndc.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);
+    ray.setFromCamera(ndc,cam); var hit=ray.intersectObjects(pickables.filter(function(m){return m.visible;}),false)[0];
+    if(hit) select(pathOf(hit.object.userData.seg));
+  });
+  renderer.domElement.addEventListener('pointermove',function(e){
+    if(e.buttons) return; var r=renderer.domElement.getBoundingClientRect(); ndc.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);
+    ray.setFromCamera(ndc,cam); renderer.domElement.style.cursor=ray.intersectObjects(pickables,false).length?'pointer':'';
+  });
+  function stepPulses(now){
+    var n=0;
+    if(active&&!reduce){
+      var segs=active.flow.map(function(id){return [id,3];}).concat((active.also||[]).map(function(id){return [id,2];}));
+      segs.forEach(function(sg,si){var S=SEG[sg[0]]; if(!S) return; for(var k=0;k<sg[1]&&n<pulses.length;k++){var t=((now/1400)+k/sg[1]+si*.17)%1; pulses[n].position.copy(S.curve.getPoint(t)); pulses[n].visible=true; n++;}});
+    }
+    for(;n<pulses.length;n++) pulses[n].visible=false;
+  }
   var raf=0, sized=false;
-  function render(){renderer.render(scene,cam);placeLabels();}
+  function render(){var now=performance.now(); stepFly(now); stepPulses(now); renderer.render(scene,cam);placeLabels();}
   function size(){var w=host.clientWidth,h=host.clientHeight;if(!w||!h)return;renderer.setSize(w,h,false);cam.aspect=w/h;if(!sized){sized=true;cam.position.multiplyScalar(Math.max(1,1.6/cam.aspect));}cam.updateProjectionMatrix();render();}
   if('ResizeObserver' in window) new ResizeObserver(size).observe(host); else window.addEventListener('resize',size);
   size(); applyTheme();
@@ -1103,6 +1201,7 @@ if('IntersectionObserver' in window){
       var k=b.getAttribute('data-view'), s=Math.max(1,1.6/cam.aspect);
       cam.position.fromArray(VIEWS[k]).multiplyScalar(s);
       var tg=TGT[k]; if(controls){controls.target.fromArray(tg);controls.update();} else cam.lookAt(tg[0],tg[1],tg[2]);
+      fly=null; if(controls) controls.enabled=true;
       $$('#views3d [data-view]').forEach(function(x){x.setAttribute('aria-pressed',x===b?'true':'false');});
       render();
     });
