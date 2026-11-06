@@ -6,6 +6,7 @@
 :root{
   --bg:#F4FAF0; --surface:#FFFFFF; --fg:#011F19; --muted:#46625A; --line:#D3E5CC; --brand:#EA7600;
   --accent:#00843F; --signal:#007680; --hot:#C54A07; --cold:#0077C8; --gnd:#00A653;
+  --c1:#0077C8; --c2:#7A3FF0; --c3:#C54A07; --c4:#008C8C; --c5:#B8860B; --c6:#D6336C;
   --f-display:"Hanken Grotesk", "Segoe UI", system-ui, -apple-system, sans-serif;
   --f-body:"Roboto", "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
   --f-mono:"Roboto Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
@@ -16,12 +17,14 @@
   :root:not([data-theme="light"]){
     --bg:#011F19; --surface:#012820; --fg:#E9F5E4; --muted:#9DBAAF; --line:#1D4438; --brand:#FF8C2A;
     --accent:#90FF00; --signal:#5CB8B2; --hot:#FF8A4C; --cold:#5CB3F0; --gnd:#3FD07F;
+    --c1:#5CB3F0; --c2:#B48CFF; --c3:#FF7A45; --c4:#4FD6CF; --c5:#FFD23F; --c6:#FF6FA0;
     color-scheme:dark;
   }
 }
 :root[data-theme="dark"]{
   --bg:#011F19; --surface:#012820; --fg:#E9F5E4; --muted:#9DBAAF; --line:#1D4438; --brand:#FF8C2A;
   --accent:#90FF00; --signal:#5CB8B2; --hot:#FF8A4C; --cold:#5CB3F0; --gnd:#3FD07F;
+    --c1:#5CB3F0; --c2:#B48CFF; --c3:#FF7A45; --c4:#4FD6CF; --c5:#FFD23F; --c6:#FF6FA0;
   color-scheme:dark;
 }
 *{box-sizing:border-box}
@@ -210,6 +213,21 @@ footer .wrap{padding-block:28px;display:flex;flex-wrap:wrap;gap:16px;justify-con
   .flow{animation:none;stroke-dasharray:none}
   .case li{transition:none}
 }
+.views3d{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-block:12px}
+.views3d label{display:inline-flex;gap:6px;align-items:center;font-size:.9rem;margin-left:auto}
+.lbl3d{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.l3{position:absolute;left:0;top:0;white-space:nowrap;font-family:var(--f-mono);font-size:11px;line-height:1.2;padding:2px 6px;border-radius:4px;background:color-mix(in srgb,var(--surface) 88%,transparent);color:var(--fg);border:1px solid var(--line)}
+.l3.dev{font-family:var(--f-display);font-weight:700;font-size:12.5px;border-color:var(--fg)}
+.l3.jk{font-size:10px;color:var(--muted)}
+.l3.row{font-size:10px;color:var(--muted);border-style:dashed}
+.l3.tag{border:2px solid var(--lc,var(--fg));font-weight:600}
+.l3.tag::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--lc,var(--fg));margin-right:5px;vertical-align:0}
+.wires{width:100%;border-collapse:collapse;font-size:.9rem;min-width:560px}
+.wires th,.wires td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+.wires th{font-family:var(--f-mono);font-size:.75rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.wires .sw{display:inline-block;width:14px;height:14px;border-radius:50%;vertical-align:-2px;margin-right:6px}
+.tblwrap{overflow-x:auto;margin-top:14px}
+@media (max-width:600px){.l3{font-size:9.5px;padding:1px 4px}.l3.dev{font-size:11px}}
 /* Universidad El Bosque: orange only in small accents */
 header{box-shadow:inset 0 -3px 0 var(--brand)}
 .btn{border-radius:999px}
@@ -501,8 +519,21 @@ h2::after{content:"";display:block;width:40px;height:4px;border-radius:99px;back
     <div class="in">
       <span class="utag">U-07 · Vista 3D</span>
       <h2>El rack en tres dimensiones</h2>
-      <p>Arrastra para orbitar, rueda o pellizca para acercarte. Arriba, la interfaz; debajo, el patch bay con algunos cables de parcheo; luego el compresor y el ecualizador.</p>
-      <div class="stage3d" id="stage3d"><span class="hint">arrastrar · zoom</span></div>
+      <p>Arrastra para orbitar, rueda o pellizca para acercarte. Usa los botones para ver el frente o la trasera. El patch bay usa las columnas 1, 3, 5, 7, 9 y 11; las pares quedan libres para que los cables no se amontonen. Atrás están los cables fijos, de C1 a C6. Cada uno tiene dos tramos: el tramo a lleva la salida del equipo a la fila de arriba, y el tramo b lleva la fila de abajo a la entrada del otro equipo. Adelante están los cables de parcheo (P1 y P2).</p>
+      <div class="views3d" id="views3d" role="group" aria-label="Vista del rack">
+        <button type="button" class="btn" data-view="rear" aria-pressed="true">Trasera</button>
+        <button type="button" class="btn" data-view="front" aria-pressed="false">Frente</button>
+        <button type="button" class="btn" data-view="side" aria-pressed="false">Lado</button>
+        <button type="button" class="btn" data-view="top" aria-pressed="false">Arriba</button>
+        <label for="lbl-toggle"><input type="checkbox" id="lbl-toggle" checked> Nombres de conectores y cables</label>
+      </div>
+      <div class="stage3d" id="stage3d"><div class="lbl3d" id="lbl3d" aria-hidden="true"></div><span class="hint">arrastrar · zoom</span></div>
+      <div class="tblwrap"><table class="wires">
+        <thead><tr><th>Cable</th><th>C·a: sale de</th><th>llega a</th><th>C·b: sale de la fila de abajo y llega a</th></tr></thead>
+        <tbody><tr><td><span class="sw" style="background:var(--c1)"></span><b>C1</b></td><td>Preamplificador OUT 1</td><td>PB 1 arriba (trasera)</td><td>PB 1 abajo → Interfaz IN 1</td></tr><tr><td><span class="sw" style="background:var(--c2)"></span><b>C2</b></td><td>Sintetizador OUT</td><td>PB 3 arriba (trasera)</td><td>PB 3 abajo → Interfaz IN 2</td></tr><tr><td><span class="sw" style="background:var(--c3)"></span><b>C3</b></td><td>Caja de ritmos OUT</td><td>PB 5 arriba (trasera)</td><td>PB 5 abajo → Interfaz IN 3</td></tr><tr><td><span class="sw" style="background:var(--c4)"></span><b>C4</b></td><td>Interfaz OUT 3</td><td>PB 7 arriba (trasera)</td><td>PB 7 abajo → Compresor IN</td></tr><tr><td><span class="sw" style="background:var(--c5)"></span><b>C5</b></td><td>Compresor OUT</td><td>PB 9 arriba (trasera)</td><td>PB 9 abajo → Ecualizador IN</td></tr><tr><td><span class="sw" style="background:var(--c6)"></span><b>C6</b></td><td>Ecualizador OUT</td><td>PB 11 arriba (trasera)</td><td>PB 11 abajo → Interfaz IN 4</td></tr>
+        <tr><td><span class="sw" style="background:var(--fg)"></span><b>P1</b></td><td>PB 5 arriba (frente) · Caja de ritmos</td><td>PB 7 abajo (frente) · Compresor IN</td><td>La caja entra al compresor. En semi-normal la caja sigue llegando a Interfaz IN 3. El normal de la columna 4 se rompe: Interfaz OUT 3 ya no llega al compresor.</td></tr>
+        <tr><td><span class="sw" style="background:var(--fg)"></span><b>P2</b></td><td>PB 11 arriba (frente) · Ecualizador OUT</td><td>PB 3 abajo (frente) · Interfaz IN 2</td><td>Interfaz IN 2 graba la cadena caja → compresor → EQ. El sinte ya no llega a IN 2. El EQ sigue llegando a IN 4.</td></tr>
+        </tbody></table></div>
     </div>
   </section>
 
@@ -861,73 +892,223 @@ if('IntersectionObserver' in window){
 
 /* ---------- 3D rack ---------- */
 (function(){
-  var host=$('#stage3d');
+  var host=$('#stage3d'), lblHost=$('#lbl3d');
   function fail(msg){var d=document.createElement('div');d.className='fallback';d.textContent=msg||'Tu navegador no pudo iniciar WebGL, así que la vista 3D no está disponible. El resto de la página funciona igual.';host.appendChild(d);var h=host.querySelector('.hint');if(h)h.remove();}
-  if(!window.THREE){fail('No se pudo cargar la librería 3D. El resto de la página funciona igual.');return;}
+  if(!window.THREE){fail('No se pudo cargar la librería 3D. El resto de la página funciona igual. Usa la tabla de cables de abajo.');return;}
   var renderer;
   try{renderer=new THREE.WebGLRenderer({antialias:true,alpha:true}); if(!renderer.getContext()) throw new Error('no ctx');}catch(e){fail();return;}
   renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
   host.insertBefore(renderer.domElement,host.firstChild);
-  var scene=new THREE.Scene(), cam=new THREE.PerspectiveCamera(38,1,0.1,600);
-  cam.position.set(26,12,70);
+  var scene=new THREE.Scene(), cam=new THREE.PerspectiveCamera(38,1,0.1,800);
+  var VIEWS={front:[10,10,52],rear:[-16,8,-82],side:[85,20,-30],top:[0,90,-12]};
+  var TGT={front:[0,6,0],rear:[0,-2,-10],side:[0,-2,-10],top:[0,-2,-10]};
+  cam.position.fromArray(VIEWS.rear);
   var controls = THREE.OrbitControls ? new THREE.OrbitControls(cam,renderer.domElement) : null;
-  if(controls){controls.target.set(0,0,0);controls.enableDamping=!reduce;controls.dampingFactor=.08;controls.minDistance=28;controls.maxDistance=140;controls.autoRotate=!reduce;controls.autoRotateSpeed=.6;controls.addEventListener('start',function(){controls.autoRotate=false;});}
-  scene.add(new THREE.AmbientLight(0xffffff,.55));
-  var dl=new THREE.DirectionalLight(0xffffff,.8); dl.position.set(20,40,50); scene.add(dl);
-  var dl2=new THREE.DirectionalLight(0xffffff,.3); dl2.position.set(-30,-10,20); scene.add(dl2);
+  if(controls){controls.target.set(0,-2,-10);controls.enableDamping=!reduce;controls.dampingFactor=.08;controls.minDistance=25;controls.maxDistance=190;controls.autoRotate=false;}
+  else cam.lookAt(0,-2,-10);
+  scene.add(new THREE.AmbientLight(0xffffff,.6));
+  var dl=new THREE.DirectionalLight(0xffffff,.7); dl.position.set(20,40,50); scene.add(dl);
+  var dl2=new THREE.DirectionalLight(0xffffff,.55); dl2.position.set(-25,30,-60); scene.add(dl2);
   function tok(n){return getComputedStyle(root).getPropertyValue(n).trim()||'#888888';}
-  function M(){return new THREE.MeshStandardMaterial({roughness:.6,metalness:.3});}
-  var mat={frame:M(),chassis:M(),panel:M(),pbPanel:M(),jack:M(),strip:M(),knob:M(),led:new THREE.MeshStandardMaterial({roughness:.4}),cab:[M(),M(),M(),M(),M()]};
-  mat.cab.forEach(function(m){m.metalness=.05;m.roughness=.45;});
+  function M(){return new THREE.MeshStandardMaterial({roughness:.6,metalness:.25});}
+  var mat={frame:M(),chassis:M(),panel:M(),pbPanel:M(),jack:M(),knob:M(),desk:M(),keys:M(),
+    led:new THREE.MeshStandardMaterial({roughness:.4}),patch:M(),cab:[M(),M(),M(),M(),M(),M()]};
+  mat.cab.concat([mat.patch]).forEach(function(m){m.metalness=.05;m.roughness=.4;});
   function mix(a,b,t){var c=new THREE.Color(a);return c.lerp(new THREE.Color(b),t);}
-  function applyTheme(){
-    var fg=tok('--fg'),bg=tok('--bg'),sf=tok('--surface'),mu=tok('--muted');
-    mat.frame.color.copy(mix(mu,fg,.5)); mat.chassis.color.copy(mix(mu,bg,.5));
-    mat.panel.color.copy(mix(sf,mu,.35)); mat.pbPanel.color.copy(mix(fg,mu,.35));
-    mat.jack.color.copy(mix(fg,bg,.15)); mat.strip.color.set(sf); mat.knob.color.copy(mix(fg,mu,.2));
-    mat.led.color.set(tok('--signal')); mat.led.emissive=new THREE.Color(tok('--signal')); mat.led.emissiveIntensity=.6;
-    ['--signal','--accent','--hot','--cold','--gnd'].forEach(function(n,i){mat.cab[i].color.set(tok(n));});
-    render();
-  }
+
+  /* ---- data: what is wired where ---- */
   var U=4.445, W=48.2, g=new THREE.Group(); scene.add(g);
+  var COLS=[ // patch bay columns 1..6 (index 0..5). top = salida de equipo, bottom = entrada de equipo
+    {top:'PRE 1', bot:'INT IN1', src:['pre','OUT 1'], dst:['iface','IN 1']},
+    {top:'SINTE', bot:'INT IN2', src:['synth','OUT'], dst:['iface','IN 2']},
+    {top:'CAJA',  bot:'INT IN3', src:['drum','OUT'],  dst:['iface','IN 3']},
+    {top:'INT OUT3', bot:'COMP IN', src:['iface','OUT 3'], dst:['comp','IN']},
+    {top:'COMP OUT', bot:'EQ IN', src:['comp','OUT'], dst:['eq','IN']},
+    {top:'EQ OUT', bot:'INT IN4', src:['eq','OUT'], dst:['iface','IN 4']}
+  ];
+  var DEV={ // name, rear jacks (x on device rear)
+    iface:{name:'Interfaz de audio',jacks:{'IN 1':-16,'IN 2':-12,'IN 3':-8,'IN 4':-4,'OUT 3':8}},
+    pb:{name:'Patch bay (semi-normal)'},
+    pre:{name:'Preamplificador',jacks:{'OUT 1':10}},
+    comp:{name:'Compresor',jacks:{'IN':-8,'OUT':8}},
+    eq:{name:'Ecualizador',jacks:{'IN':-8,'OUT':8}},
+    synth:{name:'Sintetizador',jacks:{'OUT':-10}},
+    drum:{name:'Caja de ritmos',jacks:{'OUT':8}}
+  };
+  var labels=[]; // {el,p,n}
+  function label(text,p,n,cls,color){
+    var el=document.createElement('span'); el.className='l3 '+(cls||''); el.textContent=text;
+    if(color){el.style.setProperty('--lc',color);}
+    lblHost.appendChild(el); var o={el:el,p:p.clone(),n:n?n.clone():null,tokColor:color||null}; labels.push(o); return o;
+  }
+  var FRONT=new THREE.Vector3(0,0,1), BACK=new THREE.Vector3(0,0,-1);
   function box(w,h,d,m,x,y,z){var o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);o.position.set(x,y,z);g.add(o);return o;}
-  // rails
+  function jackAt(x,y,z,facing){ // facing: +1 front, -1 back
+    var j=new THREE.Mesh(new THREE.CylinderGeometry(.62,.62,.5,16),mat.panel);j.rotation.x=Math.PI/2;j.position.set(x,y,z);g.add(j);
+    var h=new THREE.Mesh(new THREE.CylinderGeometry(.3,.3,.55,12),mat.jack);h.rotation.x=Math.PI/2;h.position.set(x,y,z+.06*facing);g.add(h);
+  }
+
+  /* ---- rack ---- */
+  var DEPTH=20, ZB=-DEPTH-.6; // rear panel z
   box(2.2,U*7,2,mat.frame,-W/2-1.1,0,0); box(2.2,U*7,2,mat.frame,W/2+1.1,0,0);
-  box(W+4.4,1,22,mat.frame,0,U*3.5+.5,-10); box(W+4.4,1,22,mat.frame,0,-U*3.5-.5,-10);
-  var yTop=U*3.5, units=[['iface',1],['pb',1],['comp',2],['eq',1],['blank',1],['sum',1]], y=yTop, pbY=0;
+  box(2.2,U*7,2,mat.frame,-W/2-1.1,0,ZB-.4); box(2.2,U*7,2,mat.frame,W/2+1.1,0,ZB-.4);
+  box(W+4.4,1,DEPTH+3,mat.frame,0,U*3.5+.5,-10.5); box(W+4.4,1,DEPTH+3,mat.frame,0,-U*3.5-.5,-10.5);
+  var units=[['iface',1],['pb',1],['pre',1],['comp',2],['eq',1],['blank',1]], y=U*3.5, pos={};
+  var deskY=-U*3.5-1;
+  box(150,1,40,mat.desk,0,deskY-.5,-10);
   units.forEach(function(u){
-    var h=u[1]*U, cy=y-h/2; y-=h;
-    box(W-1,h-.15,20,mat.chassis,0,cy,-10.6);
-    box(W,h-.15,.6,u[0]==='pb'?mat.pbPanel:mat.panel,0,cy,0);
-    if(u[0]==='pb'){pbY=cy; box(W-4,.7,.2,mat.strip,0,cy,.4);}
-    if(u[0]==='comp'||u[0]==='eq'||u[0]==='sum'){
-      var nk=u[0]==='comp'?6:u[0]==='eq'?8:4;
-      for(var k=0;k<nk;k++){var kn=new THREE.Mesh(new THREE.CylinderGeometry(u[1]===2?1.3:.9,u[1]===2?1.3:.9,1.2,24),mat.knob);kn.rotation.x=Math.PI/2;kn.position.set(-16+k*(32/(nk-1||1)),cy,.9);g.add(kn);}
+    var id=u[0], h=u[1]*U, cy=y-h/2; y-=h; pos[id]={y:cy,h:h};
+    box(W-1,h-.15,DEPTH,mat.chassis,0,cy,-10.6);
+    box(W,h-.15,.6,id==='pb'?mat.pbPanel:mat.panel,0,cy,0);
+    if(id==='blank') return;
+    if(id==='comp'||id==='eq'||id==='pre'){
+      var nk=id==='comp'?6:id==='eq'?8:3, r=id==='comp'?1.3:.9;
+      for(var k=0;k<nk;k++){var kn=new THREE.Mesh(new THREE.CylinderGeometry(r,r,1.2,24),mat.knob);kn.rotation.x=Math.PI/2;kn.position.set(-14+k*(26/(nk-1||1)),cy,.9);g.add(kn);}
       var led=new THREE.Mesh(new THREE.SphereGeometry(.35,12,8),mat.led);led.position.set(W/2-4,cy,.5);g.add(led);
     }
-    if(u[0]==='iface'){for(var m=0;m<12;m++){var l2=new THREE.Mesh(new THREE.BoxGeometry(.5,1.6,.3),mat.led);l2.position.set(4+m*1.2,cy,.4);g.add(l2);} var kn2=new THREE.Mesh(new THREE.CylinderGeometry(1.4,1.4,1.2,28),mat.knob);kn2.rotation.x=Math.PI/2;kn2.position.set(-14,cy,.9);g.add(kn2);}
+    if(id==='iface'){for(var m=0;m<12;m++){var l2=new THREE.Mesh(new THREE.BoxGeometry(.5,1.6,.3),mat.led);l2.position.set(4+m*1.2,cy,.4);g.add(l2);} var kn2=new THREE.Mesh(new THREE.CylinderGeometry(1.4,1.4,1.2,28),mat.knob);kn2.rotation.x=Math.PI/2;kn2.position.set(-14,cy,.9);g.add(kn2);}
+    if(id!=='pb'){
+      label(DEV[id].name,new THREE.Vector3(-W/2-9,cy,0),FRONT,'dev');
+      label(DEV[id].name,new THREE.Vector3(W/2+9,cy,ZB),BACK,'dev');
+      Object.keys(DEV[id].jacks).forEach(function(jn){
+        var x=DEV[id].jacks[jn]; jackAt(x,cy,ZB-.3,-1);
+        label(jn,new THREE.Vector3(x,cy-1.5,ZB-.6),BACK,'jk');
+      });
+    }
   });
-  // jacks
-  var jg=new THREE.CylinderGeometry(.55,.55,.5,16), hg=new THREE.CylinderGeometry(.28,.28,.55,12);
-  function jx(c){return -20.7+c*1.8;}
-  for(var r=0;r<2;r++)for(var c=0;c<24;c++){var j=new THREE.Mesh(jg,mat.panel);j.rotation.x=Math.PI/2;j.position.set(jx(c),pbY+(r?-1.25:1.25),.45);g.add(j);var hh=new THREE.Mesh(hg,mat.jack);hh.rotation.x=Math.PI/2;hh.position.set(jx(c),pbY+(r?-1.25:1.25),.55);g.add(hh);}
-  // cables
-  function cable(c1,r1,c2,r2,mi,sag){
-    var a=new THREE.Vector3(jx(c1),pbY+(r1?-1.25:1.25),.7), b=new THREE.Vector3(jx(c2),pbY+(r2?-1.25:1.25),.7);
-    var mid=a.clone().lerp(b,.5); mid.y-=sag; mid.z+=6+sag*.4;
-    var curve=new THREE.CatmullRomCurve3([a,new THREE.Vector3(a.x,a.y-.3,3.2),mid,new THREE.Vector3(b.x,b.y-.3,3.2),b]);
-    g.add(new THREE.Mesh(new THREE.TubeGeometry(curve,60,.32,10,false),mat.cab[mi]));
-    [a,b].forEach(function(p){var pl=new THREE.Mesh(new THREE.CylinderGeometry(.6,.6,2.4,14),mat.cab[mi]);pl.rotation.x=Math.PI/2;pl.position.set(p.x,p.y,1.7);g.add(pl);});
+
+  /* ---- outboard on the desk: synth (right) and drum machine (left) ---- */
+  var SY={x:50,y:deskY+2.5,z:-8,w:34,h:5,d:16}, DR={x:-46,y:deskY+2,z:-8,w:24,h:4,d:14};
+  box(SY.w,SY.h,SY.d,mat.chassis,SY.x,SY.y,SY.z);
+  for(var kk=0;kk<22;kk++) box(1.2,.5,5,mat.keys,SY.x-14+kk*1.35,SY.y+SY.h/2+.25,SY.z+5);
+  for(var sk=0;sk<6;sk++){var k3=new THREE.Mesh(new THREE.CylinderGeometry(.8,.8,.8,20),mat.knob);k3.position.set(SY.x-12+sk*4.5,SY.y+SY.h/2+.4,SY.z-2.5);g.add(k3);}
+  box(DR.w,DR.h,DR.d,mat.chassis,DR.x,DR.y,DR.z);
+  for(var pr=0;pr<2;pr++)for(var pc=0;pc<8;pc++) box(2,.5,2,pr?mat.knob:mat.led,DR.x-9.5+pc*2.7,DR.y+DR.h/2+.25,DR.z+2+pr*3);
+  var synthJack=new THREE.Vector3(SY.x+DEV.synth.jacks.OUT,SY.y,SY.z-SY.d/2-.3);
+  var drumJack=new THREE.Vector3(DR.x+DEV.drum.jacks.OUT,DR.y,DR.z-DR.d/2-.3);
+  jackAt(synthJack.x,synthJack.y,synthJack.z,-1); jackAt(drumJack.x,drumJack.y,drumJack.z,-1);
+  label('Sintetizador',new THREE.Vector3(SY.x,SY.y+SY.h/2+2.5,SY.z),null,'dev');
+  label('Caja de ritmos',new THREE.Vector3(DR.x,DR.y+DR.h/2+2.5,DR.z),null,'dev');
+  label('OUT',synthJack.clone().add(new THREE.Vector3(0,-1.6,-.3)),BACK,'jk');
+  label('OUT',drumJack.clone().add(new THREE.Vector3(0,-1.6,-.3)),BACK,'jk');
+
+  /* ---- patch bay jacks front + rear, label strips ---- */
+  var pbY=pos.pb.y; function jx(c){return -20.7+c*1.8;}
+  function rowY(r){return pbY+(r?-1.3:1.3);}
+  for(var r=0;r<2;r++)for(var c=0;c<24;c++){jackAt(jx(c),rowY(r),.45,1); jackAt(jx(c),rowY(r),ZB-.3,-1);}
+  function stripTex(mirror){
+    var cv=document.createElement('canvas'); cv.width=2048; cv.height=96;
+    var t=new THREE.CanvasTexture(cv); t.anisotropy=4; t._cv=cv; t._mirror=mirror; return t;
   }
-  cable(0,0,10,1,0,7); cable(10,0,12,1,1,4); cable(6,0,20,0,2,10); cable(21,0,13,1,3,6); cable(22,0,22,1,4,3);
-  g.position.y=-2;
+  function drawStrip(t){
+    var cv=t._cv, x=cv.getContext('2d'), SW=W-4;
+    x.fillStyle=tok('--surface'); x.fillRect(0,0,cv.width,cv.height);
+    x.textAlign='center'; x.textBaseline='middle'; x.font='700 24px "Roboto Mono", monospace';
+    for(var c=0;c<24;c++){
+      var wx=jx(c), u=(t._mirror?(-wx+SW/2):(wx+SW/2))/SW*cv.width;
+      x.strokeStyle=tok('--line'); x.lineWidth=2; x.beginPath(); x.moveTo(u+cv.width/SW*.9,0); x.lineTo(u+cv.width/SW*.9,cv.height); x.stroke();
+      var ci=(c%2===0&&c/2<COLS.length)?c/2:-1;
+      if(ci>=0){
+        x.fillStyle=tok('--c'+(ci+1)); x.fillRect(u-60,2,120,10);
+        x.fillStyle=tok('--fg'); x.fillText(COLS[ci].top,u,32); x.fillStyle=tok('--muted'); x.fillText(COLS[ci].bot,u,68);
+      } else if(c>=12){ x.fillStyle=tok('--muted'); x.fillText(String(c+1),u,48); }
+    }
+    t.needsUpdate=true;
+  }
+  var stF=stripTex(false), stB=stripTex(true);
+  var sgeo=new THREE.PlaneGeometry(W-4,1.25);
+  var sF=new THREE.Mesh(sgeo,new THREE.MeshBasicMaterial({map:stF})); sF.position.set(0,pbY,.42); g.add(sF);
+  var sB=new THREE.Mesh(sgeo,new THREE.MeshBasicMaterial({map:stB})); sB.rotation.y=Math.PI; sB.position.set(0,pbY,ZB-.42); g.add(sB);
+  label('Patch bay',new THREE.Vector3(-W/2-9,pbY,0),FRONT,'dev');
+  label('Patch bay (trasera)',new THREE.Vector3(W/2+9,pbY,ZB),BACK,'dev');
+  label('arriba: salidas',new THREE.Vector3(jx(18),rowY(0),ZB-.6),BACK,'row');
+  label('abajo: entradas',new THREE.Vector3(jx(18),rowY(1),ZB-.6),BACK,'row');
+  label('arriba: salidas',new THREE.Vector3(jx(18),rowY(0),1),FRONT,'row');
+  label('abajo: entradas',new THREE.Vector3(jx(18),rowY(1),1),FRONT,'row');
+
+  /* ---- cables ---- */
+  function tube(points,m,rad){var cu=new THREE.CatmullRomCurve3(points);g.add(new THREE.Mesh(new THREE.TubeGeometry(cu,80,rad||.38,10,false),m));return cu;}
+  function plug(p,m,facing){var pl=new THREE.Mesh(new THREE.CylinderGeometry(.62,.62,2.4,14),m);pl.rotation.x=Math.PI/2;pl.position.set(p.x,p.y,p.z+1.3*facing);g.add(pl);}
+  function devJack(ref){
+    if(ref[0]==='synth') return synthJack.clone(); if(ref[0]==='drum') return drumJack.clone();
+    return new THREE.Vector3(DEV[ref[0]].jacks[ref[1]],pos[ref[0]].y,ZB-.3);
+  }
+  function rearCable(a,b,m,depth,tag,color,tAt){
+    var A=a.clone(), B=b.clone(), out=-1;
+    var p1=A.clone().add(new THREE.Vector3(0,0,-2.5)), p4=B.clone().add(new THREE.Vector3(0,0,-2.5));
+    var mid=A.clone().lerp(B,.5); mid.z=Math.min(A.z,B.z)-depth; mid.y=Math.min(A.y,B.y)-1-depth*.06;
+    var cu=tube([A.clone().add(new THREE.Vector3(0,0,-1.2)),p1,mid,p4,B.clone().add(new THREE.Vector3(0,0,-1.2))],m);
+    plug(A,m,out); plug(B,m,out);
+    if(tag) label(tag,cu.getPoint(tAt),BACK,'tag',color);
+  }
+  COLS.forEach(function(col,i){
+    var m=mat.cab[i], cn='--c'+(i+1), tA=new THREE.Vector3(jx(2*i),rowY(0),ZB-.3), tB=new THREE.Vector3(jx(2*i),rowY(1),ZB-.3);
+    var d=4+i*1.6;
+    rearCable(devJack(col.src),tA,m,d,'C'+(i+1)+'a',cn,.14);
+    rearCable(tB,devJack(col.dst),m,d+2,'C'+(i+1)+'b',cn,.86);
+  });
+  // front patch cords
+  function patch(c1,r1,c2,r2,sag,tag){
+    var a=new THREE.Vector3(jx(c1),rowY(r1),.7), b=new THREE.Vector3(jx(c2),rowY(r2),.7);
+    var mid=a.clone().lerp(b,.5); mid.y-=sag; mid.z+=6+sag*.4;
+    var cu=tube([a.clone().add(new THREE.Vector3(0,0,1.2)),new THREE.Vector3(a.x,a.y-.3,3.4),mid,new THREE.Vector3(b.x,b.y-.3,3.4),b.clone().add(new THREE.Vector3(0,0,1.2))],mat.patch,.42);
+    plug(a,mat.patch,1); plug(b,mat.patch,1);
+    label(tag,cu.getPoint(.5),FRONT,'tag patch','--fg');
+  }
+  patch(4,0,6,1,5,'P1');
+  patch(10,0,2,1,7,'P2');
+  g.position.y=0;
+
+  /* ---- theme ---- */
+  function applyTheme(){
+    var fg=tok('--fg'),bg=tok('--bg'),sf=tok('--surface'),mu=tok('--muted');
+    mat.frame.color.copy(mix(mu,fg,.5)); mat.chassis.color.copy(mix(mu,bg,.45));
+    mat.panel.color.copy(mix(sf,mu,.35)); mat.pbPanel.color.copy(mix(fg,mu,.35));
+    mat.jack.color.copy(mix(fg,bg,.1)); mat.knob.color.copy(mix(fg,mu,.2));
+    mat.desk.color.copy(mix(bg,mu,.25)); mat.keys.color.copy(mix(sf,bg,.1));
+    mat.led.color.set(tok('--signal')); mat.led.emissive=new THREE.Color(tok('--signal')); mat.led.emissiveIntensity=.6;
+    mat.cab.forEach(function(m,i){m.color.set(tok('--c'+(i+1)));});
+    mat.patch.color.set(tok('--fg'));
+    drawStrip(stF); drawStrip(stB);
+    labels.forEach(function(o){if(o.tokColor) o.el.style.setProperty('--lc',tok(o.tokColor));});
+    render();
+  }
+
+  /* ---- labels projected over the canvas ---- */
+  var showJacks=true, v=new THREE.Vector3(), camDir=new THREE.Vector3();
+  function placeLabels(){
+    var w=host.clientWidth,h=host.clientHeight;
+    labels.forEach(function(o){
+      var el=o.el, hideJk=!showJacks&&(el.classList.contains('jk')||el.classList.contains('tag')||el.classList.contains('row'));
+      v.copy(o.p).add(g.position);
+      var facing=true;
+      if(o.n){camDir.copy(cam.position).sub(v); facing=camDir.dot(o.n)>0;}
+      v.project(cam);
+      var vis=!hideJk&&facing&&v.z<1&&v.x>-1.1&&v.x<1.1&&v.y>-1.1&&v.y<1.1;
+      el.hidden=!vis;
+      if(vis){var px=(v.x+1)/2*w, hw=el.offsetWidth/2+4; px=Math.min(Math.max(px,hw),w-hw); el.style.transform='translate('+px.toFixed(1)+'px,'+((1-v.y)/2*h).toFixed(1)+'px) translate(-50%,-50%)';}
+    });
+  }
   var raf=0, sized=false;
-  function render(){renderer.render(scene,cam);}
-  function size(){var w=host.clientWidth,h=host.clientHeight;if(!w||!h)return;renderer.setSize(w,h,false);cam.aspect=w/h;if(!sized){sized=true;cam.position.multiplyScalar(Math.max(1,1.35/cam.aspect));}cam.updateProjectionMatrix();render();}
+  function render(){renderer.render(scene,cam);placeLabels();}
+  function size(){var w=host.clientWidth,h=host.clientHeight;if(!w||!h)return;renderer.setSize(w,h,false);cam.aspect=w/h;if(!sized){sized=true;cam.position.multiplyScalar(Math.max(1,1.6/cam.aspect));}cam.updateProjectionMatrix();render();}
   if('ResizeObserver' in window) new ResizeObserver(size).observe(host); else window.addEventListener('resize',size);
   size(); applyTheme();
   new MutationObserver(applyTheme).observe(root,{attributes:true,attributeFilter:['data-theme']});
   if(window.matchMedia){var mq2=window.matchMedia('(prefers-color-scheme: dark)'); if(mq2.addEventListener) mq2.addEventListener('change',applyTheme);}
+
+  /* ---- view buttons ---- */
+  $$('#views3d [data-view]').forEach(function(b){
+    b.addEventListener('click',function(){
+      var k=b.getAttribute('data-view'), s=Math.max(1,1.6/cam.aspect);
+      cam.position.fromArray(VIEWS[k]).multiplyScalar(s);
+      var tg=TGT[k]; if(controls){controls.target.fromArray(tg);controls.update();} else cam.lookAt(tg[0],tg[1],tg[2]);
+      $$('#views3d [data-view]').forEach(function(x){x.setAttribute('aria-pressed',x===b?'true':'false');});
+      render();
+    });
+  });
+  var jt=$('#lbl-toggle'); if(jt) jt.addEventListener('change',function(){showJacks=jt.checked;render();});
+
   var visible=true;
   if('IntersectionObserver' in window){new IntersectionObserver(function(e){visible=e[0].isIntersecting; if(visible&&!reduce) loop();}).observe(host);}
   function loop(){cancelAnimationFrame(raf); if(!visible) return; if(controls) controls.update(); render(); raf=requestAnimationFrame(loop);}
