@@ -1,0 +1,1109 @@
+<title>Estudio MIDI Conectado</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: rack-panel sections on a graphite/steel neutral ground, one blue accent + amber signal color */
+:root{
+  --bg:#EEF0F2; --surface:#FFFFFF; --fg:#16191D; --muted:#5B636D; --line:#D3D8DE;
+  --accent:#2457C5; --signal:#C98A12; --hot:#C23B3B; --cold:#2E7DB8; --gnd:#4A8A5A;
+  --f-display:"Bricolage Grotesque", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --f-body:"IBM Plex Sans", "Segoe UI", system-ui, -apple-system, Roboto, "Helvetica Neue", Arial, sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#121417; --surface:#1B1E23; --fg:#E7EAEE; --muted:#98A1AC; --line:#2C3139;
+    --accent:#6E9BFF; --signal:#E8B03A; --hot:#EF6B6B; --cold:#5FB0EA; --gnd:#6FC086;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#121417; --surface:#1B1E23; --fg:#E7EAEE; --muted:#98A1AC; --line:#2C3139;
+  --accent:#6E9BFF; --signal:#E8B03A; --hot:#EF6B6B; --cold:#5FB0EA; --gnd:#6FC086;
+  color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:calc(70px + env(safe-area-inset-top,0px))}
+@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:16.5px;line-height:1.6;-webkit-text-size-adjust:100%}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--surface)}
+h1,h2,h3{font-family:var(--f-display);font-weight:700;line-height:1.12;letter-spacing:-.01em;margin:0 0 .5em}
+h2{font-size:clamp(1.6rem,3.2vw,2.3rem)}
+h3{font-size:1.2rem;font-weight:600}
+p{margin:0 0 1em}
+a{color:var(--accent)}
+code,.mono{font-family:var(--f-mono);font-size:.92em}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px;border-radius:4px}
+.wrap{max-width:1180px;margin:0 auto;padding-left:max(16px, env(safe-area-inset-left,0px));padding-right:max(16px, env(safe-area-inset-right,0px))}
+
+/* Header */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--surface);border-bottom:1px solid var(--line)}
+.top .wrap{display:flex;align-items:center;gap:16px;padding-block:10px}
+.brand{font-family:var(--f-display);font-weight:700;font-size:1.05rem;white-space:nowrap;text-decoration:none;color:var(--fg);display:flex;align-items:center;gap:8px}
+.brand .led{width:9px;height:9px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 25%,transparent)}
+.nav{display:flex;gap:2px;overflow-x:auto;flex:1;min-width:0;scrollbar-width:none}
+.nav::-webkit-scrollbar{display:none}
+.nav a{font-size:.86rem;font-weight:500;color:var(--muted);text-decoration:none;padding:6px 10px;border-radius:6px;white-space:nowrap}
+.nav a:hover{color:var(--fg);background:var(--bg)}
+.theme-btn{flex:none}
+
+/* Buttons */
+.btn{font:inherit;font-size:.9rem;font-weight:600;border:1px solid var(--line);background:var(--surface);color:var(--fg);padding:8px 14px;border-radius:7px;cursor:pointer;line-height:1.2}
+.btn:hover{border-color:var(--muted)}
+.btn[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+.btn.small{font-size:.8rem;padding:6px 10px}
+
+/* Hero */
+.hero{padding-block:clamp(36px,7vw,80px) clamp(20px,4vw,40px)}
+.hero-grid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:clamp(24px,4vw,56px);align-items:center}
+.hero-grid>*{min-width:0}
+.kicker{font-family:var(--f-mono);font-size:.8rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-bottom:12px}
+.hero h1{font-size:clamp(2.3rem,6vw,4.1rem);margin-bottom:.35em}
+.hero h1 span{color:var(--accent)}
+.lede{font-size:1.12rem;color:var(--muted);max-width:56ch}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}
+.chip{font-family:var(--f-mono);font-size:.8rem;border:1px solid var(--line);background:var(--surface);padding:5px 10px;border-radius:999px}
+.chip b{color:var(--accent);font-weight:600}
+.chip.clk b{color:var(--signal)}
+.bytecard{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px;font-family:var(--f-mono);font-size:.85rem}
+.bytecard .hd{display:flex;justify-content:space-between;color:var(--muted);font-size:.75rem;text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px}
+.byte{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 14px;padding:10px 0;border-top:1px dashed var(--line);align-items:center}
+.bits{font-size:1.05rem;letter-spacing:.12em;white-space:nowrap}
+.bits .msb{color:var(--accent);font-weight:600}
+.byte .hex{font-weight:600}
+.byte .what{grid-column:1/-1;color:var(--muted);font-family:var(--f-body);font-size:.85rem}
+
+/* Rack sections */
+.rack{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:clamp(22px,3.4vw,42px) clamp(16px,3.4vw,42px);margin-block:22px}
+.rack::before,.rack::after{content:"";position:absolute;top:12px;width:10px;height:10px;border-radius:50%;border:2px solid var(--line);background:var(--bg)}
+.rack::before{left:12px}.rack::after{right:12px}
+.unit{font-family:var(--f-mono);font-size:.75rem;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;display:flex;gap:10px;align-items:center}
+.unit::before{content:"";width:22px;height:2px;background:var(--accent)}
+.intro{color:var(--muted);max-width:70ch}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:20px}
+.cols>*{min-width:0}
+.card{border:1px solid var(--line);border-radius:8px;padding:18px;background:var(--bg)}
+.card h3{margin-bottom:.4em}
+.card p:last-child,.card ul:last-child{margin-bottom:0}
+.note{border-left:3px solid var(--accent);background:color-mix(in srgb,var(--accent) 7%,var(--surface));padding:12px 16px;border-radius:0 8px 8px 0;margin:16px 0}
+.note.clk{border-left-color:var(--signal);background:color-mix(in srgb,var(--signal) 9%,var(--surface))}
+ul.tight{padding-left:1.2em;margin:0 0 1em}
+ul.tight li{margin-bottom:.3em}
+
+/* Tables */
+.tbl{overflow-x:auto;margin:14px 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;width:100%;font-size:.92rem}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:var(--f-mono);font-size:.74rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);background:var(--bg);white-space:nowrap}
+tr:last-child td{border-bottom:none}
+td code{white-space:nowrap}
+.tag{display:inline-block;font-family:var(--f-mono);font-size:.74rem;padding:1px 7px;border-radius:4px;border:1px solid currentColor}
+.tag.data{color:var(--accent)}
+.tag.clk{color:var(--signal)}
+.tag.mut{color:var(--muted)}
+
+/* Ports explainer */
+.portrow{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:18px 0}
+.portrow>*{min-width:0}
+.pcard{border:1px solid var(--line);border-radius:8px;padding:16px;background:var(--bg)}
+.pcard .pn{font-family:var(--f-mono);font-weight:600;font-size:1.05rem;display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.dot{width:14px;height:14px;border-radius:50%;border:2px solid var(--fg);flex:none}
+.dot.out{background:var(--fg)}
+.dot.thru{background:var(--muted);border-color:var(--muted)}
+.chains{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:18px;margin-top:10px}
+.chains>*{min-width:0}
+.chains svg{width:100%;height:auto;display:block}
+
+/* 3D */
+.lab{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:24px;align-items:start}
+.lab>*{min-width:0}
+.stage{position:relative;border:1px solid var(--line);border-radius:10px;background:var(--bg);aspect-ratio:4/3;overflow:hidden}
+#lab3d{position:absolute;inset:0}
+#lab3d canvas{display:block;width:100%!important;height:100%!important;touch-action:none}
+.stage-ui{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;align-items:center}
+.stage-hint{font-size:.82rem;color:var(--muted)}
+.fallback{position:absolute;inset:0;display:none;align-items:center;justify-content:center;text-align:center;padding:24px;color:var(--muted)}
+.stage.nogl .fallback{display:flex}
+.pinmap{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;margin:10px 0 14px;font-family:var(--f-mono);font-size:.78rem;text-align:center}
+.pinmap div{border:1px solid var(--line);border-radius:6px;padding:6px 2px;background:var(--bg)}
+.pinmap b{display:block;font-size:1rem}
+.pinmap .d{border-color:var(--accent);color:var(--accent)}
+
+/* Scenario */
+.scen-btns{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0}
+.diagram{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--bg);-webkit-overflow-scrolling:touch}
+.diagram svg{display:block;width:100%;min-width:760px;height:auto}
+.scen-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:20px;margin-top:16px}
+.scen-grid>*{min-width:0}
+.scen-panel h3{margin-bottom:.3em}
+.scen-ctrl{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.log{font-family:var(--f-mono);font-size:.8rem;list-style:none;margin:0;padding:0;max-height:270px;overflow:auto;border:1px solid var(--line);border-radius:8px;background:var(--bg)}
+.log li{padding:6px 10px;border-bottom:1px solid var(--line);display:grid;grid-template-columns:auto minmax(0,1fr);gap:2px 10px}
+.log li:last-child{border-bottom:none}
+.log .tm{color:var(--muted)}
+.log .bx{grid-column:2;color:var(--accent)}
+.log li.clk .bx{color:var(--signal)}
+.log li.err .bx{color:var(--fg);text-decoration:underline dashed}
+.log .empty{display:block;color:var(--muted)}
+.loghd{font-family:var(--f-mono);font-size:.75rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:0 0 6px}
+
+/* SVG */
+.sv-bg{fill:var(--bg)}
+.cable{fill:none;stroke:var(--muted);stroke-width:2.4;opacity:.55;transition:stroke .2s,opacity .2s}
+.cable.usb{stroke-dasharray:7 5}
+.cable.on{stroke:var(--accent);opacity:1;stroke-width:3.4}
+.cable.on.clk{stroke:var(--signal)}
+.dev{cursor:pointer}
+.dev:focus{outline:none}
+.dev .box{fill:var(--surface);stroke:var(--line);stroke-width:1.5;transition:stroke .2s}
+.dev:hover .box,.dev.sel .box{stroke:var(--accent)}
+.dev:focus-visible .box{stroke:var(--accent);stroke-width:3.5}
+.dev.hl .box{stroke:var(--accent);stroke-width:2.5}
+.t-title{font-family:var(--f-display);font-weight:600;font-size:15px;fill:var(--fg)}
+.t-sub{font-family:var(--f-body);font-size:11.5px;fill:var(--muted)}
+.t-port{font-family:var(--f-mono);font-size:9.5px;fill:var(--muted)}
+.t-status{font-family:var(--f-mono);font-size:10.5px;font-weight:600;fill:var(--accent)}
+.t-cab{font-family:var(--f-mono);font-size:9.5px;fill:var(--muted)}
+.port{fill:var(--surface);stroke:var(--fg);stroke-width:1.6}
+.port.out{fill:var(--fg)}
+.port.thru{fill:var(--muted);stroke:var(--muted)}
+.port.usbp{fill:var(--surface);stroke:var(--muted);stroke-dasharray:2 2}
+.keys rect{fill:var(--bg);stroke:var(--line)}
+.pkt circle{stroke:var(--surface);stroke-width:2}
+.pkt-data circle{fill:var(--accent)}
+.pkt-clock circle{fill:var(--signal)}
+.pkt-err circle{fill:var(--fg);stroke:var(--accent);stroke-dasharray:3 2;stroke-width:2.5}
+.pkt rect{fill:var(--surface);stroke:var(--line)}
+.pkt-data rect{stroke:var(--accent)}
+.pkt-clock rect{stroke:var(--signal)}
+.pkt text{font-family:var(--f-mono);font-size:10.5px;fill:var(--fg);font-weight:500}
+.lg-line{stroke:var(--muted);stroke-width:2.4}
+.lg-usb{stroke:var(--muted);stroke-width:2.4;stroke-dasharray:7 5}
+.lg-t{font-family:var(--f-body);font-size:11px;fill:var(--muted)}
+
+/* Devices */
+.devcards{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,170px),1fr));gap:10px;margin:16px 0}
+.devcard{font:inherit;text-align:left;border:1px solid var(--line);background:var(--bg);color:var(--fg);border-radius:8px;padding:12px;cursor:pointer;min-width:0}
+.devcard:hover{border-color:var(--muted)}
+.devcard[aria-pressed="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.devcard .n{font-family:var(--f-display);font-weight:600;font-size:1rem;display:block}
+.devcard .c{font-family:var(--f-mono);font-size:.75rem;color:var(--muted)}
+.devdetail{border:1px solid var(--line);border-radius:10px;padding:18px;background:var(--surface)}
+.devdetail dl{display:grid;grid-template-columns:max-content minmax(0,1fr);gap:8px 16px;margin:0}
+.devdetail dt{font-family:var(--f-mono);font-size:.76rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);padding-top:2px}
+.devdetail dd{margin:0}
+.ports{display:flex;flex-wrap:wrap;gap:6px}
+.ports span{font-family:var(--f-mono);font-size:.78rem;border:1px solid var(--line);border-radius:4px;padding:1px 8px;background:var(--bg)}
+.ports span.on{border-color:var(--accent);color:var(--accent)}
+.role{font-weight:600}
+.audio-side{display:grid;grid-template-columns:auto minmax(0,1fr);gap:16px;align-items:center;border:1px dashed var(--line);border-radius:10px;padding:16px;margin-top:20px}
+.audio-side svg{width:120px;height:auto}
+.a-hot{stroke:var(--hot)}.a-cold{stroke:var(--cold)}.a-gnd{stroke:var(--gnd)}
+
+/* Checklist */
+.check{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,330px),1fr));gap:8px 22px}
+.check li{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px;align-items:start;padding:10px 0;border-bottom:1px solid var(--line)}
+.check input{width:18px;height:18px;margin-top:3px;accent-color:var(--accent)}
+.check label{cursor:pointer}
+.check label b{display:block}
+.check label span{color:var(--muted);font-size:.9rem}
+.progress{display:flex;align-items:center;gap:12px;margin:12px 0 16px;flex-wrap:wrap}
+.bar{flex:1;min-width:140px;height:8px;border-radius:99px;background:var(--bg);border:1px solid var(--line);overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--accent);transition:width .25s}
+
+/* Quiz */
+.quiz{display:grid;gap:14px}
+fieldset{border:1px solid var(--line);border-radius:8px;padding:14px 16px;margin:0;min-width:0;background:var(--bg)}
+legend{font-weight:600;padding:0 6px}
+.opt{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px;align-items:start;padding:5px 0}
+.opt input{margin-top:5px;accent-color:var(--accent)}
+.fb{margin-top:6px;font-size:.92rem;min-height:1.2em}
+.fb.ok{color:var(--gnd)}
+.fb.ok::before{content:"Correcto. ";font-weight:600}
+.fb.no{color:var(--muted)}
+.fb.no::before{content:"No exactamente. ";font-weight:600;color:var(--fg)}
+.score{font-family:var(--f-mono);font-weight:600}
+
+footer{padding-block:36px 48px;color:var(--muted);font-size:.9rem}
+footer .wrap{display:flex;flex-wrap:wrap;gap:12px 28px;justify-content:space-between;border-top:1px solid var(--line);padding-top:24px}
+
+@media (max-width:860px){
+  .hero-grid,.lab,.scen-grid{grid-template-columns:minmax(0,1fr)}
+  .portrow{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width:520px){
+  .brand .txt{display:none}
+  body{font-size:16px}
+  .audio-side{grid-template-columns:minmax(0,1fr)}
+}
+</style>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="#inicio"><span class="led" aria-hidden="true"></span><span class="txt">Estudio MIDI</span></a>
+    <nav class="nav" aria-label="Secciones">
+      <a href="#fundamentos">Fundamentos</a>
+      <a href="#conectores">Conectores</a>
+      <a href="#puertos">IN · OUT · THRU</a>
+      <a href="#interfaces">Interfaces USB</a>
+      <a href="#escenario">Escenario</a>
+      <a href="#equipos">Equipos</a>
+      <a href="#troubleshooting">Troubleshooting</a>
+      <a href="#quiz">Quiz</a>
+    </nav>
+    <button class="btn small theme-btn" id="themeBtn" type="button" aria-label="Cambiar tema claro u oscuro">Tema</button>
+  </div>
+</header>
+
+<main id="inicio">
+<div class="wrap hero">
+  <div class="hero-grid">
+    <div>
+      <div class="kicker">Técnicas de Producción Híbrida · Unidad MIDI</div>
+      <h1>El estudio <span>conectado</span> por MIDI</h1>
+      <p class="lede">Varios sintetizadores, una caja de ritmos, un sampler y un DAW que tienen que entenderse. MIDI no transporta sonido: transporta <strong>instrucciones</strong>. Aquí vas a ver por dónde viaja cada mensaje, quién marca el tempo y por qué a veces una nota suena dos veces.</p>
+      <div class="chips">
+        <span class="chip"><b>16</b> canales por puerto</span>
+        <span class="chip"><b>31 250</b> bit/s</span>
+        <span class="chip"><b>≈ 1 ms</b> por Note On</span>
+        <span class="chip clk"><b>24</b> PPQN de reloj</span>
+      </div>
+    </div>
+    <div class="bytecard" aria-label="Anatomía de un mensaje Note On">
+      <div class="hd"><span>Un mensaje Note On</span><span>3 bytes</span></div>
+      <div class="byte"><span class="bits"><span class="msb">1</span>001 0000</span><span class="hex">90</span><span class="what">Byte de estado: <b>9</b> = Note On, <b>0</b> = canal 1 (los canales 1–16 se codifican 0–F).</span></div>
+      <div class="byte"><span class="bits"><span class="msb">0</span>011 1100</span><span class="hex">3C</span><span class="what">Dato 1: nota 60. Según el fabricante se llama C3 o C4.</span></div>
+      <div class="byte"><span class="bits"><span class="msb">0</span>110 0100</span><span class="hex">64</span><span class="what">Dato 2: velocity 100. Los bytes de dato empiezan en 0, por eso van de 0 a 127.</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+
+<!-- 1 FUNDAMENTOS -->
+<section class="rack" id="fundamentos" aria-labelledby="h-fund">
+  <div class="unit">U1 · Fundamentos</div>
+  <h2 id="h-fund">MIDI no es audio: son mensajes</h2>
+  <p class="intro">Un cable MIDI no lleva ninguna onda sonora. Lleva órdenes como “empieza la nota 60 con fuerza 100 en el canal 1”, y el equipo que las recibe genera el sonido con su propio motor. Por eso puedes grabar una interpretación en el DAW y después cambiar el sonido, el tempo o las notas sin volver a tocar.</p>
+
+  <div class="tbl">
+    <table>
+      <thead><tr><th>Mensaje</th><th>Bytes</th><th>Ejemplo</th><th>Para qué sirve</th></tr></thead>
+      <tbody>
+        <tr><td><span class="tag data">Note On</span></td><td><code>9n kk vv</code></td><td><code>90 3C 64</code></td><td>Empieza una nota (kk = número de nota, vv = velocity) en el canal n+1.</td></tr>
+        <tr><td><span class="tag data">Note Off</span></td><td><code>8n kk vv</code></td><td><code>80 3C 00</code></td><td>Termina la nota. Muchos equipos envían en su lugar un Note On con velocity 0, que equivale a lo mismo.</td></tr>
+        <tr><td><span class="tag data">Control Change</span></td><td><code>Bn cc vv</code></td><td><code>B0 4A 50</code></td><td>Mueve un controlador: CC1 modulación, CC7 volumen, CC64 sustain y CC74, que suele abrir el filtro (brillo).</td></tr>
+        <tr><td><span class="tag data">Program Change</span></td><td><code>Cn pp</code></td><td><code>C2 05</code></td><td>Cambia de preset en el canal 3. El valor 5 aparece como programa 6 en equipos que numeran desde 1.</td></tr>
+        <tr><td><span class="tag data">Pitch Bend</span></td><td><code>En ll mm</code></td><td><code>E0 00 40</code></td><td>Curva de afinación de 14 bits. 00 40 es el centro.</td></tr>
+        <tr><td><span class="tag clk">Clock</span></td><td><code>F8</code></td><td><code>F8</code></td><td>Pulso de reloj: 24 por negra (24 PPQN). No tiene canal y llega a todo el puerto.</td></tr>
+        <tr><td><span class="tag clk">Start / Continue / Stop</span></td><td><code>FA / FB / FC</code></td><td><code>FA</code></td><td>Arranca desde el principio, continúa o detiene el transporte. Song Position Pointer (<code>F2</code>) indica desde dónde continuar.</td></tr>
+        <tr><td><span class="tag mut">SysEx</span></td><td><code>F0 id … F7</code></td><td><code>F0 43 … F7</code></td><td>Mensaje exclusivo del fabricante para volcar presets o editar parámetros. Lleva un ID de fabricante en lugar de un canal.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="cols">
+    <div class="card">
+      <h3>16 canales por puerto</h3>
+      <p>Los 4 bits bajos del byte de estado indican el canal, así que cada puerto (cada cable físico) tiene 16 canales. Cada equipo se configura para <b>escuchar</b> uno o varios canales e ignora el resto. Los mensajes de reloj y los SysEx no llevan canal.</p>
+    </div>
+    <div class="card">
+      <h3>31,25 kbaud: lento pero suficiente</h3>
+      <p>MIDI 1.0 por DIN transmite en serie a 31 250 bit/s. Cada byte ocupa 10 bits (inicio + 8 + parada), es decir 320 µs. Un Note On de 3 bytes tarda ≈ 0,96 ms, y un acorde de 10 notas tarda unos 7–10 ms. Por eso conviene no saturar un solo puerto con mucho CC y mucho reloj.</p>
+    </div>
+    <div class="card">
+      <h3>Running status</h3>
+      <p>Si el byte de estado se repite, el emisor puede omitirlo y mandar solo los datos. Así ahorra un tercio del tráfico en ráfagas de notas o de CC. Es otro motivo por el que el Note Off se suele enviar como “Note On con velocity 0”.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 2 CONECTORES -->
+<section class="rack" id="conectores" aria-labelledby="h-con">
+  <div class="unit">U2 · Conectores</div>
+  <h2 id="h-con">DIN de 5 pines, TRS, USB y MIDI 2.0</h2>
+  <div class="lab">
+    <div>
+      <div class="stage" id="stage">
+        <div id="lab3d" aria-label="Modelo 3D orbitable del conector MIDI" role="img"></div>
+        <div class="fallback" id="lab3dFallback"><p>El modelo 3D necesita WebGL y este navegador no lo ofrece. El resto de la página funciona igual: los pines se resumen en la tabla de al lado.</p></div>
+      </div>
+      <div class="stage-ui">
+        <button class="btn small" type="button" id="v-plug" aria-pressed="true">Conector DIN macho</button>
+        <button class="btn small" type="button" id="v-panel" aria-pressed="false">Panel IN · OUT · THRU</button>
+        <span class="stage-hint">Arrastra para orbitar y usa la rueda o el pellizco para hacer zoom.</span>
+      </div>
+    </div>
+    <div>
+      <h3>DIN 5 pines (180°)</h3>
+      <p>Es el conector clásico. Solo se usan 3 de sus 5 pines: <b>el 4 y el 5 llevan los datos</b> como un lazo de corriente de unos 5 mA, y <b>el 2 es la malla</b>, que se conecta a tierra solo en el lado OUT/THRU. En la entrada IN hay un <b>optoacoplador</b>, así que los equipos no comparten masa eléctrica por MIDI y no aparecen zumbidos por lazos de tierra.</p>
+      <div class="pinmap" aria-label="Pines vistos de frente en el conector macho, de izquierda a derecha">
+        <div><b>1</b>libre</div><div class="d"><b>4</b>fuente +</div><div><b>2</b>malla</div><div class="d"><b>5</b>dato</div><div><b>3</b>libre</div>
+      </div>
+      <p class="stage-hint">Vista frontal del conector macho. En el panel (hembra) el orden se ve en espejo. El cable no debería superar unos 15 m.</p>
+    </div>
+  </div>
+
+  <div class="cols" style="margin-top:22px">
+    <div class="card">
+      <h3>TRS MIDI 3,5 mm: Tipo A y Tipo B</h3>
+      <p>Muchos equipos compactos usan un mini-jack TRS con un adaptador a DIN. Existen dos cableados:</p>
+      <div class="tbl"><table>
+        <thead><tr><th>TRS</th><th>Tipo A (estándar MMA)</th><th>Tipo B</th></tr></thead>
+        <tbody>
+          <tr><td>Punta (tip)</td><td>pin 5</td><td>pin 4</td></tr>
+          <tr><td>Anillo (ring)</td><td>pin 4</td><td>pin 5</td></tr>
+          <tr><td>Cuerpo (sleeve)</td><td>pin 2</td><td>pin 2</td></tr>
+        </tbody>
+      </table></div>
+      <p><b>Son incompatibles</b> porque tienen la punta y el anillo invertidos. Con un adaptador de otro tipo el lazo de corriente queda con la polaridad al revés y no pasa ningún dato. Normalmente no se daña nada, pero simplemente no funciona. Usa el adaptador del fabricante o uno con selector A/B, y no conectes nunca esa salida a una entrada de auriculares.</p>
+    </div>
+    <div class="card">
+      <h3>USB-MIDI</h3>
+      <p>Por USB, MIDI viaja en paquetes dentro del protocolo USB. Es mucho más rápido que 31,25 kbaud, y un solo cable puede llevar varios <b>puertos virtuales</b> de 16 canales cada uno. Los equipos <i>class compliant</i> funcionan sin driver. La diferencia clave es que USB tiene un <b>host</b> (computadora, tablet o un “USB host box”) y <b>devices</b>. Lo vemos más abajo.</p>
+    </div>
+    <div class="card">
+      <h3>MIDI 2.0, en breve</h3>
+      <p>Se adoptó en 2020 e introduce el <b>Universal MIDI Packet</b>, con velocity de 16 bits y controladores de 32 bits, además de <b>MIDI-CI</b>: los equipos se preguntan qué saben hacer (perfiles, intercambio de propiedades). Es retrocompatible con MIDI 1.0. Los sistemas operativos y los equipos lo están incorporando poco a poco, y en un estudio híbrido típico hoy convive con MIDI 1.0 por DIN.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 3 PUERTOS -->
+<section class="rack" id="puertos" aria-labelledby="h-pu">
+  <div class="unit">U3 · Puertos</div>
+  <h2 id="h-pu">IN, OUT y THRU</h2>
+  <p class="intro">Cada cable DIN va siempre en un solo sentido, de un OUT (o THRU) a un IN. Para ida y vuelta necesitas dos cables. (A veces se escribe “MIDI true”, pero el nombre correcto es <b>THRU</b>, de <i>through</i>: “a través”.)</p>
+  <div class="portrow">
+    <div class="pcard"><div class="pn"><span class="dot" aria-hidden="true"></span>MIDI IN</div><p>Recibe mensajes. El equipo reacciona a los que llegan en su canal (o a todos si está en modo Omni) y al reloj si está en sincronía externa.</p></div>
+    <div class="pcard"><div class="pn"><span class="dot out" aria-hidden="true"></span>MIDI OUT</div><p>Envía lo que <b>genera el propio equipo</b>: su teclado, sus perillas, su secuenciador, su reloj o sus volcados SysEx.</p></div>
+    <div class="pcard"><div class="pn"><span class="dot thru" aria-hidden="true"></span>MIDI THRU</div><p>Es una <b>copia eléctrica exacta de lo que entra por IN</b> y no incluye nada de lo que genera el equipo. Sirve para encadenar otro aparato.</p></div>
+  </div>
+
+  <div class="chains">
+    <div class="card">
+      <h3>Daisy chain (cadena por THRU)</h3>
+      <svg viewBox="0 0 360 130" aria-label="Cadena: interfaz OUT hacia equipo 1 IN, THRU hacia equipo 2 IN, THRU hacia equipo 3 IN">
+        <g class="t-sub">
+          <rect x="6" y="40" width="70" height="44" rx="6" class="box" style="fill:var(--surface);stroke:var(--line)"/>
+          <text x="41" y="66" text-anchor="middle" class="t-port">OUT</text>
+          <rect x="104" y="40" width="70" height="44" rx="6" style="fill:var(--surface);stroke:var(--line)"/>
+          <text x="139" y="60" text-anchor="middle" class="t-port">Equipo 1</text><text x="139" y="74" text-anchor="middle" class="t-port">IN→THRU</text>
+          <rect x="196" y="40" width="70" height="44" rx="6" style="fill:var(--surface);stroke:var(--line)"/>
+          <text x="231" y="60" text-anchor="middle" class="t-port">Equipo 2</text><text x="231" y="74" text-anchor="middle" class="t-port">IN→THRU</text>
+          <rect x="286" y="40" width="70" height="44" rx="6" style="fill:var(--surface);stroke:var(--line)"/>
+          <text x="321" y="60" text-anchor="middle" class="t-port">Equipo 3</text><text x="321" y="74" text-anchor="middle" class="t-port">IN</text>
+        </g>
+        <path d="M76 62 H104 M174 62 H196 M266 62 H286" style="stroke:var(--accent);stroke-width:2.5;fill:none"/>
+        <text x="180" y="112" text-anchor="middle" class="t-port">cada salto suma un optoacoplador</text>
+      </svg>
+      <p>Es barato y funciona bien con 2 o 3 equipos. Con cadenas largas, cada THRU deforma un poco los flancos de la señal, así que aparecen errores, notas colgadas o reloj inestable. Los equipos con <b>soft-thru</b> (THRU por software o OUT con “merge”) además retransmiten cada mensaje y suman alrededor de 1 ms por equipo.</p>
+    </div>
+    <div class="card">
+      <h3>Estrella (thru box o interfaz multipuerto)</h3>
+      <svg viewBox="0 0 360 130" aria-label="Estrella: una caja thru o interfaz con salidas independientes hacia tres equipos">
+        <rect x="20" y="40" width="96" height="50" rx="6" style="fill:var(--surface);stroke:var(--accent)"/>
+        <text x="68" y="62" text-anchor="middle" class="t-port">Thru box /</text><text x="68" y="76" text-anchor="middle" class="t-port">interfaz 4×4</text>
+        <g style="fill:var(--surface);stroke:var(--line)">
+          <rect x="260" y="6" width="90" height="30" rx="6"/><rect x="260" y="50" width="90" height="30" rx="6"/><rect x="260" y="94" width="90" height="30" rx="6"/>
+        </g>
+        <text x="305" y="25" text-anchor="middle" class="t-port">Equipo 1</text><text x="305" y="69" text-anchor="middle" class="t-port">Equipo 2</text><text x="305" y="113" text-anchor="middle" class="t-port">Equipo 3</text>
+        <path d="M116 56 C190 56 190 21 260 21 M116 65 H260 M116 74 C190 74 190 109 260 109" style="stroke:var(--accent);stroke-width:2.5;fill:none"/>
+      </svg>
+      <p>Cada equipo recibe directamente de su propia salida y ninguno depende del anterior. Con una <b>interfaz multipuerto</b> además ganas canales: cada OUT es un puerto independiente con 16 canales propios.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 4 INTERFACES -->
+<section class="rack" id="interfaces" aria-labelledby="h-int">
+  <div class="unit">U4 · Interfaces MIDI USB</div>
+  <h2 id="h-int">Interfaces multipuerto, host y device</h2>
+  <div class="cols">
+    <div class="card">
+      <h3>Una 4×4 = 64 canales de salida</h3>
+      <p>Una interfaz de 4 IN / 4 OUT aparece en el DAW como cuatro puertos de entrada y cuatro de salida. Cada puerto tiene sus 16 canales, así que dispones de 4 × 16 = <b>64 canales de salida</b> y otros 64 de entrada. El “canal 1” del OUT 1 y el “canal 1” del OUT 2 son destinos distintos.</p>
+    </div>
+    <div class="card">
+      <h3>USB host vs USB device</h3>
+      <p>En USB siempre hay un <b>host</b> que administra el bus: la computadora, una tablet o un host box MIDI dedicado. Un sintetizador con conector USB-B es un <b>device</b>. <b>Dos devices no pueden hablar entre sí</b> aunque los unas con un cable: falta el host. Para conectar dos equipos USB-MIDI sin computadora necesitas un host box o un equipo con puerto <i>USB host</i> (tipo A).</p>
+    </div>
+    <div class="card">
+      <h3>Qué conviene conectar por DIN</h3>
+      <p>Los equipos con DIN pasan por la interfaz y tienen reloj estable y sin drivers. Los equipos solo-USB se conectan directo (o a un hub con alimentación) y aparecen como un puerto propio en el DAW. Un hub sin alimentación con muchos equipos es una causa clásica de desconexiones.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 5 ESCENARIO -->
+<section class="rack" id="escenario" aria-labelledby="h-esc">
+  <div class="unit">U5 · Escenario central</div>
+  <h2 id="h-esc">Un estudio híbrido, cable por cable</h2>
+  <p class="intro">Elige un escenario para ver cómo viajan los mensajes. Los cables continuos son MIDI DIN y los punteados son USB. Los paquetes azules son datos MIDI y los ámbar son reloj. Haz clic en cualquier equipo para ver su ficha.</p>
+
+  <div class="scen-btns" role="group" aria-label="Escenarios">
+    <button class="btn" type="button" id="sc-1" data-s="1" aria-pressed="false">1 · Grabar y reenviar</button>
+    <button class="btn" type="button" id="sc-2" data-s="2" aria-pressed="false">2 · DAW como reloj maestro</button>
+    <button class="btn" type="button" id="sc-3" data-s="3" aria-pressed="false">3 · Caja como reloj maestro</button>
+    <button class="btn" type="button" id="sc-4" data-s="4" aria-pressed="false">4 · Daisy chain por THRU</button>
+    <button class="btn" type="button" id="sc-5" data-s="5" aria-pressed="false">5 · Program Change y SysEx</button>
+    <button class="btn" type="button" id="sc-6" data-s="6" aria-pressed="false">6 · Bucle MIDI y Local Off</button>
+  </div>
+
+  <div class="diagram">
+    <svg id="studio" viewBox="0 0 1000 580" role="group" aria-label="Diagrama de conexiones del estudio MIDI">
+      <rect class="sv-bg" x="0" y="0" width="1000" height="580"/>
+      <!-- cables -->
+      <g id="cables">
+        <path id="c-kbd" class="cable usb" d="M250 70 L400 70"/>
+        <path id="c-usbsyn" class="cable usb" d="M750 70 L600 70"/>
+        <path id="c-int" class="cable usb" d="M500 180 L500 115"/>
+        <path id="c-o1" class="cable" d="M385 262 C385 310 80 290 80 340"/>
+        <path id="c-aout" class="cable" d="M140 340 C140 300 516 318 516 262"/>
+        <path id="c-thru" class="cable" d="M200 420 L200 480"/>
+        <path id="c-o2" class="cable" d="M418 262 C418 340 440 330 440 410"/>
+        <path id="c-cout" class="cable" d="M500 410 C500 330 549 340 549 262"/>
+        <path id="c-o3" class="cable" d="M451 262 C451 310 800 290 800 340"/>
+      </g>
+      <text class="t-cab" x="325" y="62" text-anchor="middle">USB</text>
+      <text class="t-cab" x="675" y="62" text-anchor="middle">USB</text>
+      <text class="t-cab" x="508" y="152">USB</text>
+      <text class="t-cab" x="212" y="455">THRU → IN</text>
+
+      <!-- Keyboard -->
+      <g class="dev" id="d-kbd" data-dev="kbd" tabindex="0" role="button" aria-label="Teclado maestro: ver ficha">
+        <rect class="box" x="30" y="30" width="220" height="82" rx="8"/>
+        <text class="t-title" x="44" y="54">Teclado maestro</text>
+        <text class="t-sub" x="44" y="72">Controlador USB · transmite ch 1</text>
+        <g class="keys"><rect x="44" y="84" width="14" height="18"/><rect x="58" y="84" width="14" height="18"/><rect x="72" y="84" width="14" height="18"/><rect x="86" y="84" width="14" height="18"/><rect x="100" y="84" width="14" height="18"/><rect x="114" y="84" width="14" height="18"/><rect x="128" y="84" width="14" height="18"/><rect x="142" y="84" width="14" height="18"/></g>
+        <text class="t-status" id="st-kbd" x="238" y="100" text-anchor="end"></text>
+        <circle class="port usbp" cx="250" cy="70" r="5"/>
+      </g>
+      <!-- Computer -->
+      <g class="dev" id="d-pc" data-dev="pc" tabindex="0" role="button" aria-label="Computadora con DAW: ver ficha">
+        <rect class="box" x="400" y="20" width="200" height="95" rx="8"/>
+        <text class="t-title" x="500" y="48" text-anchor="middle">DAW</text>
+        <text class="t-sub" x="500" y="66" text-anchor="middle">Computadora · USB host</text>
+        <text class="t-status" id="st-pc" x="500" y="92" text-anchor="middle"></text>
+        <circle class="port usbp" cx="400" cy="70" r="5"/><circle class="port usbp" cx="600" cy="70" r="5"/><circle class="port usbp" cx="500" cy="115" r="5"/>
+      </g>
+      <!-- USB synth -->
+      <g class="dev" id="d-usbsyn" data-dev="usbsyn" tabindex="0" role="button" aria-label="Sinte USB: ver ficha">
+        <rect class="box" x="750" y="30" width="220" height="82" rx="8"/>
+        <text class="t-title" x="766" y="54">Sinte USB</text>
+        <text class="t-sub" x="766" y="72">Solo USB-MIDI · puerto propio · ch 1</text>
+        <text class="t-status" id="st-usbsyn" x="958" y="100" text-anchor="end"></text>
+        <circle class="port usbp" cx="750" cy="70" r="5"/>
+      </g>
+      <!-- Interface -->
+      <g class="dev" id="d-int" data-dev="int" tabindex="0" role="button" aria-label="Interfaz MIDI USB 4 por 4: ver ficha">
+        <rect class="box" x="360" y="180" width="280" height="82" rx="8"/>
+        <text class="t-title" x="374" y="203">Interfaz MIDI USB 4×4</text>
+        <text class="t-status" id="st-int" x="626" y="203" text-anchor="end"></text>
+        <text class="t-port" x="385" y="250" text-anchor="middle">O1</text><text class="t-port" x="418" y="250" text-anchor="middle">O2</text><text class="t-port" x="451" y="250" text-anchor="middle">O3</text><text class="t-port" x="484" y="250" text-anchor="middle">O4</text>
+        <text class="t-port" x="516" y="250" text-anchor="middle">I1</text><text class="t-port" x="549" y="250" text-anchor="middle">I2</text><text class="t-port" x="582" y="250" text-anchor="middle">I3</text><text class="t-port" x="615" y="250" text-anchor="middle">I4</text>
+        <text class="t-port" x="434" y="226" text-anchor="middle">OUT</text><text class="t-port" x="566" y="226" text-anchor="middle">IN</text>
+        <line x1="500" y1="218" x2="500" y2="256" style="stroke:var(--line)"/>
+        <circle class="port out" cx="385" cy="262" r="6"/><circle class="port out" cx="418" cy="262" r="6"/><circle class="port out" cx="451" cy="262" r="6"/><circle class="port out" cx="484" cy="262" r="6"/>
+        <circle class="port" cx="516" cy="262" r="6"/><circle class="port" cx="549" cy="262" r="6"/><circle class="port" cx="582" cy="262" r="6"/><circle class="port" cx="615" cy="262" r="6"/>
+        <circle class="port usbp" cx="500" cy="180" r="5"/>
+      </g>
+      <!-- Poly A -->
+      <g class="dev" id="d-polyA" data-dev="polyA" tabindex="0" role="button" aria-label="Sinte Poly A: ver ficha">
+        <rect class="box" x="30" y="340" width="220" height="80" rx="8"/>
+        <text class="t-title" x="44" y="378">Sinte Poly A</text>
+        <text class="t-sub" x="44" y="396">Polifónico · con teclado · ch 1</text>
+        <text class="t-status" id="st-polyA" x="238" y="360" text-anchor="end"></text>
+        <text class="t-port" x="89" y="334">IN</text><text class="t-port" x="149" y="334">OUT</text><text class="t-port" x="166" y="414">THRU</text>
+        <circle class="port" cx="80" cy="340" r="6"/><circle class="port out" cx="140" cy="340" r="6"/><circle class="port thru" cx="200" cy="420" r="6"/>
+      </g>
+      <!-- Mono B -->
+      <g class="dev" id="d-monoB" data-dev="monoB" tabindex="0" role="button" aria-label="Sinte Mono B: ver ficha">
+        <rect class="box" x="30" y="480" width="220" height="72" rx="8"/>
+        <text class="t-title" x="44" y="514">Sinte Mono B</text>
+        <text class="t-sub" x="44" y="533">Monofónico · solo IN · ch 2</text>
+        <text class="t-status" id="st-monoB" x="238" y="545" text-anchor="end"></text>
+        <text class="t-port" x="165" y="497">IN</text>
+        <circle class="port" cx="200" cy="480" r="6"/>
+      </g>
+      <!-- Drum machine -->
+      <g class="dev" id="d-caja" data-dev="caja" tabindex="0" role="button" aria-label="Caja de Ritmos: ver ficha">
+        <rect class="box" x="390" y="410" width="230" height="82" rx="8"/>
+        <text class="t-title" x="404" y="446">Caja de Ritmos</text>
+        <text class="t-sub" x="404" y="464">ch 10 · envía / recibe Clock</text>
+        <text class="t-status" id="st-caja" x="606" y="482" text-anchor="end"></text>
+        <text class="t-port" x="410" y="404">IN</text><text class="t-port" x="509" y="404">OUT</text>
+        <circle class="port" cx="440" cy="410" r="6"/><circle class="port out" cx="500" cy="410" r="6"/>
+      </g>
+      <!-- Sampler -->
+      <g class="dev" id="d-sampler" data-dev="sampler" tabindex="0" role="button" aria-label="Sampler: ver ficha">
+        <rect class="box" x="750" y="340" width="220" height="80" rx="8"/>
+        <text class="t-title" x="764" y="378">Sampler</text>
+        <text class="t-sub" x="764" y="396">Multitímbrico · ch 3 y 4</text>
+        <text class="t-status" id="st-sampler" x="958" y="360" text-anchor="end"></text>
+        <text class="t-port" x="809" y="334">IN</text><text class="t-port" x="869" y="334">OUT (libre)</text>
+        <circle class="port" cx="800" cy="340" r="6"/><circle class="port out" cx="860" cy="340" r="6"/>
+      </g>
+
+      <!-- legend -->
+      <g transform="translate(700,470)">
+        <line class="lg-line" x1="0" y1="10" x2="34" y2="10"/><text class="lg-t" x="42" y="14">MIDI DIN (un sentido)</text>
+        <line class="lg-usb" x1="0" y1="32" x2="34" y2="32"/><text class="lg-t" x="42" y="36">USB-MIDI (bidireccional)</text>
+        <circle class="port" cx="6" cy="56" r="5"/><text class="lg-t" x="16" y="60">IN</text>
+        <circle class="port out" cx="50" cy="56" r="5"/><text class="lg-t" x="60" y="60">OUT</text>
+        <circle class="port thru" cx="104" cy="56" r="5"/><text class="lg-t" x="114" y="60">THRU</text>
+        <circle class="port usbp" cx="164" cy="56" r="5"/><text class="lg-t" x="174" y="60">USB</text>
+        <circle cx="6" cy="80" r="6" style="fill:var(--accent)"/><text class="lg-t" x="18" y="84">dato</text>
+        <circle cx="64" cy="80" r="6" style="fill:var(--signal)"/><text class="lg-t" x="76" y="84">reloj</text>
+      </g>
+      <g id="packets"></g>
+    </svg>
+  </div>
+
+  <div class="scen-grid">
+    <div class="scen-panel" id="scenPanel" aria-live="polite">
+      <h3 id="scenTitle">Elige un escenario</h3>
+      <p id="scenText">El diagrama muestra el cableado en reposo. Todos los equipos con DIN pasan por la interfaz 4×4, salvo el Sinte Mono B, que cuelga del THRU del Sinte Poly A. El teclado maestro y el Sinte USB van directo a la computadora.</p>
+      <ul class="tight" id="scenKeys"></ul>
+      <div class="scen-ctrl">
+        <button class="btn small" type="button" id="replayBtn" disabled>Reproducir de nuevo</button>
+        <button class="btn small" type="button" id="stopBtn" disabled>Detener</button>
+      </div>
+    </div>
+    <div>
+      <p class="loghd" id="logLabel">Monitor MIDI</p>
+      <ol class="log" id="log" aria-labelledby="logLabel"><li><span class="empty">Sin tráfico todavía.</span></li></ol>
+    </div>
+  </div>
+
+  <h3 style="margin-top:28px">Asignación de canales y puertos</h3>
+  <div class="tbl">
+    <table>
+      <thead><tr><th>Equipo</th><th>Conexión</th><th>Puerto en el DAW</th><th>Canal(es)</th><th>Reloj</th></tr></thead>
+      <tbody>
+        <tr><td>Teclado maestro</td><td>USB directo</td><td>Entrada “Teclado”</td><td>Transmite ch 1 (el DAW lo re-canaliza a la pista armada)</td><td>No participa</td></tr>
+        <tr><td>Sinte Poly A</td><td>DIN: O1 → IN, OUT → I1</td><td>Interfaz OUT 1 / IN 1</td><td>ch 1</td><td>Esclavo (opcional)</td></tr>
+        <tr><td>Sinte Mono B</td><td>DIN: THRU de Poly A → IN</td><td>Interfaz OUT 1 (compartido)</td><td>ch 2</td><td>Esclavo (opcional)</td></tr>
+        <tr><td>Caja de Ritmos</td><td>DIN: O2 → IN, OUT → I2</td><td>Interfaz OUT 2 / IN 2</td><td>ch 10</td><td>Esclavo (esc. 2) o maestro (esc. 3)</td></tr>
+        <tr><td>Sampler</td><td>DIN: O3 → IN</td><td>Interfaz OUT 3</td><td>ch 3 (pads) y ch 4 (loops)</td><td>Esclavo</td></tr>
+        <tr><td>Sinte USB</td><td>USB directo</td><td>Puerto “Sinte USB”</td><td>ch 1 (sin conflicto: es otro puerto)</td><td>Esclavo por USB (opcional)</td></tr>
+        <tr><td><i>Libres</i></td><td colspan="4">OUT 4, IN 3 e IN 4 quedan libres para un próximo equipo, o para sacar de la cadena al Sinte Mono B y darle su propio OUT 4.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- 6 EQUIPOS -->
+<section class="rack" id="equipos" aria-labelledby="h-eq">
+  <div class="unit">U6 · Fichas de equipo</div>
+  <h2 id="h-eq">¿Quién es quién en el estudio?</h2>
+  <p class="intro">Haz clic en una ficha o en un equipo del diagrama para ver sus puertos, su canal y su papel (maestro o esclavo).</p>
+  <div class="devcards" id="devcards"></div>
+  <div class="devdetail" id="devdetail" aria-live="polite"></div>
+
+  <div class="audio-side">
+    <svg viewBox="0 0 120 70" aria-hidden="true">
+      <path class="a-hot" d="M6 20 C40 20 60 20 114 20" style="fill:none;stroke-width:2.5"/>
+      <path class="a-cold" d="M6 35 C40 35 60 35 114 35" style="fill:none;stroke-width:2.5"/>
+      <path class="a-gnd" d="M6 50 C40 50 60 50 114 50" style="fill:none;stroke-width:2.5"/>
+    </svg>
+    <div>
+      <h3>Nota al margen: el audio va por otro camino</h3>
+      <p style="margin:0">Nada de lo que viste en el diagrama es sonido. Las <b>salidas de audio</b> de Poly A, Mono B, la caja y el sampler van por cables de audio balanceados (vivo, frío y masa) a la <b>interfaz de audio</b>, normalmente a través de un <b>patch bay</b>. MIDI dice <i>qué</i> tocar y el patch bay decide <i>por dónde</i> vuelve el sonido. Relaciónalo con la clase de patch bay: un equipo puede recibir MIDI perfecto y aun así no oírse porque su retorno de audio no está ruteado.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 7 TROUBLESHOOTING -->
+<section class="rack" id="troubleshooting" aria-labelledby="h-tr">
+  <div class="unit">U7 · Diagnóstico</div>
+  <h2 id="h-tr">Checklist de troubleshooting MIDI</h2>
+  <p class="intro">Recórrelo en orden cuando “no suena” o “suena raro”. Casi siempre el problema está en uno de estos puntos.</p>
+  <div class="progress"><div class="bar" aria-hidden="true"><i id="chkBar"></i></div><span class="mono" id="chkCount">0 / 12 revisado</span><button class="btn small" type="button" id="chkReset">Reiniciar</button></div>
+  <ul class="check" id="checklist">
+    <li><input type="checkbox" id="ck1"><label for="ck1"><b>Sentido del cable</b><span>¿Va de OUT (o THRU) a IN? Un OUT conectado a otro OUT no transmite.</span></label></li>
+    <li><input type="checkbox" id="ck2"><label for="ck2"><b>Canal emisor = canal receptor</b><span>¿El equipo escucha el canal en que envía el DAW? Revisa también el modo Omni.</span></label></li>
+    <li><input type="checkbox" id="ck3"><label for="ck3"><b>Puerto correcto</b><span>¿La pista sale por OUT 1 y no por OUT 2? El canal 1 de cada puerto es un destino distinto.</span></label></li>
+    <li><input type="checkbox" id="ck4"><label for="ck4"><b>Actividad visible</b><span>Mira el LED MIDI del equipo o el monitor MIDI del DAW. Si ves actividad, el problema es de canal o de configuración, no de cable.</span></label></li>
+    <li><input type="checkbox" id="ck5"><label for="ck5"><b>Notas dobles o polifonía agotada</b><span>Hay un sinte con teclado y eco MIDI en el DAW. Pon Local Off.</span></label></li>
+    <li><input type="checkbox" id="ck6"><label for="ck6"><b>Notas colgadas</b><span>Envía All Notes Off (CC123) o usa el botón de pánico del DAW, y luego revisa la cadena de THRU.</span></label></li>
+    <li><input type="checkbox" id="ck7"><label for="ck7"><b>Un solo maestro de reloj</b><span>Si el tempo salta o va al doble, hay dos fuentes de Clock. Deja una sola y filtra el Clock en las demás entradas.</span></label></li>
+    <li><input type="checkbox" id="ck8"><label for="ck8"><b>El esclavo no sigue el reloj</b><span>Comprueba que el DAW tenga activado “enviar reloj” en ese puerto y que el equipo esté en sincronía externa / MIDI.</span></label></li>
+    <li><input type="checkbox" id="ck9"><label for="ck9"><b>Cadena THRU demasiado larga</b><span>Si tienes más de 3 equipos encadenados o equipos con soft-thru, cambia a una thru box o a un puerto propio en la interfaz.</span></label></li>
+    <li><input type="checkbox" id="ck10"><label for="ck10"><b>Adaptador TRS correcto</b><span>¿Tipo A o Tipo B? Un adaptador equivocado no transmite nada.</span></label></li>
+    <li><input type="checkbox" id="ck11"><label for="ck11"><b>USB: host, hub y driver</b><span>Dos devices USB necesitan un host. Usa un hub con alimentación y equipos class compliant o con su driver instalado.</span></label></li>
+    <li><input type="checkbox" id="ck12"><label for="ck12"><b>Program Change y SysEx</b><span>Ojo con la numeración 0–127 frente a 1–128. Para SysEx, habilita la recepción en el equipo (memory protect off) y quita el filtro de SysEx en el DAW.</span></label></li>
+  </ul>
+</section>
+
+<!-- 8 QUIZ -->
+<section class="rack" id="quiz" aria-labelledby="h-qz">
+  <div class="unit">U8 · Autoevaluación</div>
+  <h2 id="h-qz">Quiz rápido</h2>
+  <p class="intro">Cada respuesta se corrige al momento. Puntaje: <span class="score" id="qScore">0 / 5</span></p>
+  <form class="quiz" id="quizForm" onsubmit="return false">
+    <fieldset data-ok="b" data-why="THRU replica eléctricamente lo que entra por IN y no incluye lo que genera el equipo; eso sale por OUT.">
+      <legend>1. ¿Qué sale por el conector MIDI THRU?</legend>
+      <label class="opt" for="q1a"><input type="radio" name="q1" id="q1a" value="a"><span>Lo que genera el teclado del propio equipo</span></label>
+      <label class="opt" for="q1b"><input type="radio" name="q1" id="q1b" value="b"><span>Una copia exacta de lo que entra por MIDI IN</span></label>
+      <label class="opt" for="q1c"><input type="radio" name="q1" id="q1c" value="c"><span>La mezcla de IN y de lo que genera el equipo</span></label>
+      <label class="opt" for="q1d"><input type="radio" name="q1" id="q1d" value="d"><span>La señal de audio en formato digital</span></label>
+      <p class="fb" id="q1fb"></p>
+    </fieldset>
+    <fieldset data-ok="c" data-why="24 pulsos por negra × 2 negras por segundo (120 BPM) = 48 mensajes F8 por segundo, uno cada ≈ 20,8 ms.">
+      <legend>2. A 120 BPM, ¿cuántos mensajes Clock (F8) por segundo envía el maestro?</legend>
+      <label class="opt" for="q2a"><input type="radio" name="q2" id="q2a" value="a"><span>2</span></label>
+      <label class="opt" for="q2b"><input type="radio" name="q2" id="q2b" value="b"><span>24</span></label>
+      <label class="opt" for="q2c"><input type="radio" name="q2" id="q2c" value="c"><span>48</span></label>
+      <label class="opt" for="q2d"><input type="radio" name="q2" id="q2d" value="d"><span>120</span></label>
+      <p class="fb" id="q2fb"></p>
+    </fieldset>
+    <fieldset data-ok="a" data-why="Con Local Off el teclado solo envía por OUT y el motor suena únicamente con lo que vuelve del DAW: una sola vez y en la pista correcta.">
+      <legend>3. Tu sinte con teclado está grabando en el DAW con eco MIDI activado y cada nota suena “doble”. ¿Qué haces?</legend>
+      <label class="opt" for="q3a"><input type="radio" name="q3" id="q3a" value="a"><span>Activo Local Off en el sintetizador</span></label>
+      <label class="opt" for="q3b"><input type="radio" name="q3" id="q3b" value="b"><span>Cambio el cable de OUT a THRU</span></label>
+      <label class="opt" for="q3c"><input type="radio" name="q3" id="q3c" value="c"><span>Subo la velocity al máximo</span></label>
+      <label class="opt" for="q3d"><input type="radio" name="q3" id="q3d" value="d"><span>Paso el sinte al canal 10</span></label>
+      <p class="fb" id="q3fb"></p>
+    </fieldset>
+    <fieldset data-ok="b" data-why="USB necesita un host que administre el bus. Dos devices solos no se comunican; hace falta una computadora, una tablet o un host box.">
+      <legend>4. Unes dos sintetizadores USB-MIDI (ambos con conector USB-B) con un cable USB. ¿Qué pasa?</legend>
+      <label class="opt" for="q4a"><input type="radio" name="q4" id="q4a" value="a"><span>Funcionan: USB es bidireccional</span></label>
+      <label class="opt" for="q4b"><input type="radio" name="q4" id="q4b" value="b"><span>No se comunican: falta un USB host</span></label>
+      <label class="opt" for="q4c"><input type="radio" name="q4" id="q4c" value="c"><span>Solo funciona el canal 1</span></label>
+      <label class="opt" for="q4d"><input type="radio" name="q4" id="q4d" value="d"><span>Solo pasa el reloj</span></label>
+      <p class="fb" id="q4fb"></p>
+    </fieldset>
+    <fieldset data-ok="d" data-why="Cada puerto tiene sus 16 canales: 4 puertos × 16 = 64 canales de salida independientes.">
+      <legend>5. ¿Cuántos canales de salida independientes ofrece una interfaz MIDI USB de 4 IN / 4 OUT?</legend>
+      <label class="opt" for="q5a"><input type="radio" name="q5" id="q5a" value="a"><span>4</span></label>
+      <label class="opt" for="q5b"><input type="radio" name="q5" id="q5b" value="b"><span>16</span></label>
+      <label class="opt" for="q5c"><input type="radio" name="q5" id="q5c" value="c"><span>32</span></label>
+      <label class="opt" for="q5d"><input type="radio" name="q5" id="q5d" value="d"><span>64</span></label>
+      <p class="fb" id="q5fb"></p>
+    </fieldset>
+  </form>
+</section>
+
+</div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>Técnicas de Producción Híbrida · Unidad MIDI · Estudio conectado</span>
+    <span>Equipos genéricos con fines didácticos. Valores según MIDI 1.0 y MIDI 2.0 (MMA / AMEI).</span>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+(function(){
+"use strict";
+var root=document.documentElement;
+var mqReduce=window.matchMedia('(prefers-reduced-motion: reduce)');
+var mqDark=window.matchMedia('(prefers-color-scheme: dark)');
+function reduced(){return mqReduce.matches;}
+function tok(n){return getComputedStyle(root).getPropertyValue(n).trim();}
+
+/* ---------- Theme toggle ---------- */
+var themeListeners=[];
+function isDark(){var t=root.getAttribute('data-theme');return t?t==='dark':mqDark.matches;}
+document.getElementById('themeBtn').addEventListener('click',function(){
+  root.setAttribute('data-theme',isDark()?'light':'dark');
+  themeListeners.forEach(function(f){f();});
+});
+if(mqDark.addEventListener)mqDark.addEventListener('change',function(){themeListeners.forEach(function(f){f();});});
+
+/* ---------- Devices ---------- */
+var DEV={
+  kbd:{n:'Teclado maestro',ch:'Transmite ch 1',ports:['USB (device)'],on:['USB (device)'],role:'Fuente de notas y CC',
+    tipo:'Controlador sin motor de sonido propio.',
+    con:'USB-MIDI class compliant, directo a la computadora. El DAW recibe sus notas y las re-canaliza según la pista armada.',
+    clk:'No participa del reloj.'},
+  pc:{n:'DAW (computadora)',ch:'Ruta todos los canales',ports:['USB host','USB host','USB host'],on:['USB host'],role:'Centro de ruteo; maestro o esclavo de reloj',
+    tipo:'Secuenciador y grabador. Recibe, graba, re-canaliza y reenvía.',
+    con:'Es el USB host: administra la interfaz 4×4, el teclado y el Sinte USB.',
+    clk:'Maestro en el escenario 2; esclavo de la caja en el escenario 3.'},
+  int:{n:'Interfaz MIDI USB 4×4',ch:'4 puertos × 16 = 64 ch',ports:['IN 1','IN 2','IN 3','IN 4','OUT 1','OUT 2','OUT 3','OUT 4','USB (device)'],on:['IN 1','IN 2','OUT 1','OUT 2','OUT 3','USB (device)'],role:'Puente DIN ↔ USB',
+    tipo:'Convierte entre MIDI DIN (31,25 kbaud) y USB. Cada OUT es un puerto independiente.',
+    con:'USB device hacia la computadora. OUT 1 → Poly A, OUT 2 → Caja, OUT 3 → Sampler; IN 1 ← Poly A, IN 2 ← Caja.',
+    clk:'No genera reloj: transporta el que envía el DAW o la caja.'},
+  usbsyn:{n:'Sinte USB',ch:'ch 1 en su propio puerto',ports:['USB (device)'],on:['USB (device)'],role:'Esclavo (recibe notas)',
+    tipo:'Sintetizador sin conectores DIN.',
+    con:'Directo por USB a la computadora. Aparece en el DAW como un puerto propio, así que su ch 1 no choca con el ch 1 de Poly A. No puede conectarse a otro equipo USB sin un host.',
+    clk:'Puede seguir el reloj MIDI que el DAW envíe por USB.'},
+  polyA:{n:'Sinte Poly A',ch:'ch 1',ports:['MIDI IN','MIDI OUT','MIDI THRU'],on:['MIDI IN','MIDI OUT','MIDI THRU'],role:'Esclavo + fuente (tiene teclado)',
+    tipo:'Sintetizador polifónico con teclado propio.',
+    con:'IN ← OUT 1 de la interfaz. OUT → IN 1 (para grabar su teclado y volcar SysEx). THRU → IN del Sinte Mono B.',
+    clk:'Esclavo opcional (arpegiador o LFO sincronizados). Al grabar con eco en el DAW, conviene Local Off.'},
+  monoB:{n:'Sinte Mono B',ch:'ch 2',ports:['MIDI IN'],on:['MIDI IN'],role:'Esclavo',
+    tipo:'Sintetizador monofónico de una sola voz y sin teclado.',
+    con:'IN ← THRU de Poly A. Comparte el OUT 1 con Poly A y se distingue solo por el canal.',
+    clk:'Esclavo opcional. Su reloj pasa por el THRU de A, con un salto más.'},
+  caja:{n:'Caja de Ritmos',ch:'ch 10',ports:['MIDI IN','MIDI OUT'],on:['MIDI IN','MIDI OUT'],role:'Esclava o maestra de reloj',
+    tipo:'Secuenciador de percusión. El ch 10 es la convención General MIDI para percusión.',
+    con:'IN ← OUT 2; OUT → IN 2. Necesita ida y vuelta para poder ser maestra o esclava.',
+    clk:'Esclava en el escenario 2 (sincronía externa); maestra en el escenario 3 (sincronía interna, envía F8).'},
+  sampler:{n:'Sampler',ch:'ch 3 (pads) y ch 4 (loops)',ports:['MIDI IN','MIDI OUT'],on:['MIDI IN'],role:'Esclavo',
+    tipo:'Sampler multitímbrico: cada parte escucha un canal distinto.',
+    con:'IN ← OUT 3. Su OUT queda libre en este escenario.',
+    clk:'Esclavo: sus loops siguen el reloj del maestro.'}
+};
+var order=['kbd','pc','int','polyA','monoB','caja','sampler','usbsyn'];
+var cardsEl=document.getElementById('devcards'),detailEl=document.getElementById('devdetail');
+order.forEach(function(k){
+  var b=document.createElement('button');b.type='button';b.className='devcard';b.id='card-'+k;b.setAttribute('aria-pressed','false');
+  b.innerHTML='<span class="n"></span><span class="c"></span>';
+  b.querySelector('.n').textContent=DEV[k].n;b.querySelector('.c').textContent=DEV[k].ch;
+  b.addEventListener('click',function(){showDev(k);});
+  cardsEl.appendChild(b);
+});
+function esc(s){return String(s).replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];});}
+function showDev(k,scroll){
+  var d=DEV[k];
+  order.forEach(function(o){
+    document.getElementById('card-'+o).setAttribute('aria-pressed',o===k?'true':'false');
+    document.getElementById('d-'+o).classList.toggle('sel',o===k);
+  });
+  var ports=d.ports.map(function(p){return '<span class="'+(d.on.indexOf(p)>-1?'on':'')+'">'+esc(p)+'</span>';}).join('');
+  detailEl.innerHTML='<h3>'+esc(d.n)+'</h3><dl>'+
+    '<dt>Tipo</dt><dd>'+esc(d.tipo)+'</dd>'+
+    '<dt>Puertos</dt><dd><div class="ports">'+ports+'</div><span class="stage-hint">Resaltados: en uso en este estudio.</span></dd>'+
+    '<dt>Canal</dt><dd>'+esc(d.ch)+'</dd>'+
+    '<dt>Rol</dt><dd class="role">'+esc(d.role)+'</dd>'+
+    '<dt>Conexión</dt><dd>'+esc(d.con)+'</dd>'+
+    '<dt>Reloj</dt><dd>'+esc(d.clk)+'</dd></dl>';
+  if(scroll)detailEl.scrollIntoView({behavior:reduced()?'auto':'smooth',block:'nearest'});
+}
+order.forEach(function(k){
+  var g=document.getElementById('d-'+k);
+  g.addEventListener('click',function(){showDev(k,true);});
+  g.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();showDev(k,true);}});
+});
+showDev('polyA');
+
+/* ---------- Packet engine ---------- */
+var NS='http://www.w3.org/2000/svg';
+var pk=document.getElementById('packets');
+var logEl=document.getElementById('log');
+var runToken=0,timers=[],t0=0,current=0;
+function H(p,rev,end){return {p:p,rev:!!rev,end:end};}
+function status(dev,txt){var el=document.getElementById('st-'+dev);if(el)el.textContent=txt||'';}
+function hl(devs){order.forEach(function(o){document.getElementById('d-'+o).classList.toggle('hl',devs.indexOf(o)>-1);});}
+function cableOn(id,kind){var c=document.getElementById(id);c.classList.add('on');if(kind==='clock')c.classList.add('clk');else c.classList.remove('clk');}
+function clearAll(){
+  runToken++;timers.forEach(clearTimeout);timers=[];
+  while(pk.firstChild)pk.removeChild(pk.firstChild);
+  Array.prototype.forEach.call(document.querySelectorAll('.cable'),function(c){c.classList.remove('on','clk');});
+  order.forEach(function(o){status(o,'');});
+  hl([]);
+}
+function at(ms,fn){var tk=runToken;timers.push(setTimeout(function(){if(tk===runToken)fn();},ms));}
+function addLog(kind,route,bytes){
+  var first=logEl.querySelector('.empty');if(first)logEl.innerHTML='';
+  var li=document.createElement('li');li.className=kind==='clock'?'clk':(kind==='err'?'err':'');
+  var ms=Math.round(performance.now()-t0);
+  li.innerHTML='<span class="tm"></span><span class="rt"></span><span class="bx"></span>';
+  li.querySelector('.tm').textContent=(ms/1000).toFixed(1)+' s';
+  li.querySelector('.rt').textContent=route;
+  li.querySelector('.bx').textContent=bytes;
+  logEl.appendChild(li);logEl.scrollTop=logEl.scrollHeight;
+}
+function send(o){ // o:{route:[H], label, kind, log, bytes, done}
+  var tk=runToken,kind=o.kind||'data';
+  if(o.log)addLog(kind,o.log,o.bytes||'');
+  var g=document.createElementNS(NS,'g');g.setAttribute('class','pkt pkt-'+kind);
+  var r=document.createElementNS(NS,'rect'),t=document.createElementNS(NS,'text'),c=document.createElementNS(NS,'circle');
+  c.setAttribute('r','7');t.textContent=o.label;t.setAttribute('x','11');t.setAttribute('y','-9');
+  g.appendChild(r);g.appendChild(t);g.appendChild(c);pk.appendChild(g);
+  var w=0;try{w=t.getComputedTextLength();}catch(e){w=o.label.length*6.4;}
+  r.setAttribute('x','6');r.setAttribute('y','-22');r.setAttribute('width',String(w+10));r.setAttribute('height','18');r.setAttribute('rx','4');
+  var i=0;
+  function hop(){
+    if(tk!==runToken){g.remove();return;}
+    if(i>=o.route.length){g.remove();if(o.done)o.done();return;}
+    var h=o.route[i],path=document.getElementById(h.p);cableOn(h.p,kind);
+    var L=path.getTotalLength(),dur=Math.max(520,L*2.1),s=performance.now();
+    function frame(now){
+      if(tk!==runToken){g.remove();return;}
+      var k=Math.min(1,(now-s)/dur);var kk=reduced()?Math.floor(k*3)/3:k;
+      var p=path.getPointAtLength((h.rev?1-kk:kk)*L);
+      g.setAttribute('transform','translate('+p.x.toFixed(1)+','+p.y.toFixed(1)+')');
+      if(k<1)requestAnimationFrame(frame);else{if(h.end)h.end();i++;hop();}
+    }
+    requestAnimationFrame(frame);
+  }
+  hop();
+}
+
+/* routes */
+var R={
+  kbdToA:[H('c-kbd'),H('c-int',true),H('c-o1')],
+  pcToA:[H('c-int',true),H('c-o1')],
+  pcToCaja:[H('c-int',true),H('c-o2')],
+  pcToSampler:[H('c-int',true),H('c-o3')]
+};
+
+var SC={
+1:{t:'1 · Grabar desde el teclado y reenviar al Sinte A',
+  p:'Tocas en el teclado maestro (USB). El DAW recibe las notas en la pista armada, las graba y, con el monitoreo/eco MIDI activo, las reenvía por el OUT 1 de la interfaz en el canal de la pista (ch 1), donde las toca el Sinte Poly A.',
+  k:['El teclado puede transmitir en cualquier canal: el DAW re-canaliza según la pista seleccionada.','Lo que se graba son mensajes, no audio, así que puedes cuantizar o cambiar notas sin volver a tocar.','CC74 (brillo) llega igual que una nota y abre el filtro de A en tiempo real.'],
+  hl:['kbd','pc','int','polyA'],
+  run:function(){
+    status('kbd','toca C3');
+    send({route:R.kbdToA,label:'Note On C3 ch1',log:'Teclado → DAW → OUT 1 → Poly A',bytes:'90 3C 64',done:function(){status('polyA','suena C3');}});
+    at(400,function(){status('pc','grabando');});
+    at(1500,function(){send({route:R.kbdToA,label:'CC74 = 80 ch1',log:'Perilla del teclado → DAW → Poly A',bytes:'B0 4A 50',done:function(){status('polyA','filtro abre');}});});
+    at(3000,function(){status('kbd','suelta');send({route:R.kbdToA,label:'Note Off C3 ch1',log:'Teclado → DAW → OUT 1 → Poly A',bytes:'80 3C 00',done:function(){status('polyA','silencio');status('pc','pista grabada');}});});
+  }},
+2:{t:'2 · El DAW es el reloj maestro',
+  p:'El DAW manda Start y luego Clock continuo por OUT 2 (caja) y OUT 3 (sampler). La caja y el sampler están en sincronía externa: no usan su propio tempo, sino que avanzan un paso cada 24 pulsos por negra.',
+  k:['24 PPQN: a 120 BPM son 48 mensajes F8 por segundo, uno cada ≈ 20,8 ms. La animación está ralentizada.','Start (FA) arranca desde el inicio y Stop (FC) detiene. Continue (FB) junto con Song Position Pointer (F2) retoma desde un compás concreto.','En el DAW, activa “enviar reloj MIDI” solo en los puertos que lo necesitan.'],
+  hl:['pc','int','caja','sampler'],
+  run:function(){
+    status('pc','maestro 120 BPM');status('caja','sync externo');status('sampler','sync externo');
+    send({route:R.pcToCaja,label:'Start FA',kind:'clock',log:'DAW → OUT 2 → Caja de Ritmos',bytes:'FA'});
+    send({route:R.pcToSampler,label:'Start FA',kind:'clock',log:'DAW → OUT 3 → Sampler',bytes:'FA'});
+    var n=0;
+    for(var i=0;i<8;i++)(function(i){at(700+i*420,function(){
+      n++;var lbl='Clock F8';
+      send({route:R.pcToCaja,label:lbl,kind:'clock',log:i===0?'DAW → Caja y Sampler (×24 por negra)':null,bytes:'F8 F8 F8 …',done:function(){status('caja','pulso '+(i+1)+'/24');}});
+      send({route:R.pcToSampler,label:lbl,kind:'clock',done:function(){status('sampler','pulso '+(i+1)+'/24');}});
+    });})(i);
+    at(700+8*420+300,function(){
+      send({route:R.pcToCaja,label:'Stop FC',kind:'clock',log:'DAW → Caja y Sampler',bytes:'FC',done:function(){status('caja','detenida');}});
+      send({route:R.pcToSampler,label:'Stop FC',kind:'clock',done:function(){status('sampler','detenido');}});
+    });
+  }},
+3:{t:'3 · La caja de ritmos es el reloj maestro',
+  p:'Ahora el tempo lo marca la caja (sincronía interna). Su OUT envía Start y Clock al IN 2 de la interfaz, y el DAW se pone en modo esclavo (sincronía externa por MIDI Clock). Opcionalmente, el DAW reenvía ese reloj al sampler.',
+  k:['Solo puede haber un maestro. Si el DAW también envía reloj a la caja (OUT 2), se forma un conflicto o un bucle de Clock.','No todos los DAW siguen el MIDI Clock externo con la misma estabilidad. A veces es mejor grabar la caja como audio y ajustar el tempo del proyecto.','Desactiva “enviar reloj” al OUT 2 mientras la caja manda.'],
+  hl:['caja','int','pc','sampler'],
+  run:function(){
+    status('caja','maestra 96 BPM');status('pc','sync externo');status('sampler','sync externo');
+    var full=[H('c-cout'),H('c-int'),H('c-int',true),H('c-o3')];
+    send({route:full,label:'Start FA',kind:'clock',log:'Caja → IN 2 → DAW → OUT 3 → Sampler',bytes:'FA'});
+    for(var i=0;i<6;i++)(function(i){at(700+i*480,function(){
+      send({route:full,label:'Clock F8',kind:'clock',log:i===0?'Caja → DAW (y reenvío al Sampler)':null,bytes:'F8 F8 F8 …',done:function(){status('sampler','pulso '+(i+1));}});
+      at(900,function(){status('pc','sigue pulso '+(i+1));});
+    });})(i);
+    at(700+6*480+300,function(){send({route:full,label:'Stop FC',kind:'clock',log:'Caja → DAW → Sampler',bytes:'FC',done:function(){status('pc','detenido');status('sampler','detenido');}});});
+  }},
+4:{t:'4 · Daisy chain: Mono B recibe por el THRU de A',
+  p:'El OUT 1 de la interfaz lleva los canales 1 y 2. Poly A escucha el ch 1 y su THRU copia todo hacia Mono B, que escucha el ch 2. Cada equipo filtra por canal: atiende el suyo e ignora el resto.',
+  k:['El THRU pasa todos los mensajes, también los que A ignora.','Con un solo OUT controlas dos equipos, a cambio de compartir el ancho de banda de 31,25 kbaud.','En cadenas largas el THRU degrada la señal: si agregas más equipos, usa el OUT 4 libre o una thru box.'],
+  hl:['pc','int','polyA','monoB'],
+  run:function(){
+    var rt=function(a,b){return [H('c-int',true),H('c-o1',false,function(){status('polyA',a);}),H('c-thru',false,function(){status('monoB',b);})];};
+    send({route:rt('ch1: suena','ch1: ignora'),label:'Note On C3 ch1',log:'DAW → OUT 1 → Poly A → THRU → Mono B',bytes:'90 3C 64'});
+    at(2400,function(){send({route:rt('ch2: ignora → THRU','ch2: suena G1'),label:'Note On G1 ch2',log:'DAW → OUT 1 → Poly A → THRU → Mono B',bytes:'91 2B 64'});});
+    at(4800,function(){send({route:rt('ch1: CC74','ch1: ignora'),label:'CC74 ch1',log:'Solo A responde al CC del ch 1',bytes:'B0 4A 60'});});
+  }},
+5:{t:'5 · Program Change y volcado SysEx',
+  p:'Al abrir el proyecto, el DAW envía un Program Change al sampler para cargar el kit correcto. Después pide a Poly A un volcado SysEx de su patch y lo guarda en el proyecto, para que el sonido se pueda recuperar aunque alguien cambie el preset en el equipo.',
+  k:['Program Change (Cn pp) va por canal: C2 05 es el ch 3, programa 6 (si cuenta desde 1).','SysEx (F0 … F7) no tiene canal, sino un ID de fabricante. El THRU también lo pasa a Mono B, que lo ignora porque el ID no es suyo.','Para recibir el volcado, Poly A necesita su OUT conectado a un IN de la interfaz y el DAW no debe filtrar SysEx.'],
+  hl:['pc','int','sampler','polyA','monoB'],
+  run:function(){
+    send({route:R.pcToSampler,label:'Program Change 6 ch3',log:'DAW → OUT 3 → Sampler',bytes:'C2 05',done:function(){status('sampler','kit 6 cargado');}});
+    at(1800,function(){send({route:[H('c-int',true),H('c-o1',false,function(){status('polyA','pedido SysEx');}),H('c-thru',false,function(){status('monoB','ID ajeno: ignora');})],label:'SysEx request',log:'DAW → OUT 1 → Poly A (y THRU)',bytes:'F0 7D 01 … F7'});});
+    for(var i=0;i<3;i++)(function(i){at(4300+i*350,function(){
+      send({route:[H('c-aout'),H('c-int')],label:i===2?'… F7':(i===0?'SysEx dump F0':'datos patch'),log:i===0?'Poly A OUT → IN 1 → DAW':null,bytes:'F0 7D 02 … (≈ 200 bytes) … F7',done:i===2?function(){status('pc','patch guardado');status('polyA','');}:null});
+    });})(i);
+    at(4200,function(){status('polyA','enviando dump');});
+  }},
+6:{t:'6 · El bucle MIDI clásico y Local Off',
+  p:'Poly A tiene teclado y motor de sonido. Con Local On, al pulsar una tecla el motor suena directamente y además la nota sale por OUT hacia el DAW, que la devuelve por OUT 1 (eco MIDI). Resultado: la nota suena dos veces, se gasta el doble de polifonía y aparecen fases raras. Si además el OUT de A hace “merge” o soft-thru, lo que vuelve sale otra vez hacia el DAW y se forma un bucle infinito.',
+  k:['Problema: Local On + eco en el DAW = notas dobles. Con merge/soft-thru en A, el bucle no termina.','Solución: Local Off en Poly A. El teclado solo envía por OUT y el motor suena con lo que vuelve del DAW, una vez y en el canal de la pista.','Desactiva también el merge/soft-thru del OUT de A, o filtra en el DAW los mensajes que entran por IN 1.'],
+  hl:['polyA','int','pc'],
+  run:function(){
+    var loop=[H('c-aout'),H('c-int'),H('c-int',true),H('c-o1')];
+    status('polyA','Local ON · suena 1');
+    send({route:loop,label:'Note On C3 ch1',log:'Local ON: tecla de A → DAW (eco) → A',bytes:'90 3C 64',done:function(){status('polyA','suena 2ª vez');}});
+    at(3300,function(){status('polyA','merge: reenvía');send({route:loop,label:'BUCLE: Note On otra vez',kind:'err',log:'Soft-thru/merge en A: el eco vuelve a salir…',bytes:'90 3C 64 · 90 3C 64 · …',done:function(){status('polyA','suena 3ª vez…');}});});
+    at(6800,function(){
+      Array.prototype.forEach.call(document.querySelectorAll('.cable'),function(c){c.classList.remove('on','clk');});
+      status('polyA','Local OFF · motor mudo');status('pc','eco ON');
+      send({route:loop,label:'Note On C3 ch1',log:'Solución Local OFF: tecla → DAW → A, una sola vez',bytes:'90 3C 64',done:function(){status('polyA','Local OFF · suena 1 vez');}});
+    });
+  }}
+};
+
+var btns=Array.prototype.slice.call(document.querySelectorAll('.scen-btns .btn'));
+var replay=document.getElementById('replayBtn'),stopB=document.getElementById('stopBtn');
+function run(n){
+  clearAll();current=n;t0=performance.now();
+  logEl.innerHTML='<li><span class="empty">Escenario '+n+' en curso…</span></li>';
+  btns.forEach(function(b){b.setAttribute('aria-pressed',b.getAttribute('data-s')===String(n)?'true':'false');});
+  var s=SC[n];
+  document.getElementById('scenTitle').textContent=s.t;
+  document.getElementById('scenText').textContent=s.p;
+  var ul=document.getElementById('scenKeys');ul.innerHTML='';
+  s.k.forEach(function(x){var li=document.createElement('li');li.textContent=x;ul.appendChild(li);});
+  hl(s.hl);replay.disabled=false;stopB.disabled=false;
+  s.run();
+}
+btns.forEach(function(b){b.addEventListener('click',function(){run(+b.getAttribute('data-s'));});});
+replay.addEventListener('click',function(){if(current)run(current);});
+stopB.addEventListener('click',function(){clearAll();stopB.disabled=true;});
+
+/* ---------- Checklist ---------- */
+var cks=Array.prototype.slice.call(document.querySelectorAll('#checklist input'));
+function upd(){var n=cks.filter(function(c){return c.checked;}).length;
+  document.getElementById('chkCount').textContent=n+' / '+cks.length+' revisado';
+  document.getElementById('chkBar').style.width=(n/cks.length*100)+'%';
+  try{localStorage.setItem('midi-chk',JSON.stringify(cks.map(function(c){return c.checked;})));}catch(e){}
+}
+try{var sv=JSON.parse(localStorage.getItem('midi-chk')||'null');if(sv)cks.forEach(function(c,i){c.checked=!!sv[i];});}catch(e){}
+cks.forEach(function(c){c.addEventListener('change',upd);});
+document.getElementById('chkReset').addEventListener('click',function(){cks.forEach(function(c){c.checked=false;});upd();});
+upd();
+
+/* ---------- Quiz ---------- */
+var fss=Array.prototype.slice.call(document.querySelectorAll('#quizForm fieldset'));
+function score(){var s=0;fss.forEach(function(f){var c=f.querySelector('input:checked');if(c&&c.value===f.getAttribute('data-ok'))s++;});document.getElementById('qScore').textContent=s+' / '+fss.length;}
+fss.forEach(function(f){
+  f.addEventListener('change',function(){
+    var c=f.querySelector('input:checked'),fb=f.querySelector('.fb');
+    var ok=c.value===f.getAttribute('data-ok');
+    fb.className='fb '+(ok?'ok':'no');fb.textContent=f.getAttribute('data-why');score();
+  });
+});
+
+/* ---------- 3D ---------- */
+(function(){
+  var stage=document.getElementById('stage'),host=document.getElementById('lab3d');
+  function fail(){stage.classList.add('nogl');}
+  if(typeof THREE==='undefined'){fail();return;}
+  var renderer;
+  try{
+    var test=document.createElement('canvas');
+    if(!(test.getContext('webgl')||test.getContext('experimental-webgl')))throw new Error('no webgl');
+    renderer=new THREE.WebGLRenderer({antialias:true});
+  }catch(e){fail();return;}
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+  host.appendChild(renderer.domElement);
+  var scene=new THREE.Scene();
+  var cam=new THREE.PerspectiveCamera(38,4/3,0.1,100);
+  cam.position.set(1.4,.9,4.6);
+  var controls=THREE.OrbitControls?new THREE.OrbitControls(cam,renderer.domElement):null;
+  if(controls){controls.enableDamping=true;controls.dampingFactor=.08;controls.minDistance=2.5;controls.maxDistance=11;controls.autoRotateSpeed=1.4;}
+  scene.add(new THREE.AmbientLight(0xffffff,.55));
+  var dl=new THREE.DirectionalLight(0xffffff,.85);dl.position.set(3,5,6);scene.add(dl);
+  var dl2=new THREE.DirectionalLight(0xffffff,.35);dl2.position.set(-4,-2,-3);scene.add(dl2);
+
+  var M={
+    metal:new THREE.MeshStandardMaterial({metalness:.3,roughness:.4,side:THREE.DoubleSide}),
+    ins:new THREE.MeshStandardMaterial({roughness:.8}),
+    data:new THREE.MeshStandardMaterial({metalness:.2,roughness:.35}),
+    gnd:new THREE.MeshStandardMaterial({metalness:.2,roughness:.35}),
+    free:new THREE.MeshStandardMaterial({metalness:.2,roughness:.45}),
+    boot:new THREE.MeshStandardMaterial({roughness:.65}),
+    panel:new THREE.MeshStandardMaterial({metalness:.35,roughness:.55}),
+    hole:new THREE.MeshStandardMaterial({roughness:1})
+  };
+  var labels=[];
+  function makeLabel(text,tokenName,scale){
+    var cv=document.createElement('canvas');cv.width=256;cv.height=96;
+    var tex=new THREE.CanvasTexture(cv);
+    var sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,depthTest:false}));
+    sp.scale.set(scale*2.67,scale,1);sp.renderOrder=5;
+    var L={cv:cv,tex:tex,text:text,tok:tokenName};labels.push(L);drawLabel(L);return sp;
+  }
+  function drawLabel(L){
+    var x=L.cv.getContext('2d');x.clearRect(0,0,256,96);
+    x.fillStyle=tok('--surface');x.globalAlpha=.88;
+    var w=Math.min(250,30+L.text.length*24);
+    x.beginPath();if(x.roundRect)x.roundRect(128-w/2,14,w,68,14);else x.rect(128-w/2,14,w,68);x.fill();
+    x.globalAlpha=1;x.fillStyle=tok(L.tok);
+    x.font='600 44px "IBM Plex Mono", monospace';x.textAlign='center';x.textBaseline='middle';x.fillText(L.text,128,50);
+    L.tex.needsUpdate=true;
+  }
+
+  /* Plug */
+  var plug=new THREE.Group();
+  var shellG=new THREE.CylinderGeometry(1,1,1.5,64,1,true);shellG.rotateX(Math.PI/2);
+  var shell=new THREE.Mesh(shellG,M.metal);shell.position.z=.25;plug.add(shell);
+  var key=new THREE.Mesh(new THREE.BoxGeometry(.26,.12,1.3),M.metal);key.position.set(0,-.93,.3);plug.add(key);
+  var insG=new THREE.CylinderGeometry(.94,.94,.45,64);insG.rotateX(Math.PI/2);
+  var ins=new THREE.Mesh(insG,M.ins);ins.position.z=-.28;plug.add(ins);
+  // pin order on male plug front view, left to right along upper arc: 1 4 2 5 3
+  var pins=[{n:'1',a:180,m:'free',t:'--muted'},{n:'4',a:135,m:'data',t:'--accent'},{n:'2',a:90,m:'gnd',t:'--fg'},{n:'5',a:45,m:'data',t:'--accent'},{n:'3',a:0,m:'free',t:'--muted'}];
+  pins.forEach(function(p){
+    var g=new THREE.CylinderGeometry(.075,.075,.95,20);g.rotateX(Math.PI/2);
+    var m=new THREE.Mesh(g,M[p.m]);var r=.56,a=p.a*Math.PI/180;
+    m.position.set(Math.cos(a)*r,Math.sin(a)*r-.12,.22);plug.add(m);
+    var lb=makeLabel(p.n,p.t,.32);lb.position.set(Math.cos(a)*(r+.02),Math.sin(a)*(r+.02)-.12+.24,.78);plug.add(lb);
+  });
+  var bootG=new THREE.CylinderGeometry(.62,.95,1.5,48);bootG.rotateX(Math.PI/2);
+  var boot=new THREE.Mesh(bootG,M.boot);boot.position.z=-1.25;plug.add(boot);
+  for(var gi=0;gi<5;gi++){var rg=new THREE.TorusGeometry(.8-gi*.05,.04,8,48);var rm=new THREE.Mesh(rg,M.boot);rm.position.z=-.7-gi*.25;plug.add(rm);}
+  var cabG=new THREE.CylinderGeometry(.24,.24,2.6,24);cabG.rotateX(Math.PI/2);
+  var cab=new THREE.Mesh(cabG,M.boot);cab.position.z=-3.2;plug.add(cab);
+  var plugTitle=makeLabel('DIN 5','--fg',.42);plugTitle.position.set(0,1.45,0);plug.add(plugTitle);
+  plug.rotation.y=-.22;plug.position.z=-.2;
+  scene.add(plug);
+
+  /* Panel */
+  var panel=new THREE.Group();
+  var pb=new THREE.Mesh(new THREE.BoxGeometry(5.4,2.1,.2),M.panel);panel.add(pb);
+  ['IN','OUT','THRU'].forEach(function(nm,i){
+    var x=(i-1)*1.75;
+    var ringG=new THREE.CylinderGeometry(.58,.58,.22,48,1,true);ringG.rotateX(Math.PI/2);
+    var ring=new THREE.Mesh(ringG,M.metal);ring.position.set(x,-.2,.16);panel.add(ring);
+    var fG=new THREE.CylinderGeometry(.6,.6,.04,48);fG.rotateX(Math.PI/2);
+    var face=new THREE.Mesh(new THREE.TorusGeometry(.62,.05,10,48),M.metal);face.position.set(x,-.2,.12);panel.add(face);
+    var discG=new THREE.CylinderGeometry(.52,.52,.1,48);discG.rotateX(Math.PI/2);
+    var disc=new THREE.Mesh(discG,M.ins);disc.position.set(x,-.2,.08);panel.add(disc);
+    [0,45,90,135,180].forEach(function(a){
+      var hG=new THREE.CylinderGeometry(.06,.06,.04,14);hG.rotateX(Math.PI/2);
+      var h=new THREE.Mesh(hG,M.hole);var rr=.3,aa=a*Math.PI/180;
+      h.position.set(x+Math.cos(aa)*rr,-.2+Math.sin(aa)*rr-.06,.14);panel.add(h);
+    });
+    var k=new THREE.Mesh(new THREE.BoxGeometry(.16,.1,.06),M.hole);k.position.set(x,-.68,.14);panel.add(k);
+    var lb=makeLabel(nm,'--accent',.38);lb.position.set(x,.72,.2);panel.add(lb);
+  });
+  panel.visible=false;scene.add(panel);
+
+  function applyTheme(){
+    scene.background=new THREE.Color(tok('--bg'));
+    M.metal.color.set(tok('--muted'));
+    M.ins.color.set(tok('--surface'));
+    M.data.color.set(tok('--accent'));
+    M.gnd.color.set(tok('--fg'));
+    M.free.color.set(tok('--line'));
+    M.boot.color.set(isDark()?tok('--line'):tok('--muted'));
+    M.panel.color.set(tok('--line'));
+    M.hole.color.set(tok('--bg'));
+    labels.forEach(drawLabel);
+  }
+  applyTheme();themeListeners.push(function(){requestAnimationFrame(applyTheme);});
+  if(window.MutationObserver)new MutationObserver(function(){requestAnimationFrame(applyTheme);}).observe(root,{attributes:true,attributeFilter:['data-theme']});
+
+  function size(){var w=host.clientWidth||400,h=host.clientHeight||300;renderer.setSize(w,h,false);cam.aspect=w/h;cam.updateProjectionMatrix();}
+  size();if(window.ResizeObserver)new ResizeObserver(size).observe(host);else window.addEventListener('resize',size);
+
+  function setView(v){
+    plug.visible=v==='plug';panel.visible=v==='panel';
+    document.getElementById('v-plug').setAttribute('aria-pressed',v==='plug'?'true':'false');
+    document.getElementById('v-panel').setAttribute('aria-pressed',v==='panel'?'true':'false');
+    if(v==='panel')cam.position.set(1.2,.9,5.6);else cam.position.set(1.4,.9,4.6);
+    if(controls){controls.target.set(0,0,0);controls.update();}
+  }
+  document.getElementById('v-plug').addEventListener('click',function(){setView('plug');});
+  document.getElementById('v-panel').addEventListener('click',function(){setView('panel');});
+
+  var visible=true;
+  if(window.IntersectionObserver)new IntersectionObserver(function(es){visible=es[0].isIntersecting;}).observe(stage);
+  function loop(){
+    requestAnimationFrame(loop);
+    if(!visible)return;
+    if(controls){controls.autoRotate=!reduced();controls.update();}
+    renderer.render(scene,cam);
+  }
+  loop();
+})();
+
+})();
+</script>
