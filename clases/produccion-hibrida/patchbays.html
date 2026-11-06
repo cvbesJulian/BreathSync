@@ -1,27 +1,27 @@
 <title>Patch Bays en el Estudio</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@500;600;700&family=Roboto:wght@400;500;700&family=Roboto+Mono:wght@400;500;600&display=swap">
 <style>
-/* Layout: rack-panel sections on a graphite/steel neutral ground, one blue accent + amber signal color */
+/* Layout: rack-panel sections on Universidad El Bosque greens (deep green ground, lime accent in dark), orange only as a small accent */
 :root{
-  --bg:#EEF0F2; --surface:#FFFFFF; --fg:#16191D; --muted:#5B636D; --line:#D3D8DE;
-  --accent:#2457C5; --signal:#C98A12; --hot:#C23B3B; --cold:#2E7DB8; --gnd:#4A8A5A;
-  --f-display:"Bricolage Grotesque", "Segoe UI", system-ui, -apple-system, sans-serif;
-  --f-body:"IBM Plex Sans", "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
-  --f-mono:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --bg:#F4FAF0; --surface:#FFFFFF; --fg:#011F19; --muted:#46625A; --line:#D3E5CC; --brand:#EA7600;
+  --accent:#00843F; --signal:#007680; --hot:#C54A07; --cold:#0077C8; --gnd:#00A653;
+  --f-display:"Hanken Grotesk", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --f-body:"Roboto", "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
+  --f-mono:"Roboto Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
   --radius:8px;
   color-scheme:light;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
-    --bg:#121417; --surface:#1B1E23; --fg:#E7EAEE; --muted:#98A1AC; --line:#2C3139;
-    --accent:#6E9BFF; --signal:#E8B03A; --hot:#EF6B6B; --cold:#5FB0EA; --gnd:#6FC086;
+    --bg:#011F19; --surface:#012820; --fg:#E9F5E4; --muted:#9DBAAF; --line:#1D4438; --brand:#FF8C2A;
+    --accent:#90FF00; --signal:#5CB8B2; --hot:#FF8A4C; --cold:#5CB3F0; --gnd:#3FD07F;
     color-scheme:dark;
   }
 }
 :root[data-theme="dark"]{
-  --bg:#121417; --surface:#1B1E23; --fg:#E7EAEE; --muted:#98A1AC; --line:#2C3139;
-  --accent:#6E9BFF; --signal:#E8B03A; --hot:#EF6B6B; --cold:#5FB0EA; --gnd:#6FC086;
+  --bg:#011F19; --surface:#012820; --fg:#E9F5E4; --muted:#9DBAAF; --line:#1D4438; --brand:#FF8C2A;
+  --accent:#90FF00; --signal:#5CB8B2; --hot:#FF8A4C; --cold:#5CB3F0; --gnd:#3FD07F;
   color-scheme:dark;
 }
 *{box-sizing:border-box}
@@ -210,6 +210,11 @@ footer .wrap{padding-block:28px;display:flex;flex-wrap:wrap;gap:16px;justify-con
   .flow{animation:none;stroke-dasharray:none}
   .case li{transition:none}
 }
+/* Universidad El Bosque: orange only in small accents */
+header{box-shadow:inset 0 -3px 0 var(--brand)}
+.btn{border-radius:999px}
+h2::after{content:"";display:block;width:40px;height:4px;border-radius:99px;background:var(--brand);margin-top:.45em}
+::selection{background:var(--brand);color:#FFFFFF}
 </style>
 
 <header class="top">
