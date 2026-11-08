@@ -236,6 +236,31 @@ footer .wrap{padding-block:28px;display:flex;flex-wrap:wrap;gap:16px;justify-con
 .snav{display:flex;gap:8px;justify-content:space-between;flex-wrap:wrap}
 .btn.sprimary{background:var(--accent);border-color:var(--accent);color:var(--surface);font-weight:600}
 .btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.sm{min-height:28px;padding:2px 10px;font-size:.8rem}
+.ft{display:inline-flex;gap:6px;align-items:center;font-size:.85rem;color:var(--muted)}
+.jackgrid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px}
+.jackgrid .rowlbl{grid-column:1/-1;font-family:var(--f-mono);font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.jk3{font:inherit;display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:7px 8px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--fg);cursor:pointer;text-align:left;min-width:0;position:relative}
+.jk3 .pbn{font-family:var(--f-mono);font-size:.72rem;color:var(--muted)}
+.jk3 .jn{font-size:.82rem;font-weight:500;line-height:1.2;overflow-wrap:anywhere}
+.jk3 .cnum{position:absolute;top:5px;right:6px;font-family:var(--f-mono);font-size:.7rem;font-weight:700;color:var(--brand)}
+.jk3.used{border-color:var(--brand)}
+.jk3[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent)}
+.jk3:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.fmsg{margin:0;padding:10px 12px;border-radius:8px;border:1px solid var(--line);border-left-width:4px;background:var(--bg);max-width:none}
+.fmsg.ok{border-left-color:var(--gnd)} .fmsg.warn{border-left-color:var(--brand)} .fmsg.err{border-left-color:var(--hot)} .fmsg.info{border-left-color:var(--accent)}
+.fcols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);gap:16px}
+.fcols h4{margin:0 0 6px;font-family:var(--f-display);font-size:1rem}
+.flist{margin:0 0 8px;padding-left:1.2em;display:grid;gap:6px;font-size:.9rem}
+.flist .cn{font-family:var(--f-mono);font-weight:700;color:var(--brand);margin-right:4px}
+.flist .cn.bad{color:var(--hot)}
+.routes{list-style:none;padding-left:0}
+.routes li{padding:6px 8px;border-radius:6px;border:1px solid var(--line)}
+.routes li.off{color:var(--muted)}
+.routes li.note{border-style:dashed}
+.routes li.err{border-color:var(--hot)}
+.routes .why{display:block;font-family:var(--f-mono);font-size:.75rem;color:var(--muted)}
+@media (max-width:700px){.jackgrid{grid-template-columns:repeat(3,minmax(0,1fr))}.fcols{grid-template-columns:1fr}}
 .l3.cut{border:2px solid var(--hot);color:var(--hot);font-weight:700;font-size:11px}
 .paths3d{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-block:0 12px}
 .paths3d .pl{font-family:var(--f-mono);font-size:.75rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-right:4px}
@@ -539,8 +564,8 @@ h2::after{content:"";display:block;width:40px;height:4px;border-radius:99px;back
     <div class="in">
       <span class="utag">U-07 · Vista 3D</span>
       <h2>El rack en tres dimensiones</h2>
-      <p>Arrastra para orbitar, rueda o pellizca para acercarte. En <b>Paso a paso</b> armas una conexión a la vez: primero en normalizado, luego en semi-normalizado y en thru. En <b>Estudio completo</b> ves todo el rack cableado y puedes seguir cada cable.</p>
-      <div class="modes3d" id="modes3d" role="group" aria-label="Modo de la vista 3D"><button type="button" class="btn" data-mode="guided" aria-pressed="true">Paso a paso</button><button type="button" class="btn" data-mode="full" aria-pressed="false">Estudio completo</button></div>
+      <p>Arrastra para orbitar, rueda o pellizca para acercarte. En <b>Paso a paso</b> armas una conexión a la vez: primero en normalizado, luego en semi-normalizado y en thru. En <b>Estudio completo</b> ves todo el rack cableado y puedes seguir cada cable. En <b>Conexión libre</b> eliges el modo del patch bay y conectas tus propios cables.</p>
+      <div class="modes3d" id="modes3d" role="group" aria-label="Modo de la vista 3D"><button type="button" class="btn" data-mode="guided" aria-pressed="true">Paso a paso</button><button type="button" class="btn" data-mode="full" aria-pressed="false">Estudio completo</button><button type="button" class="btn" data-mode="free" aria-pressed="false">Conexión libre</button></div>
       <div class="paths3d" id="lessons3d" role="group" aria-label="Lección"><span class="pl">Lección</span><button type="button" class="btn" data-lesson="L1" aria-pressed="true">1 · Normalizado</button><button type="button" class="btn" data-lesson="L2" aria-pressed="false">2 · Semi-normalizado</button><button type="button" class="btn" data-lesson="L3" aria-pressed="false">3 · Thru</button></div>
       <div class="views3d" id="views3d" role="group" aria-label="Vista del rack">
         <button type="button" class="btn" data-view="rear" aria-pressed="true">Trasera</button>
@@ -549,9 +574,17 @@ h2::after{content:"";display:block;width:40px;height:4px;border-radius:99px;back
         <button type="button" class="btn" data-view="top" aria-pressed="false">Arriba</button>
         <label for="lbl-toggle"><input type="checkbox" id="lbl-toggle" checked> Nombres de conectores y cables</label>
       </div>
+      <div class="paths3d" id="norm3d" hidden role="group" aria-label="Modo del patch bay"><span class="pl">1 · Modo del patch bay</span><button type="button" class="btn" data-norm="normal" aria-pressed="false">Normalizado</button><button type="button" class="btn" data-norm="semi" aria-pressed="true">Semi-normalizado</button><button type="button" class="btn" data-norm="thru" aria-pressed="false">Thru</button></div>
       <div class="paths3d" id="paths3d" hidden role="group" aria-label="Sigue la señal"><span class="pl">Sigue la señal</span><button type="button" class="btn" data-path="P1" aria-pressed="false">P1</button><button type="button" class="btn" data-path="P2" aria-pressed="false">P2</button><button type="button" class="btn" data-path="C1" aria-pressed="false">C1</button><button type="button" class="btn" data-path="C2" aria-pressed="false">C2</button><button type="button" class="btn" data-path="C3" aria-pressed="false">C3</button><button type="button" class="btn" data-path="C4" aria-pressed="false">C4</button><button type="button" class="btn" data-path="C5" aria-pressed="false">C5</button><button type="button" class="btn" data-path="C6" aria-pressed="false">C6</button><button type="button" class="btn" data-path="none" aria-pressed="false">Quitar</button></div>
-      <div class="stage3d" id="stage3d"><div class="lbl3d" id="lbl3d"></div><span class="hint">arrastrar · zoom · clic en un cable</span></div>
+      <div class="stage3d" id="stage3d"><div class="lbl3d" id="lbl3d"></div><span class="hint">arrastrar · zoom · clic en un cable o jack</span></div>
       <div class="steps3d" id="steps3d"><div class="sbar"><span class="sbadge" id="stepmode">normalizado</span><span class="scount" id="stepcount">Paso 1 de 5</span></div><p id="steptext" aria-live="polite">Vamos a conectar el sintetizador al ecualizador pasando por el patch bay.</p><div class="snav"><button type="button" class="btn" id="stepprev">← Anterior</button><button type="button" class="btn sprimary" id="stepnext">Siguiente →</button></div></div>
+      <div class="steps3d freepanel" id="freepanel" hidden>
+        <div class="sbar"><span class="pl">2 · Conecta: toca un jack y luego otro</span><label for="free-turn" class="ft"><input type="checkbox" id="free-turn" checked> Girar para ver atrás al conectar</label></div>
+        <div class="jackgrid" id="jackgrid" role="group" aria-label="Jacks del frente del patch bay"><span class="rowlbl">Arriba · salidas</span><button type="button" class="jk3" data-jc="0" data-jr="0" aria-pressed="false"><span class="pbn">PB 1 ↑</span><span class="jn">Preamp OUT 1</span><span class="cnum"></span></button><button type="button" class="jk3" data-jc="1" data-jr="0" aria-pressed="false"><span class="pbn">PB 3 ↑</span><span class="jn">Sinte OUT</span><span class="cnum"></span></button><button type="button" class="jk3" data-jc="2" data-jr="0" aria-pressed="false"><span class="pbn">PB 5 ↑</span><span class="jn">Caja OUT</span><span class="cnum"></span></button><button type="button" class="jk3" data-jc="3" data-jr="0" aria-pressed="false"><span class="pbn">PB 7 ↑</span><span class="jn">Interfaz OUT 3</span><span class="cnum"></span></button><button type="button" class="jk3" data-jc="4" data-jr="0" aria-pressed="false"><span class="pbn">PB 9 ↑</span><span class="jn">Compresor OUT</span><span class="cnum"></span></button><button type="button" class="jk3" data-jc="5" data-jr="0" aria-pressed="false"><span class="pbn">PB 11 ↑</span><span class="jn">EQ OUT</span><span class="cnum"></span></button><span class="rowlbl">Abajo · entradas</span><button type="button" class="jk3" data-jc="0" data-jr="1" aria-pressed="false"><span class="pbn">PB 1 ↓</span><span class="jn">Interfaz IN 1</span><span class="cnum"></span></button><button type="button" class="jk3" data-jc="1" data-jr="1" aria-pressed="false"><span class="pbn">PB 3 ↓</span><span class="jn">Interfaz IN 2</span><span class="cnum"></span></button><button type="button" class="jk3" data-jc="2" data-jr="1" aria-pressed="false"><span class="pbn">PB 5 ↓</span><span class="jn">Interfaz IN 3</span><span class="cnum"></span></button><button type="button" class="jk3" data-jc="3" data-jr="1" aria-pressed="false"><span class="pbn">PB 7 ↓</span><span class="jn">Compresor IN</span><span class="cnum"></span></button><button type="button" class="jk3" data-jc="4" data-jr="1" aria-pressed="false"><span class="pbn">PB 9 ↓</span><span class="jn">EQ IN</span><span class="cnum"></span></button><button type="button" class="jk3" data-jc="5" data-jr="1" aria-pressed="false"><span class="pbn">PB 11 ↓</span><span class="jn">Interfaz IN 4</span><span class="cnum"></span></button></div>
+        <p class="fmsg info" id="freemsg" aria-live="polite">Elige el modo del patch bay. Después toca un jack del frente (en el 3D o en estos botones) y luego el otro extremo.</p>
+        <div class="fcols"><div><h4>Tus cables</h4><ol class="flist" id="freecords"></ol><button type="button" class="btn sm" id="free-clear">Quitar todos</button></div>
+        <div><h4>Caminos de la señal</h4><ul class="flist routes" id="freeroutes"></ul></div></div>
+      </div>
       <p class="pathinfo" id="pathinfo" hidden aria-live="polite">Haz clic en un cable o en su etiqueta (por ejemplo <b>P1</b>). El rack gira y muestra por dónde viaja la señal: al frente y atrás.</p>
       <div class="tblwrap" id="wires3d" hidden><table class="wires">
         <thead><tr><th>Cable</th><th>C·a: sale de</th><th>llega a</th><th>C·b: sale de la fila de abajo y llega a</th></tr></thead>
@@ -1157,18 +1190,29 @@ if('IntersectionObserver' in window){
   var active=null, info=$('#pathinfo'), INFO0=info?info.innerHTML:'';
   var cutLbl=label('normal roto',new THREE.Vector3(),BACK,'cut'); cutLbl.on=false;
   var pulseGeo=new THREE.SphereGeometry(.62,14,10), pulseMat=new THREE.MeshBasicMaterial(), pulses=[];
-  for(var q=0;q<24;q++){var pm=new THREE.Mesh(pulseGeo,pulseMat);pm.visible=false;g.add(pm);pulses.push(pm);}
+  for(var q=0;q<48;q++){var pm=new THREE.Mesh(pulseGeo,new THREE.MeshBasicMaterial());pm.visible=false;g.add(pm);pulses.push(pm);}
+  var pulseCol=new THREE.Color();
   function paintSegs(){
+    var free=mode3==='free'&&FR; if(free){FR.hex={}; Object.keys(FR.col).forEach(function(k){FR.hex[k]=tok(FR.col[k]);});}
     Object.keys(SEG).forEach(function(id){
+      if(free){
+        var S0=SEG[id], m0=S0.mat, ct=FR.col[id], bad=FR.bad[id];
+        var v0=S0.normal?!!ct:S0.free?true:S0.full?id.charAt(0)==='C':false;
+        S0.mesh.visible=v0; S0.plugs.forEach(function(pl){pl.visible=v0;});
+        m0.color.set(tok(bad?'--hot':ct||S0.tok)); m0.emissive=new THREE.Color(ct||bad?tok(bad?'--hot':ct):'#000000'); m0.emissiveIntensity=ct?.45:bad?.3:0;
+        m0.opacity=ct||bad||S0.free?1:.3; m0.depthWrite=m0.opacity>.5; return;
+      }
       var S=SEG[id], m=S.mat, inF=active&&active.flow.indexOf(id)>=0, inA=active&&(active.also||[]).indexOf(id)>=0, inC=active&&(active.cut||[]).indexOf(id)>=0;
       m.color.set(tok(inF||inA?active.c:S.tok));
       m.emissive=new THREE.Color(inF||inA?tok(active.c):'#000000'); m.emissiveIntensity=inF?.55:inA?.3:0;
       m.opacity=!active||inF||inA?1:inC?.45:(guided?1:.12); m.depthWrite=m.opacity>.5;
-      var vis=S.normal?!!(inF||inA):S.full?!guided:!!(guided&&cur&&(cur.show||[]).indexOf(id)>=0);
+      var vis=S.normal?!!(inF||inA):S.free?false:S.full?mode3==='full':!!(guided&&cur&&(cur.show||[]).indexOf(id)>=0);
       S.mesh.visible=vis; S.plugs.forEach(function(pl){pl.visible=vis;});
     });
-    if(active) pulseMat.color.set(tok(active.c));
-    labels.forEach(function(o){var sg=o.el.getAttribute('data-seg'); if(!sg) return; var on=guided?!(active&&(active.cut||[]).indexOf(sg)>=0):!active||active.flow.indexOf(sg+'')>=0||(active.flow.concat(active.also||[],active.cut||[])).some(function(x){return x.indexOf(sg)===0;}); o.el.classList.toggle('dim',!on); o.el.style.setProperty('--lc',tok(on&&active&&(active.flow.indexOf(sg)>=0||(active.also||[]).indexOf(sg)>=0)?active.c:(o.tokColor||'--fg')));});
+    if(active) pulseCol.set(tok(active.c));
+    labels.forEach(function(o){var sg=o.el.getAttribute('data-seg'); if(!sg) return;
+      if(free){var onf=!!FR.col[sg]; o.el.classList.toggle('dim',!onf); o.el.style.setProperty('--lc',tok(FR.col[sg]||o.tokColor||'--fg')); return;}
+      var on=guided?!(active&&(active.cut||[]).indexOf(sg)>=0):!active||active.flow.indexOf(sg+'')>=0||(active.flow.concat(active.also||[],active.cut||[])).some(function(x){return x.indexOf(sg)===0;}); o.el.classList.toggle('dim',!on); o.el.style.setProperty('--lc',tok(on&&active&&(active.flow.indexOf(sg)>=0||(active.also||[]).indexOf(sg)>=0)?active.c:(o.tokColor||'--fg')));});
   }
   function flyTo(k,dur,cb){
     var s0=Math.max(1,1.4/cam.aspect), to=new THREE.Vector3().fromArray(VIEWS[k]).multiplyScalar(s0), tt=new THREE.Vector3().fromArray(TGT[k]);
@@ -1198,19 +1242,19 @@ if('IntersectionObserver' in window){
     else { setView('rear'); flyTo('rear',1100); }
   }
   function pathOf(id){ if(!id) return null; if(id.charAt(0)==='P') return id; if(id.charAt(0)==='C') return id.slice(0,2); return null; }
-  lblHost.addEventListener('click',function(e){if(guided) return; var b=e.target.closest('[data-seg]'); if(b) select(pathOf(b.getAttribute('data-seg')));});
+  lblHost.addEventListener('click',function(e){if(mode3!=='full') return; var b=e.target.closest('[data-seg]'); if(b) select(pathOf(b.getAttribute('data-seg')));});
   $$('#paths3d [data-path]').forEach(function(b){b.addEventListener('click',function(){var k=b.getAttribute('data-path');select(k==='none'?null:k);});});
   var ray=new THREE.Raycaster(), ndc=new THREE.Vector2(), down=null;
   renderer.domElement.addEventListener('pointerdown',function(e){down=[e.clientX,e.clientY];});
   renderer.domElement.addEventListener('pointerup',function(e){
     if(guided||!down||Math.abs(e.clientX-down[0])+Math.abs(e.clientY-down[1])>6) return; down=null;
     var r=renderer.domElement.getBoundingClientRect(); ndc.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);
-    ray.setFromCamera(ndc,cam); var hit=ray.intersectObjects(pickables.filter(function(m){return m.visible;}),false)[0];
+    ray.setFromCamera(ndc,cam); if(mode3==='free'){freeClick();return;} var hit=ray.intersectObjects(pickables.filter(function(m){return m.visible;}),false)[0];
     if(hit) select(pathOf(hit.object.userData.seg));
   });
   renderer.domElement.addEventListener('pointermove',function(e){
     if(e.buttons) return; var r=renderer.domElement.getBoundingClientRect(); ndc.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);
-    ray.setFromCamera(ndc,cam); renderer.domElement.style.cursor=ray.intersectObjects(pickables,false).length?'pointer':'';
+    ray.setFromCamera(ndc,cam); renderer.domElement.style.cursor=guided?'':ray.intersectObjects(mode3==='free'?jackPicks.concat(pickables.filter(function(m){return m.visible;})):pickables,false).length?'pointer':'';
   });
   /* ---- step-by-step lessons ---- */
   var LESSONS={
@@ -1259,21 +1303,170 @@ if('IntersectionObserver' in window){
   if(ui.prev) ui.prev.addEventListener('click',function(){go(-1);});
   if(ui.next) ui.next.addEventListener('click',function(){go(1);});
   $$('#lessons3d [data-lesson]').forEach(function(b){b.addEventListener('click',function(){lesson=b.getAttribute('data-lesson');stepI=0;showStep();});});
+  /* ---- free patching mode ---- */
+  var mode3='guided', norm='semi', freeCords=[], freeSel=null, freeN=0, FR=null, freeTimer=0;
+  var NORMNAME={normal:'normalizado',semi:'semi-normalizado',thru:'thru (abierto)'};
+  var SRCN=['Preamp OUT 1','Sinte OUT','Caja de ritmos OUT','Interfaz OUT 3','Compresor OUT','EQ OUT'];
+  var DSTN=['Interfaz IN 1','Interfaz IN 2','Interfaz IN 3','Compresor IN','EQ IN','Interfaz IN 4'];
+  var RAW=['Preamp','Sinte','Caja de ritmos','Interfaz OUT 3'];
+  function pbn(i){return 'PB '+(2*i+1);}
+  function jname(j){return pbn(j.c)+(j.r?' abajo':' arriba')+' ('+(j.r?DSTN[j.c]:SRCN[j.c])+')';}
+  // invisible pick targets on the front jacks + a selection ring
+  var jackPicks=[], pickMat=new THREE.MeshBasicMaterial({transparent:true,opacity:0,depthWrite:false});
+  for(var pc2=0;pc2<6;pc2++)for(var pr2=0;pr2<2;pr2++){var jp=new THREE.Mesh(new THREE.SphereGeometry(.95,12,8),pickMat);jp.position.set(jx(2*pc2),rowY(pr2),.8);jp.userData.jack={c:pc2,r:pr2};g.add(jp);jackPicks.push(jp);}
+  var ringMat=new THREE.MeshBasicMaterial(), ring=new THREE.Mesh(new THREE.TorusGeometry(1,.2,8,28),ringMat); ring.visible=false; g.add(ring);
+  function occ(j){for(var k=0;k<freeCords.length;k++){var c=freeCords[k]; if((c.a.c===j.c&&c.a.r===j.r)||(c.b.c===j.c&&c.b.r===j.r)) return c;} return null;}
+  function cordAt(c,r){for(var k=0;k<freeCords.length;k++){var cd=freeCords[k]; if(cd.a.c===c&&cd.a.r===r) return {cd:cd,other:cd.b}; if(cd.b.c===c&&cd.b.r===r) return {cd:cd,other:cd.a};} return null;}
+  function makeCord(cd){
+    var a=new THREE.Vector3(jx(2*cd.a.c),rowY(cd.a.r),.7), b=new THREE.Vector3(jx(2*cd.b.c),rowY(cd.b.r),.7);
+    var sag=2.5+Math.abs(cd.a.c-cd.b.c)*1.1+(freeN%3)*.9, mid=a.clone().lerp(b,.5); mid.y-=sag; mid.z+=5+sag*.4;
+    tube([a.clone().add(new THREE.Vector3(0,0,1.2)),new THREE.Vector3(a.x,a.y-.3,3.4),mid,new THREE.Vector3(b.x,b.y-.3,3.4),b.clone().add(new THREE.Vector3(0,0,1.2))],'--fg',.42,cd.id);
+    SEG[cd.id].free=true; SEG[cd.id].plugs.push(plug(a,SEG[cd.id].mat,1),plug(b,SEG[cd.id].mat,1));
+  }
+  function dropCord(cd){
+    var S=SEG[cd.id]; if(!S) return; [S.mesh].concat(S.plugs).forEach(function(o){g.remove(o); if(o.geometry) o.geometry.dispose();});
+    S.mat.dispose(); pickables.splice(pickables.indexOf(S.mesh),1); delete SEG[cd.id];
+    freeCords.splice(freeCords.indexOf(cd),1);
+  }
+  // signal model: what each jack carries, as chains like "Sinte → Compresor"
+  function topSig(i,stack){
+    if(stack.indexOf('t'+i)>=0){FR.loop=true; return [];}
+    if(i<4) return [{chain:RAW[i],o:i}];
+    var inp=botSig(i===4?3:4,stack.concat('t'+i)).sig;
+    return inp.map(function(s){return {chain:s.chain+(i===4?' → Compresor':' → EQ'),o:s.o};});
+  }
+  function botSig(j,stack){
+    var hit=cordAt(j,1);
+    if(hit){ var cd=hit.cd; if(hit.other.r===0) return {sig:topSig(hit.other.c,stack),why:'por el cable '+cd.n,via:'cord'}; return {sig:[],why:'el cable '+cd.n+' viene de otra entrada: no trae señal',via:'none'}; }
+    if(norm==='thru') return {sig:[],why:'thru: sin cable no hay conexión',via:'none'};
+    if(norm==='normal'&&cordAt(j,0)) return {sig:[],why:'normal roto: hay un cable en '+pbn(j)+' arriba',via:'none'};
+    return {sig:topSig(j,stack),why:'por el normal de '+pbn(j),via:'normal'};
+  }
+  function computeFree(){
+    FR={col:{},bad:{},loop:false,rows:[]};
+    var ORIG=['--c1','--c2','--c3','--c4'];
+    for(var i=0;i<6;i++){
+      var ts=topSig(i,[]); if(ts.length) FR.col['C'+(i+1)+'a']=ORIG[ts[0].o];
+      var bs=botSig(i,[]); FR.rows.push({j:i,b:bs});
+      if(bs.sig.length){ FR.col['C'+(i+1)+'b']=ORIG[bs.sig[0].o]; if(bs.via==='normal') FR.col['N'+(2*i+1)]=ORIG[bs.sig[0].o]; }
+    }
+    freeCords.forEach(function(cd){
+      if(cd.a.r===cd.b.r){FR.bad[cd.id]=true; return;}
+      var t=cd.a.r===0?cd.a:cd.b, s=topSig(t.c,[]); if(s.length) FR.col[cd.id]=ORIG[s[0].o];
+    });
+  }
+  function judge(a,b){ // returns {lvl, html}
+    if(a.r===b.r){
+      if(a.r===0) return {lvl:'err',h:'<b>Esto no tiene sentido.</b> Uniste dos <b>salidas</b>: '+jname(a)+' y '+jname(b)+'. Una salida no recibe señal: las dos se cargan entre sí y no llega nada a ninguna entrada. Conecta siempre de <b>arriba</b> (salida) a <b>abajo</b> (entrada).'};
+      return {lvl:'err',h:'<b>Esto no tiene sentido.</b> Uniste dos <b>entradas</b>: '+jname(a)+' y '+jname(b)+'. Ninguna de las dos trae señal, así que no suena nada. Una entrada necesita una salida.'};
+    }
+    var t=a.r===0?a:b, d=a.r===0?b:a, msg=[], lvl='ok';
+    var srcDev=['pre','synth','drum','iface','comp','eq'][t.c], dstDev=['iface','iface','iface','comp','eq','iface'][d.c];
+    if(t.c===d.c){
+      if(norm==='thru') msg.push('<b>Correcto.</b> En thru este cable es la única forma de que '+SRCN[t.c]+' llegue a '+DSTN[d.c]+'.');
+      else {lvl='warn'; msg.push('<b>Funciona, pero sobra.</b> Sin cable, '+SRCN[t.c]+' ya llegaba a '+DSTN[d.c]+' por el normal de '+pbn(t.c)+'.'+(norm==='normal'?' En normalizado el cable rompe el normal y lo reemplaza: el resultado es el mismo.':' En semi-normalizado el cable en abajo rompe el normal y lo reemplaza: el resultado es el mismo.'));}
+    } else if(srcDev===dstDev&&srcDev!=='iface'){
+      lvl='err'; msg.push('<b>Cuidado: bucle de realimentación.</b> La salida del '+(srcDev==='comp'?'compresor':'ecualizador')+' vuelve a su propia entrada. Puede oscilar y dar un pitido fuerte. Baja el volumen y quita el cable.');
+    } else if(srcDev==='iface'&&dstDev==='iface'){
+      lvl='warn'; msg.push('<b>Loopback.</b> La interfaz se graba a sí misma: OUT 3 entra a '+DSTN[d.c]+'. Sirve para grabar lo que reproduces, pero si monitoreas esa entrada puedes crear realimentación.');
+    } else {
+      msg.push('<b>Correcto: salida → entrada.</b> '+SRCN[t.c]+' ahora entra a '+DSTN[d.c]+'.');
+      if(dstDev==='comp'||dstDev==='eq') msg.push('Así procesas '+['la señal del preamp','el sinte','la caja de ritmos','la salida 3 de la interfaz','la salida del compresor','la salida del EQ'][t.c]+' con el '+(dstDev==='comp'?'compresor':'ecualizador')+'.');
+      else msg.push('Esa señal se graba en la interfaz.');
+    }
+    if(t.c!==d.c){
+      if(norm==='normal') msg.push('En <b>normalizado</b>, conectar en '+pbn(t.c)+' arriba <b>rompe el normal</b>: '+DSTN[t.c]+' deja de recibir '+SRCN[t.c]+'.');
+      else if(norm==='semi') msg.push('En <b>semi-normalizado</b>, conectar arriba <b>no corta</b>: '+DSTN[t.c]+' sigue recibiendo '+SRCN[t.c]+' y el cable lleva una copia.');
+      if(norm!=='thru') msg.push('Conectar en '+pbn(d.c)+' abajo <b>rompe el normal</b> de esa columna: '+DSTN[d.c]+' ya no recibe '+SRCN[d.c]+'.');
+      else msg.push('En <b>thru</b> no hay normales: solo suena lo que conectas con cables.');
+    }
+    if(!topSig(t.c,[]).length&&lvl!=='err'){lvl='warn'; msg.push('<b>Ojo:</b> '+SRCN[t.c]+' está en silencio porque ese equipo no recibe nada en su entrada.');}
+    return {lvl:lvl,h:msg.join(' ')};
+  }
+  var fui={msg:$('#freemsg'),routes:$('#freeroutes'),cords:$('#freecords'),grid:$('#jackgrid')};
+  function setMsg(lvl,h){ if(!fui.msg) return; fui.msg.className='fmsg '+lvl; fui.msg.innerHTML=h; }
+  function renderFreeUI(){
+    if(!FR) return;
+    if(fui.routes){
+      var h='', heard={};
+      FR.rows.forEach(function(r){
+        var j=r.j, s=r.b.sig, iface=[0,1,2,5].indexOf(j)>=0;
+        if(iface) s.forEach(function(x){heard[x.o]=1;});
+        h+='<li class="'+(s.length?'on':'off')+'"><b>'+DSTN[j]+'</b> ← '+(s.length?s.map(function(x){return x.chain;}).join(' y '):'<i>nada</i>')+' <span class="why">'+r.b.why+'</span></li>';
+      });
+      var lost=RAW.filter(function(_,k){return !heard[k];});
+      if(lost.length) h+='<li class="note"><b>No se graba en la interfaz:</b> '+lost.join(', ')+'. Su señal no llega a ninguna entrada de la interfaz.</li>';
+      if(FR.loop) h+='<li class="note err"><b>Hay un bucle:</b> una salida vuelve a entrar a su propia cadena. Quita un cable para romperlo.</li>';
+      fui.routes.innerHTML=h;
+    }
+    if(fui.cords){
+      fui.cords.innerHTML=freeCords.length?freeCords.map(function(cd){var t=cd.a.r===0?cd.a:cd.b,d=t===cd.a?cd.b:cd.a;return '<li><span class="cn'+(FR.bad[cd.id]?' bad':'')+'">'+cd.n+'</span> '+jname(t)+' → '+jname(d)+' <button type="button" class="btn sm" data-drop="'+cd.id+'">Quitar</button></li>';}).join(''):'<li class="off">Todavía no hay cables al frente.</li>';
+    }
+    if(fui.grid) $$('#jackgrid [data-jc]').forEach(function(bt){
+      var j={c:+bt.getAttribute('data-jc'),r:+bt.getAttribute('data-jr')}, o=occ(j);
+      bt.setAttribute('aria-pressed',freeSel&&freeSel.c===j.c&&freeSel.r===j.r?'true':'false');
+      bt.classList.toggle('used',!!o); bt.querySelector('.cnum').textContent=o?o.n:'';
+    });
+  }
+  function refreshFree(){ computeFree(); renderFreeUI(); var mt='Patch bay · '+NORMNAME[norm]; modeF.el.textContent=modeB.el.textContent=mt; paintSegs(); render(); }
+  function pickJack(j){
+    clearTimeout(freeTimer);
+    if(cam.position.z<0){setView('front');flyTo('front',700);}
+    var o=occ(j);
+    if(!freeSel){
+      if(o){ setMsg('warn','<b>Ese jack ya tiene el cable '+o.n+'.</b> Un jack recibe un solo plug. Quita ese cable o elige otro jack.'); return; }
+      freeSel=j; ring.position.set(jx(2*j.c),rowY(j.r),.9); ring.visible=true;
+      setMsg('info','Tomaste un cable en <b>'+jname(j)+'</b>. Ahora elige el otro extremo.'+(j.r===0?' Para que suene, llévalo a la fila de <b>abajo</b> (una entrada).':' Para que suene, el otro extremo debe ir a la fila de <b>arriba</b> (una salida).'));
+      renderFreeUI(); render(); return;
+    }
+    if(freeSel.c===j.c&&freeSel.r===j.r){ freeSel=null; ring.visible=false; setMsg('info','Soltaste el cable. Elige un jack para empezar.'); renderFreeUI(); render(); return; }
+    if(o){ setMsg('warn','<b>Ese jack ya tiene el cable '+o.n+'.</b> Un jack recibe un solo plug. Elige otro jack.'); return; }
+    if(freeCords.length>=6){ setMsg('warn','Ya hay 6 cables. Quita uno para conectar otro.'); return; }
+    freeN++; var cd={a:freeSel,b:j,id:'F'+freeN,n:freeCords.length+1};
+    var jd=judge(freeSel,j); freeCords.push(cd); freeCords.forEach(function(c,k){c.n=k+1;}); makeCord(cd);
+    freeSel=null; ring.visible=false; setMsg(jd.lvl,'Cable '+cd.n+': '+jd.h); refreshFree();
+    var sb=$('#free-turn'); if(sb&&sb.checked){ freeTimer=setTimeout(function(){setView('rear');flyTo('rear',1400);},1100); }
+  }
+  function unplug(id){
+    var cd=freeCords.filter(function(c){return c.id===id;})[0]; if(!cd) return;
+    var t=cd.a.r===0?cd.a:cd.b, d=t===cd.a?cd.b:cd.a;
+    dropCord(cd); freeCords.forEach(function(c,k){c.n=k+1;});
+    setMsg('info','Quitaste el cable de '+jname(t)+' a '+jname(d)+'. '+(norm==='thru'?'En thru, esas columnas quedan sin conexión.':'Las columnas vuelven a su normal.'));
+    refreshFree();
+  }
+  $$('#jackgrid [data-jc]').forEach(function(bt){bt.addEventListener('click',function(){pickJack({c:+bt.getAttribute('data-jc'),r:+bt.getAttribute('data-jr')});});});
+  if(fui.cords) fui.cords.addEventListener('click',function(e){var b=e.target.closest('[data-drop]'); if(b) unplug(b.getAttribute('data-drop'));});
+  $$('#norm3d [data-norm]').forEach(function(bt){bt.addEventListener('click',function(){
+    norm=bt.getAttribute('data-norm'); $$('#norm3d [data-norm]').forEach(function(x){x.setAttribute('aria-pressed',x===bt?'true':'false');});
+    setMsg('info','Modo del patch bay: <b>'+NORMNAME[norm]+'</b>. '+(norm==='normal'?'Arriba y abajo están unidos. Un cable en arriba <b>o</b> en abajo rompe el normal.':norm==='semi'?'Arriba y abajo están unidos. Un cable en arriba toma una copia sin cortar; un cable en abajo rompe el normal.':'Arriba y abajo no están unidos. Solo suena lo que conectas con cables.'));
+    refreshFree();
+  });});
+  var clr=$('#free-clear'); if(clr) clr.addEventListener('click',function(){ freeCords.slice().forEach(dropCord); freeSel=null; ring.visible=false; setMsg('info','Quitaste todos los cables del frente.'); refreshFree(); });
+  function freeClick(){
+    var hit=ray.intersectObjects(jackPicks,false)[0], hc=ray.intersectObjects(pickables.filter(function(m){return m.visible&&m.userData.seg&&SEG[m.userData.seg]&&SEG[m.userData.seg].free;}),false)[0];
+    if(hit&&(!hc||hit.distance<=hc.distance+.5)) pickJack(hit.object.userData.jack); else if(hc) unplug(hc.object.userData.seg);
+  }
   function setMode(m,instant){
-    guided=m==='guided';
+    guided=m==='guided'; mode3=m; clearTimeout(timer); clearTimeout(freeTimer); freeSel=null; ring.visible=false;
     $$('#modes3d [data-mode]').forEach(function(b){b.setAttribute('aria-pressed',b.getAttribute('data-mode')===m?'true':'false');});
     ['#lessons3d','#steps3d'].forEach(function(q){var e=$(q); if(e) e.hidden=!guided;});
-    ['#paths3d','#pathinfo','#wires3d'].forEach(function(q){var e=$(q); if(e) e.hidden=guided;});
+    ['#paths3d','#pathinfo','#wires3d'].forEach(function(q){var e=$(q); if(e) e.hidden=m!=='full';});
+    ['#norm3d','#freepanel'].forEach(function(q){var e=$(q); if(e) e.hidden=m!=='free';});
     drawStrip(stF); drawStrip(stB);
     if(guided){ showStep(instant); }
-    else { cur=null; modeF.on=modeB.on=false; select(null); setView('rear'); flyTo('rear',instant?0:900); }
+    else if(m==='free'){ cur=null; active=null; cutLbl.on=false; modeF.on=modeB.on=true; refreshFree(); setView('front'); flyTo('front',instant?0:900); }
+    else { cur=null; FR=null; modeF.on=modeB.on=false; select(null); setView('rear'); flyTo('rear',instant?0:900); }
   }
   $$('#modes3d [data-mode]').forEach(function(b){b.addEventListener('click',function(){setMode(b.getAttribute('data-mode'));});});
   function stepPulses(now){
     var n=0;
-    if(active&&!reduce){
+    if(mode3==='free'&&FR&&!reduce){
+      var ids=Object.keys(FR.col);
+      ids.forEach(function(id,si){var S=SEG[id]; if(!S||!S.mesh.visible) return; var cc=FR.hex&&FR.hex[id]||'#888888'; for(var k=0;k<2&&n<pulses.length;k++){var t=((now/1400)+k/2+si*.13)%1; pulses[n].position.copy(S.curve.getPoint(t)); pulses[n].material.color.set(cc); pulses[n].visible=true; n++;}});
+    }
+    else if(active&&!reduce){
       var segs=active.flow.map(function(id){return [id,3];}).concat((active.also||[]).map(function(id){return [id,2];}));
-      segs.forEach(function(sg,si){var S=SEG[sg[0]]; if(!S) return; for(var k=0;k<sg[1]&&n<pulses.length;k++){var t=((now/1400)+k/sg[1]+si*.17)%1; pulses[n].position.copy(S.curve.getPoint(t)); pulses[n].visible=true; n++;}});
+      segs.forEach(function(sg,si){var S=SEG[sg[0]]; if(!S) return; for(var k=0;k<sg[1]&&n<pulses.length;k++){var t=((now/1400)+k/sg[1]+si*.17)%1; pulses[n].position.copy(S.curve.getPoint(t)); pulses[n].material.color.copy(pulseCol); pulses[n].visible=true; n++;}});
     }
     for(;n<pulses.length;n++) pulses[n].visible=false;
   }
