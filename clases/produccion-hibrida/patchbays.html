@@ -238,6 +238,7 @@ footer .wrap{padding-block:28px;display:flex;flex-wrap:wrap;gap:16px;justify-con
 .btn.sprimary{background:var(--accent);border-color:var(--accent);color:var(--surface);font-weight:600}
 .btn:disabled{opacity:.45;cursor:not-allowed}
 .btn.sm{min-height:28px;padding:2px 10px;font-size:.8rem}
+.btn.sm.on{border-color:var(--accent);color:var(--accent)}
 .ft{display:inline-flex;gap:6px;align-items:center;font-size:.85rem;color:var(--muted)}
 .jackgrid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
 .jk3.nodst{opacity:.6;border-style:dashed}
@@ -589,7 +590,7 @@ h2::after{content:"";display:block;width:40px;height:4px;border-radius:99px;back
         <button type="button" class="btn" data-view="front" aria-pressed="false">Frente</button>
         <button type="button" class="btn" data-view="side" aria-pressed="false">Lado</button>
         <button type="button" class="btn" data-view="top" aria-pressed="false">Arriba</button>
-        <span class="lbltg"><label for="lbl-dev"><input type="checkbox" id="lbl-dev" checked> Nombres de equipos e instrumentos</label><label for="lbl-toggle"><input type="checkbox" id="lbl-toggle" checked> Nombres de conectores y cables</label></span>
+        <span class="lbltg"><label for="focus-only"><input type="checkbox" id="focus-only" checked> Solo la conexión actual</label><label for="lbl-dev"><input type="checkbox" id="lbl-dev" checked> Nombres de equipos e instrumentos</label><label for="lbl-toggle"><input type="checkbox" id="lbl-toggle" checked> Nombres de conectores y cables</label></span>
       </div>
       <div class="paths3d" id="norm3d" hidden role="group" aria-label="Modo del patch bay"><span class="pl">1 · Modo del patch bay</span><button type="button" class="btn" data-norm="normal" aria-pressed="false">Normalizado</button><button type="button" class="btn" data-norm="semi" aria-pressed="true">Semi-normalizado</button><button type="button" class="btn" data-norm="thru" aria-pressed="false">Thru</button></div>
       <div class="paths3d" id="paths3d" hidden role="group" aria-label="Sigue la señal"><span class="pl">Sigue la señal</span><button type="button" class="btn" data-path="P1" aria-pressed="false">P1</button><button type="button" class="btn" data-path="P2" aria-pressed="false">P2</button><button type="button" class="btn" data-path="C1" aria-pressed="false">C1</button><button type="button" class="btn" data-path="C2" aria-pressed="false">C2</button><button type="button" class="btn" data-path="C3" aria-pressed="false">C3</button><button type="button" class="btn" data-path="C4" aria-pressed="false">C4</button><button type="button" class="btn" data-path="C5" aria-pressed="false">C5</button><button type="button" class="btn" data-path="C6" aria-pressed="false">C6</button><button type="button" class="btn" data-path="none" aria-pressed="false">Quitar</button></div>
@@ -1322,14 +1323,27 @@ if('IntersectionObserver' in window){
   var pulseGeo=new THREE.SphereGeometry(.58,14,10), pulses=[];
   for(var q=0;q<70;q++){var pm=new THREE.Mesh(pulseGeo,new THREE.MeshBasicMaterial());pm.visible=false;g.add(pm);pulses.push(pm);}
   var pulseList=[]; // [segId, hex]
+  var focusOnly=true, focusCord=null, freeSelF=null, FCM={};
+  function focusSet(){ // rear segments that belong to the current connection (free / challenge modes)
+    var f={}; if(!FR) return f;
+    function col(c){var n=c+1; f['C'+n+'a']=1; f['C'+n+'b']=1;}
+    var cd=null; if(focusCord) cd=SEG[focusCord]&&FR?focusCord:null;
+    if(cd){
+      var org=FR.org[cd]||{}, ends=null;
+      Object.keys(FR.org).forEach(function(id){ if(Object.keys(FR.org[id]).some(function(o){return org[o];})) f[id]=1; });
+      if(FCM&&FCM[cd]){ends=FCM[cd]; col(ends.a.c); col(ends.b.c);}
+    } else if(freeSelF){ col(freeSelF.c); }
+    return f;
+  }
   function paintSegs(){
     pulseList=[];
-    var free=mode3==='free'&&FR, hex={};
+    var free=mode3==='free'&&FR, hex={}, FS=free&&focusOnly?focusSet():{};
     Object.keys(SEG).forEach(function(id){
       var S=SEG[id], m=S.mat, vis;
       if(free){
         var ct=FR.col[id], bad=FR.bad[id];
         vis=S.kind==='normal'?!!ct:(S.kind==='rack'||S.kind==='free');
+        if(focusOnly&&S.kind!=='free'&&!FS[id]) vis=false;
         m.color.set(tok(bad?'--hot':ct||S.tok)); m.emissive=new THREE.Color(ct||bad?tok(bad?'--hot':ct):'#000000'); m.emissiveIntensity=ct?.45:bad?.3:0;
         m.opacity=ct||bad||S.kind==='free'?1:.25; m.depthWrite=m.opacity>.5;
         if(ct&&vis){hex[ct]=hex[ct]||tok(ct); pulseList.push([id,hex[ct]]);}
@@ -1337,7 +1351,7 @@ if('IntersectionObserver' in window){
         var inF=active&&active.flow.indexOf(id)>=0, inA=active&&(active.also||[]).indexOf(id)>=0, inC=active&&(active.cut||[]).indexOf(id)>=0;
         if(S.kind==='normal') vis=!!(inF||inA);
         else if(mode3==='guided') vis=!!(cur&&(cur.show||[]).indexOf(id)>=0);
-        else vis=S.kind==='rack'||S.kind==='full';
+        else vis=(S.kind==='rack'||S.kind==='full')&&!(focusOnly&&active&&!inF&&!inA);
         m.color.set(tok(inF||inA?active.c:S.tok));
         m.emissive=new THREE.Color(inF||inA?tok(active.c):'#000000'); m.emissiveIntensity=inF?.55:inA?.3:0;
         m.opacity=!active||inF||inA?1:inC?.45:(mode3==='guided'?1:.12); m.depthWrite=m.opacity>.5;
@@ -1510,14 +1524,14 @@ if('IntersectionObserver' in window){
   function renderFreeUI(){
     if(!FR) return;
     if(fui.routes) fui.routes.innerHTML=routesHTML(FR);
-    if(fui.cords) fui.cords.innerHTML=freeCords.length?freeCords.map(function(cd){var t=cd.a.r===0?cd.a:cd.b,d=t===cd.a?cd.b:cd.a;return '<li><span class="cn'+(FR.bad[cd.id]?' bad':'')+'">'+cd.n+'</span> '+jname(t)+' → '+jname(d)+' <button type="button" class="btn sm" data-drop="'+cd.id+'">Quitar</button></li>';}).join(''):'<li class="off">Todavía no hay cables al frente.</li>';
+    if(fui.cords) fui.cords.innerHTML=freeCords.length?freeCords.map(function(cd){var t=cd.a.r===0?cd.a:cd.b,d=t===cd.a?cd.b:cd.a;return '<li><span class="cn'+(FR.bad[cd.id]?' bad':'')+'">'+cd.n+'</span> '+jname(t)+' → '+jname(d)+' <button type="button" class="btn sm" data-drop="'+cd.id+'">Quitar</button> <button type="button" class="btn sm'+(cd.id===focusCord?' on':'')+'" data-focus="'+cd.id+'" aria-pressed="'+(cd.id===focusCord?'true':'false')+'">Ver atrás</button></li>';}).join(''):'<li class="off">Todavía no hay cables al frente.</li>';
     $$('#jackgrid [data-jc]').forEach(function(bt){
       var j={c:+bt.getAttribute('data-jc'),r:+bt.getAttribute('data-jr')}, o=occ(j);
       bt.setAttribute('aria-pressed',freeSel&&freeSel.c===j.c&&freeSel.r===j.r?'true':'false');
       bt.classList.toggle('used',!!o); bt.querySelector('.cnum').textContent=o?o.n:'';
     });
   }
-  function refreshFree(){ FR=evalPatch(freeCords,norm); renderFreeUI(); if(chal) renderChal(); modeF.el.textContent=modeB.el.textContent='Patch bay · '+NORMNAME[norm]; paintSegs(); render(); }
+  function refreshFree(){ FCM={}; freeCords.forEach(function(c){FCM[c.id]=c;}); if(focusCord&&!FCM[focusCord]) focusCord=freeCords.length?freeCords[freeCords.length-1].id:null; freeSelF=freeSel; FR=evalPatch(freeCords,norm); renderFreeUI(); if(chal) renderChal(); modeF.el.textContent=modeB.el.textContent='Patch bay · '+NORMNAME[norm]; paintSegs(); render(); }
   function pickJack(j){
     clearTimeout(freeTimer);
     if(cam.position.z<0){setView('front');flyTo('front',700);}
@@ -1526,13 +1540,13 @@ if('IntersectionObserver' in window){
       if(o){ setMsg('warn','<b>Ese jack ya tiene el cable '+o.n+'.</b> Un jack recibe un solo plug. Quita ese cable o elige otro jack.'); return; }
       freeSel=j; ringMat.color.set(tok('--brand')); ring.position.set(jx(j.c),rowY(j.r),.9); ring.visible=true;
       setMsg('info','Tomaste un cable en <b>'+jname(j)+'</b>. Ahora elige el otro extremo.'+(j.r===0?' Para que suene, llévalo a la fila de <b>abajo</b> (una entrada).':' Para que suene, el otro extremo debe ir a la fila de <b>arriba</b> (una salida).'));
-      renderFreeUI(); render(); return;
+      refreshFree(); return;
     }
-    if(freeSel.c===j.c&&freeSel.r===j.r){ freeSel=null; ring.visible=false; setMsg('info','Soltaste el cable. Elige un jack para empezar.'); renderFreeUI(); render(); return; }
+    if(freeSel.c===j.c&&freeSel.r===j.r){ freeSel=null; ring.visible=false; setMsg('info','Soltaste el cable. Elige un jack para empezar.'); refreshFree(); return; }
     if(o){ setMsg('warn','<b>Ese jack ya tiene el cable '+o.n+'.</b> Un jack recibe un solo plug. Elige otro jack.'); return; }
     if(freeCords.length>=8){ setMsg('warn','Ya hay 8 cables. Quita uno para conectar otro.'); return; }
     freeN++; var cd={a:freeSel,b:j,id:'F'+freeN,n:freeCords.length+1};
-    var jd=judge(freeSel,j); freeCords.push(cd); freeCords.forEach(function(c,k){c.n=k+1;}); patch(cd.a.c,cd.a.r,cd.b.c,cd.b.r,cd.id,'free',null);
+    var jd=judge(freeSel,j); focusCord=cd.id; freeCords.push(cd); freeCords.forEach(function(c,k){c.n=k+1;}); patch(cd.a.c,cd.a.r,cd.b.c,cd.b.r,cd.id,'free',null);
     freeSel=null; ring.visible=false; setMsg(jd.lvl,'Cable '+cd.n+': '+jd.h); refreshFree();
     var sb=$('#free-turn'); if(sb&&sb.checked){ freeTimer=setTimeout(function(){setView('rear');flyTo('rear',1400);},1100); }
   }
@@ -1544,7 +1558,7 @@ if('IntersectionObserver' in window){
     refreshFree();
   }
   $$('#jackgrid [data-jc]').forEach(function(bt){bt.addEventListener('click',function(){pickJack({c:+bt.getAttribute('data-jc'),r:+bt.getAttribute('data-jr')});});});
-  if(fui.cords) fui.cords.addEventListener('click',function(e){var b=e.target.closest('[data-drop]'); if(b) unplug(b.getAttribute('data-drop'));});
+  if(fui.cords) fui.cords.addEventListener('click',function(e){var fb=e.target.closest('[data-focus]'); if(fb){focusCord=fb.getAttribute('data-focus'); refreshFree(); clearTimeout(freeTimer); setView('rear'); flyTo('rear',1200); return;} var b=e.target.closest('[data-drop]'); if(b) unplug(b.getAttribute('data-drop'));});
   $$('#norm3d [data-norm]').forEach(function(bt){bt.addEventListener('click',function(){
     norm=bt.getAttribute('data-norm'); $$('#norm3d [data-norm]').forEach(function(x){x.setAttribute('aria-pressed',x===bt?'true':'false');});
     setMsg('info','Modo del patch bay: <b>'+NORMNAME[norm]+'</b>. '+(norm==='normal'?'Arriba y abajo están unidos. Un cable en arriba <b>o</b> en abajo rompe el normal.':norm==='semi'?'Arriba y abajo están unidos. Un cable en arriba toma una copia sin cortar; un cable en abajo rompe el normal.':'Arriba y abajo no están unidos. Solo suena lo que conectas con cables.'));
@@ -1620,7 +1634,7 @@ if('IntersectionObserver' in window){
   var chal=null, chalI=0, chalTried=false;
   var cui={box:$('#chal3d'),title:$('#chaltitle'),text:$('#chaltext'),goals:$('#chalgoals'),res:$('#chalres'),norm:$('#chalnorm')};
   function setNorm(n){norm=n; $$('#norm3d [data-norm]').forEach(function(x){x.setAttribute('aria-pressed',x.getAttribute('data-norm')===n?'true':'false');});}
-  function addCord(a,b){freeN++; var cd={a:a,b:b,id:'F'+freeN}; freeCords.push(cd); freeCords.forEach(function(c,k){c.n=k+1;}); patch(a.c,a.r,b.c,b.r,cd.id,'free',null);}
+  function addCord(a,b){freeN++; var cd={a:a,b:b,id:'F'+freeN}; focusCord=cd.id; freeCords.push(cd); freeCords.forEach(function(c,k){c.n=k+1;}); patch(a.c,a.r,b.c,b.r,cd.id,'free',null);}
   function clearCords(){freeCords.slice().forEach(dropCord); freeSel=null; ring.visible=false;}
   function renderChal(){
     if(!chal||!FR||!cui.goals) return;
@@ -1686,6 +1700,7 @@ if('IntersectionObserver' in window){
     b.addEventListener('click',function(){ clearTimeout(timer); clearTimeout(freeTimer); var k=b.getAttribute('data-view'); setView(k); flyTo(k,0); });
   });
   var jt=$('#lbl-toggle'); if(jt) jt.addEventListener('change',function(){showJacks=jt.checked;render();});
+  var fo=$('#focus-only'); if(fo) fo.addEventListener('change',function(){focusOnly=fo.checked; paintSegs(); render();});
   var jd=$('#lbl-dev'); if(jd) jd.addEventListener('change',function(){showDev=jd.checked;render();});
   var visible=true;
   if('IntersectionObserver' in window){new IntersectionObserver(function(e){visible=e[0].isIntersecting; if(visible&&!reduce) loop();}).observe(host);}
