@@ -241,6 +241,17 @@ footer .wrap{padding-block:28px;display:flex;flex-wrap:wrap;gap:16px;justify-con
 .ft{display:inline-flex;gap:6px;align-items:center;font-size:.85rem;color:var(--muted)}
 .jackgrid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
 .jk3.nodst{opacity:.6;border-style:dashed}
+.chal{display:grid;gap:8px;padding-bottom:12px;border-bottom:1px solid var(--line)}
+.chal h4{margin:0;font-family:var(--f-display);font-size:1.15rem}
+.chal p{margin:0;max-width:75ch}
+.chbtns{display:inline-flex;flex-wrap:wrap;gap:6px}
+.chbtns .btn{min-height:32px;padding:4px 12px}
+.goals{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.goals li{padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg)}
+.goals li.ok{border-color:var(--gnd)}
+.goals .gk{display:inline-block;width:1.2em;font-weight:700;color:var(--muted)}
+.goals li.ok .gk{color:var(--gnd)}
+.goals .why{display:block;margin-top:4px;font-size:.85rem;color:var(--muted)}
 .layout3d{display:grid;gap:4px;margin-block:4px 12px}.layout3d p{margin:0}.small{font-size:.85rem;color:var(--muted)}
 .jackgrid .rowlbl{grid-column:1/-1;font-family:var(--f-mono);font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
 .jk3{font:inherit;display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:7px 8px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--fg);cursor:pointer;text-align:left;min-width:0;position:relative}
@@ -567,9 +578,9 @@ h2::after{content:"";display:block;width:40px;height:4px;border-radius:99px;back
     <div class="in">
       <span class="utag">U-07 · Vista 3D</span>
       <h2>El rack en tres dimensiones</h2>
-      <p>Arrastra para orbitar, rueda o pellizca para acercarte. En <b>Paso a paso</b> armas una conexión a la vez: primero en normalizado, luego en semi-normalizado y en thru. La lección 4 graba una voz con un micrófono de condensador. En <b>Estudio completo</b> ves todo el rack cableado y puedes seguir cada cable. En <b>Conexión libre</b> eliges el modo del patch bay y conectas tus propios cables.</p>
+      <p>Arrastra para orbitar, rueda o pellizca para acercarte. En <b>Paso a paso</b> armas una conexión a la vez: primero en normalizado, luego en semi-normalizado y en thru. La lección 4 graba una voz con un micrófono de condensador. En <b>Estudio completo</b> ves todo el rack cableado y puedes seguir cada cable. En <b>Conexión libre</b> eliges el modo del patch bay y conectas tus propios cables. En <b>Desafíos</b> resuelves un escenario de estudio con objetivos.</p>
       <div class="layout3d"><p><b>Distribución del patch bay.</b> PB 1–8: arriba los instrumentos (Caja de ritmos L/R, Sinte 1, Sinte 2, Mic 1, Mic 2, Guitarra, Bajo), abajo las entradas 1–8 de la interfaz. PB 9–10: salidas 3/4 de la interfaz hacia el compresor estéreo. PB 11–12: compresor L/R hacia el ecualizador estéreo. PB 13–14: salidas L/R del ecualizador, libres para parchear.</p><p class="small">Los micrófonos y la guitarra/bajo no entran directo al patch bay: primero pasan por el preamp (XLR con +48 V para los condensadores, entrada Hi-Z para guitarra y bajo). El patch bay trabaja a nivel de línea.</p></div>
-      <div class="modes3d" id="modes3d" role="group" aria-label="Modo de la vista 3D"><button type="button" class="btn" data-mode="guided" aria-pressed="true">Paso a paso</button><button type="button" class="btn" data-mode="full" aria-pressed="false">Estudio completo</button><button type="button" class="btn" data-mode="free" aria-pressed="false">Conexión libre</button></div>
+      <div class="modes3d" id="modes3d" role="group" aria-label="Modo de la vista 3D"><button type="button" class="btn" data-mode="guided" aria-pressed="true">Paso a paso</button><button type="button" class="btn" data-mode="full" aria-pressed="false">Estudio completo</button><button type="button" class="btn" data-mode="free" aria-pressed="false">Conexión libre</button><button type="button" class="btn" data-mode="chal" aria-pressed="false">Desafíos</button></div>
       <div class="paths3d" id="lessons3d" role="group" aria-label="Lección"><span class="pl">Lección</span><button type="button" class="btn" data-lesson="L1" aria-pressed="true">1 · Normalizado</button><button type="button" class="btn" data-lesson="L2" aria-pressed="false">2 · Semi-normalizado</button><button type="button" class="btn" data-lesson="L3" aria-pressed="false">3 · Thru</button><button type="button" class="btn" data-lesson="L4" aria-pressed="false">4 · Tracking de voz</button></div>
       <div class="views3d" id="views3d" role="group" aria-label="Vista del rack">
         <button type="button" class="btn" data-view="mic" aria-pressed="false">Micrófonos</button>
@@ -585,6 +596,15 @@ h2::after{content:"";display:block;width:40px;height:4px;border-radius:99px;back
       <div class="stage3d" id="stage3d"><div class="lbl3d" id="lbl3d"></div><span class="hint">arrastrar · zoom · clic en un cable o jack</span></div>
       <div class="steps3d" id="steps3d"><div class="sbar"><span class="sbadge" id="stepmode">normalizado</span><span class="scount" id="stepcount">Paso 1 de 5</span></div><p id="steptext" aria-live="polite">Vamos a conectar el sintetizador al ecualizador pasando por el patch bay.</p><div class="snav"><button type="button" class="btn" id="stepprev">← Anterior</button><button type="button" class="btn sprimary" id="stepnext">Siguiente →</button></div></div>
       <div class="steps3d freepanel" id="freepanel" hidden>
+        <div class="chal" id="chal3d" hidden>
+          <div class="sbar"><span class="pl">Desafío</span><span class="chbtns" role="group" aria-label="Elegir desafío"><button type="button" class="btn" data-chal="0" aria-pressed="true">1</button><button type="button" class="btn" data-chal="1" aria-pressed="false">2</button><button type="button" class="btn" data-chal="2" aria-pressed="false">3</button><button type="button" class="btn" data-chal="3" aria-pressed="false">4</button><button type="button" class="btn" data-chal="4" aria-pressed="false">5</button><button type="button" class="btn" data-chal="5" aria-pressed="false">6</button></span></div>
+          <h4 id="chaltitle">1 · Voz seca y comprimida</h4>
+          <p id="chaltext"></p>
+          <p class="small">Modo del patch bay en este desafío: <b id="chalnorm">semi-normalizado</b></p>
+          <ul class="goals" id="chalgoals"></ul>
+          <div class="snav"><span class="chbtns"><button type="button" class="btn sprimary" id="chalcheck">Comprobar</button><button type="button" class="btn" id="chalreset">Reiniciar</button></span><button type="button" class="btn" id="chalsol">Ver solución</button></div>
+          <p class="fmsg" id="chalres" hidden aria-live="polite"></p>
+        </div>
         <div class="sbar"><span class="pl">2 · Conecta: toca un jack y luego otro</span><label for="free-turn" class="ft"><input type="checkbox" id="free-turn" checked> Girar para ver atrás al conectar</label></div>
         <div class="jackgrid" id="jackgrid" role="group" aria-label="Jacks del frente del patch bay"><span class="rowlbl">Arriba · salidas</span><button type="button" class="jk3" data-jc="0" data-jr="0" aria-pressed="false"><span class="pbn">PB 1 ↑</span><span class="jn">Voz · Preamp OUT 1</span><span class="cnum"></span></button><button type="button" class="jk3" data-jc="1" data-jr="0" aria-pressed="false"><span class="pbn">PB 3 ↑</span><span class="jn">Sinte OUT</span><span class="cnum"></span></button><button type="button" class="jk3" data-jc="2" data-jr="0" aria-pressed="false"><span class="pbn">PB 5 ↑</span><span class="jn">Caja OUT</span><span class="cnum"></span></button><button type="button" class="jk3" data-jc="3" data-jr="0" aria-pressed="false"><span class="pbn">PB 7 ↑</span><span class="jn">Interfaz OUT 3</span><span class="cnum"></span></button><button type="button" class="jk3" data-jc="4" data-jr="0" aria-pressed="false"><span class="pbn">PB 9 ↑</span><span class="jn">Compresor OUT</span><span class="cnum"></span></button><button type="button" class="jk3" data-jc="5" data-jr="0" aria-pressed="false"><span class="pbn">PB 11 ↑</span><span class="jn">EQ OUT</span><span class="cnum"></span></button><span class="rowlbl">Abajo · entradas</span><button type="button" class="jk3" data-jc="0" data-jr="1" aria-pressed="false"><span class="pbn">PB 1 ↓</span><span class="jn">Interfaz IN 1</span><span class="cnum"></span></button><button type="button" class="jk3" data-jc="1" data-jr="1" aria-pressed="false"><span class="pbn">PB 3 ↓</span><span class="jn">Interfaz IN 2</span><span class="cnum"></span></button><button type="button" class="jk3" data-jc="2" data-jr="1" aria-pressed="false"><span class="pbn">PB 5 ↓</span><span class="jn">Interfaz IN 3</span><span class="cnum"></span></button><button type="button" class="jk3" data-jc="3" data-jr="1" aria-pressed="false"><span class="pbn">PB 7 ↓</span><span class="jn">Compresor IN</span><span class="cnum"></span></button><button type="button" class="jk3" data-jc="4" data-jr="1" aria-pressed="false"><span class="pbn">PB 9 ↓</span><span class="jn">EQ IN</span><span class="cnum"></span></button><button type="button" class="jk3" data-jc="5" data-jr="1" aria-pressed="false"><span class="pbn">PB 11 ↓</span><span class="jn">Interfaz IN 4</span><span class="cnum"></span></button></div>
         <p class="fmsg info" id="freemsg" aria-live="polite">Elige el modo del patch bay. Después toca un jack del frente (en el 3D o en estos botones) y luego el otro extremo.</p>
@@ -1497,7 +1517,7 @@ if('IntersectionObserver' in window){
       bt.classList.toggle('used',!!o); bt.querySelector('.cnum').textContent=o?o.n:'';
     });
   }
-  function refreshFree(){ FR=evalPatch(freeCords,norm); renderFreeUI(); modeF.el.textContent=modeB.el.textContent='Patch bay · '+NORMNAME[norm]; paintSegs(); render(); }
+  function refreshFree(){ FR=evalPatch(freeCords,norm); renderFreeUI(); if(chal) renderChal(); modeF.el.textContent=modeB.el.textContent='Patch bay · '+NORMNAME[norm]; paintSegs(); render(); }
   function pickJack(j){
     clearTimeout(freeTimer);
     if(cam.position.z<0){setView('front');flyTo('front',700);}
@@ -1551,15 +1571,100 @@ if('IntersectionObserver' in window){
     renderer.domElement.style.cursor=ray.intersectObjects(mode3==='free'?jackPicks.concat(visPick()):visPick(),false).length?'pointer':'';
   });
 
+  /* ================= challenges (free patching with a goal) ================= */
+  function has(R,j,chain){var rw=R.rows.filter(function(x){return x.j===j;})[0]; return !!(rw&&rw.b.sig.some(function(s){return s.chain===chain;}));}
+  function only(R,j,chain){var rw=R.rows.filter(function(x){return x.j===j;})[0]; return !!(rw&&rw.b.sig.length===1&&rw.b.sig[0].chain===chain);}
+  var G_NOBAD={t:'Ningún cable une dos salidas o dos entradas',ok:function(R){return !Object.keys(R.bad).length;},h:'Revisa tus cables: cada cable va de una fila de <b>arriba</b> (salida) a una de <b>abajo</b> (entrada).'};
+  var G_NOLOOP={t:'No hay bucles de realimentación',ok:function(R){return !R.loop;},h:'Una salida vuelve a su propia cadena. Busca un cable que lleve el compresor o el EQ a su propia entrada.'};
+  var CHAL=[
+    {name:'1 · Voz seca y comprimida',norm:'semi',
+     s:'Una cantante graba la voz principal con el <b>Mic 1</b>. El productor quiere dos pistas: la voz <b>seca</b> en <b>Interfaz IN 5</b> y la voz <b>solo con compresor</b> en <b>Interfaz IN 6</b>. Hoy no se usa el Mic 2. El patch bay está en <b>semi-normalizado</b>.',
+     goals:[{t:'IN 5 graba la voz seca (Mic 1)',ok:function(R){return has(R,4,'Mic 1');},h:'En semi-normal, un cable en PB 5 <b>arriba</b> no corta el normal hacia IN 5.'},
+            {t:'IN 6 graba Mic 1 → Compresor L',ok:function(R){return only(R,5,'Mic 1 → Compresor L');},h:'Lleva la voz a la entrada del compresor (PB 9 abajo) y su salida (PB 11 arriba) a IN 6 (PB 6 abajo).'},G_NOBAD],
+     sol:[[4,0,8,1],[10,0,5,1]],
+     ex:'PB 5 arriba → PB 9 abajo lleva una copia de la voz al compresor (semi-normal no corta IN 5). PB 11 arriba → PB 6 abajo lleva la voz comprimida a IN 6 y rompe el normal del Mic 2, que hoy no se usa.'},
+    {name:'2 · Caja de ritmos estéreo al compresor',norm:'semi',
+     s:'Sesión de beats: hoy no hay guitarra ni bajo. Quieren la <b>caja de ritmos estéreo</b> seca en <b>IN 1/2</b> y también <b>comprimida en estéreo</b> en <b>IN 7/8</b>, sin cruzar L y R.',
+     goals:[{t:'IN 1 y 2 graban la caja seca (L y R)',ok:function(R){return has(R,0,'Caja de ritmos L')&&has(R,1,'Caja de ritmos R');},h:'No conectes nada en PB 1 y PB 2 <b>abajo</b>: eso rompe el normal hacia IN 1/2.'},
+            {t:'IN 7 graba Caja L → Compresor L',ok:function(R){return only(R,6,'Caja de ritmos L → Compresor L');},h:'Caja L (PB 1 arriba) va a Compresor IN L (PB 9 abajo). Compresor OUT L (PB 11 arriba) va a IN 7 (PB 7 abajo).'},
+            {t:'IN 8 graba Caja R → Compresor R',ok:function(R){return only(R,7,'Caja de ritmos R → Compresor R');},h:'Lo mismo con el lado R: PB 2 → PB 10, y PB 12 → PB 8.'},G_NOBAD],
+     sol:[[0,0,8,1],[1,0,9,1],[10,0,6,1],[11,0,7,1]],
+     ex:'Cuatro cables: L con L y R con R. En semi-normal las copias en PB 1/2 arriba no cortan IN 1/2. Los cables en PB 7/8 abajo rompen el normal de guitarra y bajo, que hoy no se usan.'},
+    {name:'3 · Normalizado: Sinte 2 con EQ',norm:'normal',
+     s:'El patch bay está en <b>normalizado</b>. El tecladista quiere grabar el <b>Sinte 2 solo con ecualizador</b> (sin compresor) en <b>Interfaz IN 4</b>. Recuerda: en normalizado, un cable en arriba <b>también</b> rompe el normal.',
+     goals:[{t:'IN 4 graba Sinte 2 → EQ L (sin compresor)',ok:function(R){return only(R,3,'Sinte 2 → EQ L');},h:'Lleva el Sinte 2 (PB 4 arriba) directo a EQ IN L (PB 11 abajo), sin pasar por PB 9. Luego EQ OUT L (PB 13 arriba) a IN 4 (PB 4 abajo).'},G_NOBAD,G_NOLOOP],
+     sol:[[3,0,10,1],[12,0,3,1]],
+     ex:'PB 4 arriba → PB 11 abajo manda el sinte al EQ y deja fuera al compresor (el cable en PB 11 abajo rompe ese normal). PB 13 arriba → PB 4 abajo devuelve el EQ a IN 4. En normalizado el cable en PB 4 arriba corta el sinte seco, pero aquí no hace falta.'},
+    {name:'4 · Thru: arma la sesión de banda',norm:'thru',
+     s:'Ensayo grabado de una banda. El patch bay está en <b>thru</b>: nada pasa sin cable. Necesitan: <b>caja de ritmos</b> en IN 1/2, <b>voz (Mic 1)</b> en IN 5, <b>guitarra</b> en IN 7 y <b>bajo</b> en IN 8.',
+     goals:[{t:'Caja L y R en IN 1 y 2',ok:function(R){return has(R,0,'Caja de ritmos L')&&has(R,1,'Caja de ritmos R');},h:'En thru necesitas un cable de PB 1 arriba a PB 1 abajo, y lo mismo en PB 2.'},
+            {t:'Mic 1 en IN 5',ok:function(R){return has(R,4,'Mic 1');},h:'PB 5 arriba → PB 5 abajo.'},
+            {t:'Guitarra en IN 7 y bajo en IN 8',ok:function(R){return has(R,6,'Guitarra')&&has(R,7,'Bajo');},h:'PB 7 arriba → PB 7 abajo y PB 8 arriba → PB 8 abajo.'},G_NOBAD],
+     sol:[[0,0,0,1],[1,0,1,1],[4,0,4,1],[6,0,6,1],[7,0,7,1]],
+     ex:'En thru cada señal necesita su propio cable, aunque arriba y abajo estén en la misma columna. Por eso en estudios se prefiere semi-normal para lo que se graba siempre igual.'},
+    {name:'5 · Mezcla híbrida con 2 cables',norm:'semi',
+     s:'Mezcla final: el DAW manda la mezcla estéreo por <b>Interfaz OUT 3/4</b>. Quieren pasarla por el <b>compresor y luego el EQ</b> y grabarla de vuelta en <b>IN 7/8</b>. Reto: hazlo con <b>2 cables o menos</b>. Pista: aprovecha los normales.',
+     goals:[{t:'IN 7 graba OUT 3 → Compresor L → EQ L',ok:function(R){return only(R,6,'Interfaz OUT 3 → Compresor L → EQ L');},h:'OUT 3 ya llega al compresor por el normal de PB 9, y el compresor ya llega al EQ por el normal de PB 11. Solo falta sacar el EQ.'},
+            {t:'IN 8 graba OUT 4 → Compresor R → EQ R',ok:function(R){return only(R,7,'Interfaz OUT 4 → Compresor R → EQ R');},h:'Igual con el lado R: EQ OUT R está en PB 14 arriba.'},
+            {t:'Usas 2 cables o menos',ok:function(){return freeCords.length<=2;},h:'No conectes nada en PB 9–12: los normales ya hacen ese trabajo.'},G_NOBAD],
+     sol:[[12,0,6,1],[13,0,7,1]],
+     ex:'Los normales de PB 9–12 ya unen OUT 3/4 → compresor → EQ. Solo hacen falta 2 cables: PB 13 → PB 7 y PB 14 → PB 8. Un buen ruteo de patch bay ahorra cables.'},
+    {name:'6 · Encuentra los errores',norm:'semi',pre:[[0,0,1,0],[12,0,10,1],[2,0,0,1]],
+     s:'Otro estudiante dejó el patch bay así y <b>nada suena bien</b>. Arréglalo: la caja debe llegar a <b>IN 1/2</b>, el <b>Sinte 1</b> a <b>IN 3</b>, sin cables mal puestos y sin bucles.',
+     goals:[G_NOBAD,G_NOLOOP,
+            {t:'Caja L y R en IN 1 y 2',ok:function(R){return only(R,0,'Caja de ritmos L')&&only(R,1,'Caja de ritmos R');},h:'Hay un cable en PB 1 <b>abajo</b> que rompe el normal de la caja.'},
+            {t:'Sinte 1 en IN 3',ok:function(R){return has(R,2,'Sinte 1');},h:'Revisa que nada esté en PB 3 abajo.'}],
+     sol:[],
+     ex:'Había tres errores: un cable unía dos salidas (PB 1 y PB 2 arriba), otro llevaba EQ OUT L a la entrada del EQ (bucle), y otro metía el Sinte 1 en PB 1 abajo y cortaba la caja. Sin esos cables, los normales lo resuelven todo.'}
+  ];
+  var chal=null, chalI=0, chalTried=false;
+  var cui={box:$('#chal3d'),title:$('#chaltitle'),text:$('#chaltext'),goals:$('#chalgoals'),res:$('#chalres'),norm:$('#chalnorm')};
+  function setNorm(n){norm=n; $$('#norm3d [data-norm]').forEach(function(x){x.setAttribute('aria-pressed',x.getAttribute('data-norm')===n?'true':'false');});}
+  function addCord(a,b){freeN++; var cd={a:a,b:b,id:'F'+freeN}; freeCords.push(cd); freeCords.forEach(function(c,k){c.n=k+1;}); patch(a.c,a.r,b.c,b.r,cd.id,'free',null);}
+  function clearCords(){freeCords.slice().forEach(dropCord); freeSel=null; ring.visible=false;}
+  function renderChal(){
+    if(!chal||!FR||!cui.goals) return;
+    var all=true;
+    cui.goals.innerHTML=chal.goals.map(function(gl){var ok=gl.ok(FR); if(!ok) all=false; return '<li class="'+(ok?'ok':'no')+'"><span class="gk" aria-hidden="true">'+(ok?'✓':'○')+'</span> '+gl.t+(chalTried&&!ok?'<span class="why">'+gl.h+'</span>':'')+'</li>';}).join('');
+    return all;
+  }
+  function startChal(i){
+    chalI=i; chal=CHAL[i]; chalTried=false; clearCords(); setNorm(chal.norm);
+    (chal.pre||[]).forEach(function(x){addCord({c:x[0],r:x[1]},{c:x[2],r:x[3]});});
+    $$('#chal3d [data-chal]').forEach(function(b){b.setAttribute('aria-pressed',+b.getAttribute('data-chal')===i?'true':'false');});
+    if(cui.title) cui.title.textContent=chal.name;
+    if(cui.text) cui.text.innerHTML=chal.s;
+    if(cui.norm) cui.norm.textContent=NORMNAME[chal.norm];
+    if(cui.res){cui.res.hidden=true;}
+    setMsg('info','Desafío cargado. Toca un jack del frente (en el 3D o en los botones) y luego el otro extremo.');
+    refreshFree();
+  }
+  function checkChal(){
+    chalTried=true; var all=renderChal();
+    if(!cui.res) return; cui.res.hidden=false;
+    if(all){cui.res.className='fmsg ok'; cui.res.innerHTML='<b>¡Desafío superado!</b> '+chal.ex;}
+    else {cui.res.className='fmsg err'; cui.res.innerHTML='<b>Todavía no.</b> Revisa los objetivos marcados con ○: cada uno tiene una pista.';}
+  }
+  $$('#chal3d [data-chal]').forEach(function(b){b.addEventListener('click',function(){startChal(+b.getAttribute('data-chal'));});});
+  var cb1=$('#chalcheck'); if(cb1) cb1.addEventListener('click',checkChal);
+  var cb2=$('#chalreset'); if(cb2) cb2.addEventListener('click',function(){startChal(chalI);});
+  var cb3=$('#chalsol'); if(cb3) cb3.addEventListener('click',function(){
+    clearCords(); chal.sol.forEach(function(x){addCord({c:x[0],r:x[1]},{c:x[2],r:x[3]});}); refreshFree(); chalTried=true; renderChal();
+    if(cui.res){cui.res.hidden=false; cui.res.className='fmsg info'; cui.res.innerHTML='<b>Solución.</b> '+chal.ex;}
+    setMsg('info','Esta es una solución posible. Puede haber otras: lo importante es que se cumplan los objetivos.');
+    setView('front'); flyTo('front',700,function(){ freeTimer=setTimeout(function(){setView('rear');flyTo('rear',1400);},1300); });
+  });
+
   /* ---- modes ---- */
-  function setMode(m,instant){
-    mode3=m; clearTimeout(timer); clearTimeout(freeTimer); freeSel=null; ring.visible=false; active=null; cur=null; cutLbl.on=false;
-    $$('#modes3d [data-mode]').forEach(function(b){b.setAttribute('aria-pressed',b.getAttribute('data-mode')===m?'true':'false');});
+  function setMode(mm,instant){
+    var m=mm==='chal'?'free':mm; mode3=m; if(mm!=='chal') chal=null; clearTimeout(timer); clearTimeout(freeTimer); freeSel=null; ring.visible=false; active=null; cur=null; cutLbl.on=false;
+    $$('#modes3d [data-mode]').forEach(function(b){b.setAttribute('aria-pressed',b.getAttribute('data-mode')===mm?'true':'false');});
+    var nb=$('#norm3d'); if(nb) nb.hidden=mm!=='free'; var cbx=$('#chal3d'); if(cbx) cbx.hidden=mm!=='chal';
     ['#lessons3d','#steps3d'].forEach(function(q){var e=$(q); if(e) e.hidden=m!=='guided';});
     ['#paths3d','#pathinfo','#wires3d'].forEach(function(q){var e=$(q); if(e) e.hidden=m!=='full';});
-    ['#norm3d','#freepanel'].forEach(function(q){var e=$(q); if(e) e.hidden=m!=='free';});
+    var fp=$('#freepanel'); if(fp) fp.hidden=m!=='free';
     if(m==='guided'){ FR=null; showStep(instant); }
-    else if(m==='free'){ modeF.p.x=modeB.p.x=jx(5); modeF.on=modeB.on=true; refreshFree(); setView('front'); flyTo('front',instant?0:900); }
+    else if(m==='free'){ modeF.p.x=modeB.p.x=jx(5); modeF.on=modeB.on=true; if(mm==='chal') startChal(chalI); else refreshFree(); setView('front'); flyTo('front',instant?0:900); }
     else { FR=null; FULL=evalPatch(FULLCORDS,'semi'); modeF.el.textContent=modeB.el.textContent='Patch bay · semi-normalizado'; modeF.p.x=modeB.p.x=jx(5); modeF.on=modeB.on=true; select(null); setView('rear'); flyTo('rear',instant?0:900); }
   }
   $$('#modes3d [data-mode]').forEach(function(b){b.addEventListener('click',function(){setMode(b.getAttribute('data-mode'));});});
