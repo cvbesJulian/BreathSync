@@ -214,7 +214,8 @@ footer .wrap{padding-block:28px;display:flex;flex-wrap:wrap;gap:16px;justify-con
   .case li{transition:none}
 }
 .views3d{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-block:12px}
-.views3d label{display:inline-flex;gap:6px;align-items:center;font-size:.9rem;margin-left:auto}
+.views3d label{display:inline-flex;gap:6px;align-items:center;font-size:.9rem}
+.views3d .lbltg{display:inline-flex;flex-wrap:wrap;gap:6px 14px;margin-left:auto}
 .lbl3d{position:absolute;inset:0;pointer-events:none;overflow:hidden}
 .l3{position:absolute;left:0;top:0;white-space:nowrap;font-family:var(--f-mono);font-size:11px;line-height:1.2;padding:2px 6px;border-radius:4px;background:color-mix(in srgb,var(--surface) 88%,transparent);color:var(--fg);border:1px solid var(--line)}
 .l3.dev{font-family:var(--f-display);font-weight:700;font-size:12.5px;border-color:var(--fg)}
@@ -577,7 +578,7 @@ h2::after{content:"";display:block;width:40px;height:4px;border-radius:99px;back
         <button type="button" class="btn" data-view="front" aria-pressed="false">Frente</button>
         <button type="button" class="btn" data-view="side" aria-pressed="false">Lado</button>
         <button type="button" class="btn" data-view="top" aria-pressed="false">Arriba</button>
-        <label for="lbl-toggle"><input type="checkbox" id="lbl-toggle" checked> Nombres de conectores y cables</label>
+        <span class="lbltg"><label for="lbl-dev"><input type="checkbox" id="lbl-dev" checked> Nombres de equipos e instrumentos</label><label for="lbl-toggle"><input type="checkbox" id="lbl-toggle" checked> Nombres de conectores y cables</label></span>
       </div>
       <div class="paths3d" id="norm3d" hidden role="group" aria-label="Modo del patch bay"><span class="pl">1 · Modo del patch bay</span><button type="button" class="btn" data-norm="normal" aria-pressed="false">Normalizado</button><button type="button" class="btn" data-norm="semi" aria-pressed="true">Semi-normalizado</button><button type="button" class="btn" data-norm="thru" aria-pressed="false">Thru</button></div>
       <div class="paths3d" id="paths3d" hidden role="group" aria-label="Sigue la señal"><span class="pl">Sigue la señal</span><button type="button" class="btn" data-path="P1" aria-pressed="false">P1</button><button type="button" class="btn" data-path="P2" aria-pressed="false">P2</button><button type="button" class="btn" data-path="C1" aria-pressed="false">C1</button><button type="button" class="btn" data-path="C2" aria-pressed="false">C2</button><button type="button" class="btn" data-path="C3" aria-pressed="false">C3</button><button type="button" class="btn" data-path="C4" aria-pressed="false">C4</button><button type="button" class="btn" data-path="C5" aria-pressed="false">C5</button><button type="button" class="btn" data-path="C6" aria-pressed="false">C6</button><button type="button" class="btn" data-path="none" aria-pressed="false">Quitar</button></div>
@@ -1271,7 +1272,7 @@ if('IntersectionObserver' in window){
   }
 
   /* ---- labels projected over the canvas ---- */
-  var showJacks=true, v=new THREE.Vector3(), camDir=new THREE.Vector3();
+  var showJacks=true, showDev=true, v=new THREE.Vector3(), camDir=new THREE.Vector3();
   var mode3='guided', active=null, cur=null, FR=null;
   function tagShown(o){
     var S=SEG[o.seg]; if(!S||!S.mesh.visible) return false;
@@ -1282,7 +1283,7 @@ if('IntersectionObserver' in window){
   function placeLabels(){
     var w=host.clientWidth,h=host.clientHeight;
     labels.forEach(function(o){
-      var el=o.el, hideJk=!showJacks&&(el.classList.contains('jk')||el.classList.contains('tag')||el.classList.contains('row'));
+      var el=o.el, hideJk=(!showJacks&&(el.classList.contains('jk')||el.classList.contains('tag')||el.classList.contains('row')))||(!showDev&&el.classList.contains('dev'));
       if(o.seg&&!tagShown(o)){el.hidden=true;return;}
       v.copy(o.p).add(g.position);
       var facing=true;
@@ -1580,6 +1581,7 @@ if('IntersectionObserver' in window){
     b.addEventListener('click',function(){ clearTimeout(timer); clearTimeout(freeTimer); var k=b.getAttribute('data-view'); setView(k); flyTo(k,0); });
   });
   var jt=$('#lbl-toggle'); if(jt) jt.addEventListener('change',function(){showJacks=jt.checked;render();});
+  var jd=$('#lbl-dev'); if(jd) jd.addEventListener('change',function(){showDev=jd.checked;render();});
   var visible=true;
   if('IntersectionObserver' in window){new IntersectionObserver(function(e){visible=e[0].isIntersecting; if(visible&&!reduce) loop();}).observe(host);}
   function loop(){cancelAnimationFrame(raf); if(!visible) return; if(controls) controls.update(); render(); raf=requestAnimationFrame(loop);}
