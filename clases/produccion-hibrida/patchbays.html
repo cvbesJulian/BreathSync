@@ -564,10 +564,11 @@ h2::after{content:"";display:block;width:40px;height:4px;border-radius:99px;back
     <div class="in">
       <span class="utag">U-07 · Vista 3D</span>
       <h2>El rack en tres dimensiones</h2>
-      <p>Arrastra para orbitar, rueda o pellizca para acercarte. En <b>Paso a paso</b> armas una conexión a la vez: primero en normalizado, luego en semi-normalizado y en thru. En <b>Estudio completo</b> ves todo el rack cableado y puedes seguir cada cable. En <b>Conexión libre</b> eliges el modo del patch bay y conectas tus propios cables.</p>
+      <p>Arrastra para orbitar, rueda o pellizca para acercarte. En <b>Paso a paso</b> armas una conexión a la vez: primero en normalizado, luego en semi-normalizado y en thru. La lección 4 graba una voz con un micrófono de condensador. En <b>Estudio completo</b> ves todo el rack cableado y puedes seguir cada cable. En <b>Conexión libre</b> eliges el modo del patch bay y conectas tus propios cables.</p>
       <div class="modes3d" id="modes3d" role="group" aria-label="Modo de la vista 3D"><button type="button" class="btn" data-mode="guided" aria-pressed="true">Paso a paso</button><button type="button" class="btn" data-mode="full" aria-pressed="false">Estudio completo</button><button type="button" class="btn" data-mode="free" aria-pressed="false">Conexión libre</button></div>
-      <div class="paths3d" id="lessons3d" role="group" aria-label="Lección"><span class="pl">Lección</span><button type="button" class="btn" data-lesson="L1" aria-pressed="true">1 · Normalizado</button><button type="button" class="btn" data-lesson="L2" aria-pressed="false">2 · Semi-normalizado</button><button type="button" class="btn" data-lesson="L3" aria-pressed="false">3 · Thru</button></div>
+      <div class="paths3d" id="lessons3d" role="group" aria-label="Lección"><span class="pl">Lección</span><button type="button" class="btn" data-lesson="L1" aria-pressed="true">1 · Normalizado</button><button type="button" class="btn" data-lesson="L2" aria-pressed="false">2 · Semi-normalizado</button><button type="button" class="btn" data-lesson="L3" aria-pressed="false">3 · Thru</button><button type="button" class="btn" data-lesson="L4" aria-pressed="false">4 · Tracking de voz</button></div>
       <div class="views3d" id="views3d" role="group" aria-label="Vista del rack">
+        <button type="button" class="btn" data-view="mic" aria-pressed="false">Micrófono</button>
         <button type="button" class="btn" data-view="rear" aria-pressed="true">Trasera</button>
         <button type="button" class="btn" data-view="front" aria-pressed="false">Frente</button>
         <button type="button" class="btn" data-view="side" aria-pressed="false">Lado</button>
@@ -580,7 +581,7 @@ h2::after{content:"";display:block;width:40px;height:4px;border-radius:99px;back
       <div class="steps3d" id="steps3d"><div class="sbar"><span class="sbadge" id="stepmode">normalizado</span><span class="scount" id="stepcount">Paso 1 de 5</span></div><p id="steptext" aria-live="polite">Vamos a conectar el sintetizador al ecualizador pasando por el patch bay.</p><div class="snav"><button type="button" class="btn" id="stepprev">← Anterior</button><button type="button" class="btn sprimary" id="stepnext">Siguiente →</button></div></div>
       <div class="steps3d freepanel" id="freepanel" hidden>
         <div class="sbar"><span class="pl">2 · Conecta: toca un jack y luego otro</span><label for="free-turn" class="ft"><input type="checkbox" id="free-turn" checked> Girar para ver atrás al conectar</label></div>
-        <div class="jackgrid" id="jackgrid" role="group" aria-label="Jacks del frente del patch bay"><span class="rowlbl">Arriba · salidas</span><button type="button" class="jk3" data-jc="0" data-jr="0" aria-pressed="false"><span class="pbn">PB 1 ↑</span><span class="jn">Preamp OUT 1</span><span class="cnum"></span></button><button type="button" class="jk3" data-jc="1" data-jr="0" aria-pressed="false"><span class="pbn">PB 3 ↑</span><span class="jn">Sinte OUT</span><span class="cnum"></span></button><button type="button" class="jk3" data-jc="2" data-jr="0" aria-pressed="false"><span class="pbn">PB 5 ↑</span><span class="jn">Caja OUT</span><span class="cnum"></span></button><button type="button" class="jk3" data-jc="3" data-jr="0" aria-pressed="false"><span class="pbn">PB 7 ↑</span><span class="jn">Interfaz OUT 3</span><span class="cnum"></span></button><button type="button" class="jk3" data-jc="4" data-jr="0" aria-pressed="false"><span class="pbn">PB 9 ↑</span><span class="jn">Compresor OUT</span><span class="cnum"></span></button><button type="button" class="jk3" data-jc="5" data-jr="0" aria-pressed="false"><span class="pbn">PB 11 ↑</span><span class="jn">EQ OUT</span><span class="cnum"></span></button><span class="rowlbl">Abajo · entradas</span><button type="button" class="jk3" data-jc="0" data-jr="1" aria-pressed="false"><span class="pbn">PB 1 ↓</span><span class="jn">Interfaz IN 1</span><span class="cnum"></span></button><button type="button" class="jk3" data-jc="1" data-jr="1" aria-pressed="false"><span class="pbn">PB 3 ↓</span><span class="jn">Interfaz IN 2</span><span class="cnum"></span></button><button type="button" class="jk3" data-jc="2" data-jr="1" aria-pressed="false"><span class="pbn">PB 5 ↓</span><span class="jn">Interfaz IN 3</span><span class="cnum"></span></button><button type="button" class="jk3" data-jc="3" data-jr="1" aria-pressed="false"><span class="pbn">PB 7 ↓</span><span class="jn">Compresor IN</span><span class="cnum"></span></button><button type="button" class="jk3" data-jc="4" data-jr="1" aria-pressed="false"><span class="pbn">PB 9 ↓</span><span class="jn">EQ IN</span><span class="cnum"></span></button><button type="button" class="jk3" data-jc="5" data-jr="1" aria-pressed="false"><span class="pbn">PB 11 ↓</span><span class="jn">Interfaz IN 4</span><span class="cnum"></span></button></div>
+        <div class="jackgrid" id="jackgrid" role="group" aria-label="Jacks del frente del patch bay"><span class="rowlbl">Arriba · salidas</span><button type="button" class="jk3" data-jc="0" data-jr="0" aria-pressed="false"><span class="pbn">PB 1 ↑</span><span class="jn">Voz · Preamp OUT 1</span><span class="cnum"></span></button><button type="button" class="jk3" data-jc="1" data-jr="0" aria-pressed="false"><span class="pbn">PB 3 ↑</span><span class="jn">Sinte OUT</span><span class="cnum"></span></button><button type="button" class="jk3" data-jc="2" data-jr="0" aria-pressed="false"><span class="pbn">PB 5 ↑</span><span class="jn">Caja OUT</span><span class="cnum"></span></button><button type="button" class="jk3" data-jc="3" data-jr="0" aria-pressed="false"><span class="pbn">PB 7 ↑</span><span class="jn">Interfaz OUT 3</span><span class="cnum"></span></button><button type="button" class="jk3" data-jc="4" data-jr="0" aria-pressed="false"><span class="pbn">PB 9 ↑</span><span class="jn">Compresor OUT</span><span class="cnum"></span></button><button type="button" class="jk3" data-jc="5" data-jr="0" aria-pressed="false"><span class="pbn">PB 11 ↑</span><span class="jn">EQ OUT</span><span class="cnum"></span></button><span class="rowlbl">Abajo · entradas</span><button type="button" class="jk3" data-jc="0" data-jr="1" aria-pressed="false"><span class="pbn">PB 1 ↓</span><span class="jn">Interfaz IN 1</span><span class="cnum"></span></button><button type="button" class="jk3" data-jc="1" data-jr="1" aria-pressed="false"><span class="pbn">PB 3 ↓</span><span class="jn">Interfaz IN 2</span><span class="cnum"></span></button><button type="button" class="jk3" data-jc="2" data-jr="1" aria-pressed="false"><span class="pbn">PB 5 ↓</span><span class="jn">Interfaz IN 3</span><span class="cnum"></span></button><button type="button" class="jk3" data-jc="3" data-jr="1" aria-pressed="false"><span class="pbn">PB 7 ↓</span><span class="jn">Compresor IN</span><span class="cnum"></span></button><button type="button" class="jk3" data-jc="4" data-jr="1" aria-pressed="false"><span class="pbn">PB 9 ↓</span><span class="jn">EQ IN</span><span class="cnum"></span></button><button type="button" class="jk3" data-jc="5" data-jr="1" aria-pressed="false"><span class="pbn">PB 11 ↓</span><span class="jn">Interfaz IN 4</span><span class="cnum"></span></button></div>
         <p class="fmsg info" id="freemsg" aria-live="polite">Elige el modo del patch bay. Después toca un jack del frente (en el 3D o en estos botones) y luego el otro extremo.</p>
         <div class="fcols"><div><h4>Tus cables</h4><ol class="flist" id="freecords"></ol><button type="button" class="btn sm" id="free-clear">Quitar todos</button></div>
         <div><h4>Caminos de la señal</h4><ul class="flist routes" id="freeroutes"></ul></div></div>
@@ -588,7 +589,7 @@ h2::after{content:"";display:block;width:40px;height:4px;border-radius:99px;back
       <p class="pathinfo" id="pathinfo" hidden aria-live="polite">Haz clic en un cable o en su etiqueta (por ejemplo <b>P1</b>). El rack gira y muestra por dónde viaja la señal: al frente y atrás.</p>
       <div class="tblwrap" id="wires3d" hidden><table class="wires">
         <thead><tr><th>Cable</th><th>C·a: sale de</th><th>llega a</th><th>C·b: sale de la fila de abajo y llega a</th></tr></thead>
-        <tbody><tr><td><span class="sw" style="background:var(--c1)"></span><b>C1</b></td><td>Preamplificador OUT 1</td><td>PB 1 arriba (trasera)</td><td>PB 1 abajo → Interfaz IN 1</td></tr><tr><td><span class="sw" style="background:var(--c2)"></span><b>C2</b></td><td>Sintetizador OUT</td><td>PB 3 arriba (trasera)</td><td>PB 3 abajo → Interfaz IN 2</td></tr><tr><td><span class="sw" style="background:var(--c3)"></span><b>C3</b></td><td>Caja de ritmos OUT</td><td>PB 5 arriba (trasera)</td><td>PB 5 abajo → Interfaz IN 3</td></tr><tr><td><span class="sw" style="background:var(--c4)"></span><b>C4</b></td><td>Interfaz OUT 3</td><td>PB 7 arriba (trasera)</td><td>PB 7 abajo → Compresor IN</td></tr><tr><td><span class="sw" style="background:var(--c5)"></span><b>C5</b></td><td>Compresor OUT</td><td>PB 9 arriba (trasera)</td><td>PB 9 abajo → Ecualizador IN</td></tr><tr><td><span class="sw" style="background:var(--c6)"></span><b>C6</b></td><td>Ecualizador OUT</td><td>PB 11 arriba (trasera)</td><td>PB 11 abajo → Interfaz IN 4</td></tr>
+        <tbody><tr><td><span class="sw" style="background:var(--c1)"></span><b>C1</b></td><td>Micrófono de condensador → Preamplificador (XLR, +48 V) → OUT 1</td><td>PB 1 arriba (trasera)</td><td>PB 1 abajo → Interfaz IN 1</td></tr><tr><td><span class="sw" style="background:var(--c2)"></span><b>C2</b></td><td>Sintetizador OUT</td><td>PB 3 arriba (trasera)</td><td>PB 3 abajo → Interfaz IN 2</td></tr><tr><td><span class="sw" style="background:var(--c3)"></span><b>C3</b></td><td>Caja de ritmos OUT</td><td>PB 5 arriba (trasera)</td><td>PB 5 abajo → Interfaz IN 3</td></tr><tr><td><span class="sw" style="background:var(--c4)"></span><b>C4</b></td><td>Interfaz OUT 3</td><td>PB 7 arriba (trasera)</td><td>PB 7 abajo → Compresor IN</td></tr><tr><td><span class="sw" style="background:var(--c5)"></span><b>C5</b></td><td>Compresor OUT</td><td>PB 9 arriba (trasera)</td><td>PB 9 abajo → Ecualizador IN</td></tr><tr><td><span class="sw" style="background:var(--c6)"></span><b>C6</b></td><td>Ecualizador OUT</td><td>PB 11 arriba (trasera)</td><td>PB 11 abajo → Interfaz IN 4</td></tr>
         <tr><td><span class="sw" style="background:var(--fg)"></span><b>P1</b></td><td>PB 5 arriba (frente) · Caja de ritmos</td><td>PB 7 abajo (frente) · Compresor IN</td><td>La caja entra al compresor. En semi-normal la caja sigue llegando a Interfaz IN 3. El normal de la columna 4 se rompe: Interfaz OUT 3 ya no llega al compresor.</td></tr>
         <tr><td><span class="sw" style="background:var(--fg)"></span><b>P2</b></td><td>PB 11 arriba (frente) · Ecualizador OUT</td><td>PB 3 abajo (frente) · Interfaz IN 2</td><td>Interfaz IN 2 graba la cadena caja → compresor → EQ. El sinte ya no llega a IN 2. El EQ sigue llegando a IN 4.</td></tr>
         </tbody></table></div>
@@ -958,8 +959,8 @@ if('IntersectionObserver' in window){
   renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
   host.insertBefore(renderer.domElement,host.firstChild);
   var scene=new THREE.Scene(), cam=new THREE.PerspectiveCamera(38,1,0.1,800);
-  var VIEWS={front:[10,10,52],rear:[-16,8,-82],side:[85,20,-30],top:[0,90,-12]};
-  var TGT={front:[0,6,0],rear:[0,-2,-10],side:[0,-2,-10],top:[0,-2,-10]};
+  var VIEWS={mic:[-62,16,46],front:[10,10,52],rear:[-16,8,-82],side:[85,20,-30],top:[0,90,-12]};
+  var TGT={mic:[-26,-4,-2],front:[0,6,0],rear:[0,-2,-10],side:[0,-2,-10],top:[0,-2,-10]};
   cam.position.fromArray(VIEWS.rear);
   var controls = THREE.OrbitControls ? new THREE.OrbitControls(cam,renderer.domElement) : null;
   if(controls){controls.target.set(0,-2,-10);controls.enableDamping=!reduce;controls.dampingFactor=.08;controls.minDistance=25;controls.maxDistance=190;controls.autoRotate=false;}
@@ -977,7 +978,7 @@ if('IntersectionObserver' in window){
   /* ---- data: what is wired where ---- */
   var U=4.445, W=48.2, g=new THREE.Group(); scene.add(g);
   var COLS=[ // patch bay columns 1..6 (index 0..5). top = salida de equipo, bottom = entrada de equipo
-    {top:'PRE 1', bot:'INT IN1', src:['pre','OUT 1'], dst:['iface','IN 1']},
+    {top:'VOZ PRE', bot:'INT IN1', src:['pre','OUT 1'], dst:['iface','IN 1']},
     {top:'SINTE', bot:'INT IN2', src:['synth','OUT'], dst:['iface','IN 2']},
     {top:'CAJA',  bot:'INT IN3', src:['drum','OUT'],  dst:['iface','IN 3']},
     {top:'INT OUT3', bot:'COMP IN', src:['iface','OUT 3'], dst:['comp','IN']},
@@ -987,7 +988,7 @@ if('IntersectionObserver' in window){
   var DEV={ // name, rear jacks (x on device rear)
     iface:{name:'Interfaz de audio',jacks:{'IN 1':-16,'IN 2':-12,'IN 3':-8,'IN 4':-4,'OUT 3':8}},
     pb:{name:'Patch bay (semi-normal)'},
-    pre:{name:'Preamplificador',jacks:{'OUT 1':10}},
+    pre:{name:'Preamplificador',jacks:{'MIC IN':-10,'OUT 1':10}},
     comp:{name:'Compresor',jacks:{'IN':-8,'OUT':8}},
     eq:{name:'Ecualizador',jacks:{'IN':-8,'OUT':8}},
     synth:{name:'Sintetizador',jacks:{'OUT':-10}},
@@ -1048,6 +1049,21 @@ if('IntersectionObserver' in window){
   jackAt(synthJack.x,synthJack.y,synthJack.z,-1); jackAt(drumJack.x,drumJack.y,drumJack.z,-1);
   label('Sintetizador',new THREE.Vector3(SY.x,SY.y+SY.h/2+2.5,SY.z),null,'dev');
   label('Caja de ritmos',new THREE.Vector3(DR.x,DR.y+DR.h/2+2.5,DR.z),null,'dev');
+  /* ---- condenser mic on a stand (vocal tracking), front-left ---- */
+  var MIC={x:-34,z:12}, micY=deskY+17;
+  var micBody=new THREE.MeshStandardMaterial({roughness:.35,metalness:.6}), micGrille=new THREE.MeshStandardMaterial({roughness:.5,metalness:.7}), popMat=new THREE.MeshStandardMaterial({roughness:.9,metalness:0,transparent:true,opacity:.35,side:THREE.DoubleSide});
+  var mb=new THREE.Mesh(new THREE.CylinderGeometry(1.5,1.5,.4,28),mat.frame); mb.position.set(MIC.x,deskY+.2,MIC.z); g.add(mb);
+  var mbase=new THREE.Mesh(new THREE.CylinderGeometry(3.2,3.6,.5,28),mat.frame); mbase.position.set(MIC.x,deskY+.25,MIC.z); g.add(mbase);
+  var pole=new THREE.Mesh(new THREE.CylinderGeometry(.25,.25,micY-deskY-4,12),mat.frame); pole.position.set(MIC.x,deskY+(micY-deskY-4)/2,MIC.z); g.add(pole);
+  var body=new THREE.Mesh(new THREE.CylinderGeometry(1.25,1.1,4.6,28),micBody); body.position.set(MIC.x,micY,MIC.z); g.add(body);
+  var gr=new THREE.Mesh(new THREE.SphereGeometry(1.3,24,16,0,Math.PI*2,0,Math.PI/2),micGrille); gr.position.set(MIC.x,micY+2.3,MIC.z); g.add(gr);
+  var grc=new THREE.Mesh(new THREE.CylinderGeometry(1.3,1.3,1.6,28,1,true),micGrille); grc.position.set(MIC.x,micY+1.6,MIC.z); g.add(grc);
+  [micY-1.2,micY+1].forEach(function(yy){var rg=new THREE.Mesh(new THREE.TorusGeometry(2.1,.12,8,32),mat.frame); rg.rotation.x=Math.PI/2; rg.position.set(MIC.x,yy,MIC.z); g.add(rg);});
+  var pf=new THREE.Mesh(new THREE.CircleGeometry(2.4,32),popMat); pf.position.set(MIC.x,micY+1.6,MIC.z+4.2); g.add(pf);
+  var pfr=new THREE.Mesh(new THREE.TorusGeometry(2.4,.12,8,32),mat.frame); pfr.position.copy(pf.position); g.add(pfr);
+  var gooseneck=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3([new THREE.Vector3(MIC.x+2.3,micY,MIC.z),new THREE.Vector3(MIC.x+2.6,micY+1,MIC.z+2.5),new THREE.Vector3(MIC.x+1.8,micY+1.6,MIC.z+4.2)]),20,.1,6,false),mat.frame); g.add(gooseneck);
+  label('Micrófono de condensador',new THREE.Vector3(MIC.x,micY+5.2,MIC.z),null,'dev');
+  label('+48 V · phantom ON',new THREE.Vector3(16,pos.pre.y+1.4,1),FRONT,'jk');
   label('OUT',synthJack.clone().add(new THREE.Vector3(0,-1.6,-.3)),BACK,'jk');
   label('OUT',drumJack.clone().add(new THREE.Vector3(0,-1.6,-.3)),BACK,'jk');
 
@@ -1062,7 +1078,7 @@ if('IntersectionObserver' in window){
   var guided=true;
   var LN={2:{top:'SINTE',bot:'EQ IN',k:'--c2'},4:{top:'·',bot:'COMP IN',k:'--c3'},6:{top:'INT OUT3',bot:'·',k:'--c4'}};
   function colName(c){
-    if(guided) return LN[c]||null;
+    if(guided&&!(LESSONS&&LESSONS[lesson]&&LESSONS[lesson].strip==='full')) return LN[c]||null;
     var ci=(c%2===0&&c/2<COLS.length)?c/2:-1; return ci<0?null:{top:COLS[ci].top,bot:COLS[ci].bot,k:'--c'+(ci+1)};
   }
   function drawStrip(t){
@@ -1141,6 +1157,17 @@ if('IntersectionObserver' in window){
   patch(2,0,4,1,5,'LP1','Parcheo PB 3 → PB 5');
   patch(6,0,2,1,6,'LP2','Parcheo PB 7 → PB 3');
   patch(2,0,2,1,3,'LP3','Parcheo PB 3 → PB 3');
+  patch(0,0,6,1,6,'LP4','Parcheo PB 1 → PB 7');
+  (function(){ // XLR mic cable: mic -> down the stand -> around the left of the rack -> preamp MIC IN (rear)
+    var end=new THREE.Vector3(DEV.pre.jacks['MIC IN'],pos.pre.y,ZB-.3);
+    var pts=[new THREE.Vector3(MIC.x,micY-2.6,MIC.z),new THREE.Vector3(MIC.x+.5,micY-5,MIC.z),new THREE.Vector3(MIC.x+.6,deskY+1.2,MIC.z-1),
+      new THREE.Vector3(MIC.x+2,deskY+.7,MIC.z-8),new THREE.Vector3(-W/2-6,deskY+.8,-12),new THREE.Vector3(-W/2-4,pos.pre.y-3,ZB-6),
+      new THREE.Vector3(end.x-3,pos.pre.y-.5,ZB-3.5),end.clone().add(new THREE.Vector3(0,0,-1.2))];
+    var cu=tube(pts,'--c1',.42,'M1'); SEG.M1.full=true;
+    SEG.M1.plugs.push(plug(end,SEG.M1.mat,-1));
+    var xl=new THREE.Mesh(new THREE.CylinderGeometry(.75,.75,2.2,14),SEG.M1.mat); xl.position.set(MIC.x,micY-3.1,MIC.z); g.add(xl); SEG.M1.plugs.push(xl);
+    var lo=label('M1 · XLR mic → preamp',cu.getPoint(.55),null,'tag','--c1'); lo.el.setAttribute('data-seg','M1'); lo.seg='M1';
+  })();
   g.position.y=0;
 
   /* ---- theme ---- */
@@ -1180,7 +1207,7 @@ if('IntersectionObserver' in window){
       t:'<b>P1</b> · La caja de ritmos sale por su OUT y el cable C3a la lleva a PB 5 arriba. Al frente, P1 la lleva a PB 7 abajo. Atrás, C4b la entrega al <b>Compresor IN</b>. PB 5 es semi-normal: la caja también sigue a Interfaz IN 3 por C3b. En PB 7 el normal se rompe: Interfaz OUT 3 (C4a) ya no llega al compresor.'},
     P2:{c:'--c6',flow:['C6a','P2','C2b'],also:['N11','C6b'],cut:['C2a'],at:3,front:true,
       t:'<b>P2</b> · La salida del EQ va por C6a a PB 11 arriba. Al frente, P2 la lleva a PB 3 abajo. Atrás, C2b la entrega a <b>Interfaz IN 2</b>. PB 11 es semi-normal: el EQ también sigue a Interfaz IN 4 por C6b. En PB 3 el normal se rompe: el sintetizador (C2a) ya no llega a IN 2.'},
-    C1:{c:'--c1',flow:['C1a','N1','C1b'],t:'<b>C1</b> · Preamp OUT 1 → C1a → PB 1 arriba → normal interno → PB 1 abajo → C1b → <b>Interfaz IN 1</b>. No hay cable al frente, así que la señal pasa sola.'},
+    C1:{c:'--c1',flow:['M1','C1a','N1','C1b'],t:'<b>C1</b> · Micrófono de condensador → M1 (XLR, +48 V) → preamp → Preamp OUT 1 → C1a → PB 1 arriba → normal interno → PB 1 abajo → C1b → <b>Interfaz IN 1</b>. No hay cable al frente, así que la señal pasa sola.'},
     C2:{c:'--c2',flow:['C2a'],cut:['N3','C2b'],at:3,t:'<b>C2</b> · El sintetizador llega por C2a a PB 3 arriba. Pero P2 está en PB 3 abajo y rompe el normal: el sinte <b>no llega</b> a Interfaz IN 2. Para oírlo, quita P2.'},
     C3:{c:'--c3',flow:['C3a','N5','C3b'],also:['P1','C4b'],t:'<b>C3</b> · Caja de ritmos → C3a → PB 5 arriba → normal → PB 5 abajo → C3b → <b>Interfaz IN 3</b>. Además P1 toma una copia en PB 5 arriba (semi-normal no corta) y la lleva al compresor.'},
     C4:{c:'--c4',flow:['C4a'],cut:['N7','C4b'],at:7,t:'<b>C4</b> · Interfaz OUT 3 llega por C4a a PB 7 arriba. P1 entra en PB 7 abajo y rompe el normal: el compresor recibe la caja de ritmos, <b>no</b> OUT 3.'},
@@ -1197,7 +1224,7 @@ if('IntersectionObserver' in window){
     Object.keys(SEG).forEach(function(id){
       if(free){
         var S0=SEG[id], m0=S0.mat, ct=FR.col[id], bad=FR.bad[id];
-        var v0=S0.normal?!!ct:S0.free?true:S0.full?id.charAt(0)==='C':false;
+        var v0=S0.normal?!!ct:S0.free?true:S0.full?/^[CM]/.test(id):false;
         S0.mesh.visible=v0; S0.plugs.forEach(function(pl){pl.visible=v0;});
         m0.color.set(tok(bad?'--hot':ct||S0.tok)); m0.emissive=new THREE.Color(ct||bad?tok(bad?'--hot':ct):'#000000'); m0.emissiveIntensity=ct?.45:bad?.3:0;
         m0.opacity=ct||bad||S0.free?1:.3; m0.depthWrite=m0.opacity>.5; return;
@@ -1206,7 +1233,7 @@ if('IntersectionObserver' in window){
       m.color.set(tok(inF||inA?active.c:S.tok));
       m.emissive=new THREE.Color(inF||inA?tok(active.c):'#000000'); m.emissiveIntensity=inF?.55:inA?.3:0;
       m.opacity=!active||inF||inA?1:inC?.45:(guided?1:.12); m.depthWrite=m.opacity>.5;
-      var vis=S.normal?!!(inF||inA):S.free?false:S.full?mode3==='full':!!(guided&&cur&&(cur.show||[]).indexOf(id)>=0);
+      var vis=S.normal?!!(inF||inA):guided?!!(cur&&(cur.show||[]).indexOf(id)>=0):S.free?false:S.full?mode3==='full':false;
       S.mesh.visible=vis; S.plugs.forEach(function(pl){pl.visible=vis;});
     });
     if(active) pulseCol.set(tok(active.c));
@@ -1241,7 +1268,7 @@ if('IntersectionObserver' in window){
     if(active.front){ setView('front'); flyTo('front',700,function(){ timer=setTimeout(function(){setView('rear');flyTo('rear',1500);},reduce?1200:900); }); }
     else { setView('rear'); flyTo('rear',1100); }
   }
-  function pathOf(id){ if(!id) return null; if(id.charAt(0)==='P') return id; if(id.charAt(0)==='C') return id.slice(0,2); return null; }
+  function pathOf(id){ if(!id) return null; if(id.charAt(0)==='P') return id; if(id.charAt(0)==='C') return id.slice(0,2); if(id==='M1') return 'C1'; return null; }
   lblHost.addEventListener('click',function(e){if(mode3!=='full') return; var b=e.target.closest('[data-seg]'); if(b) select(pathOf(b.getAttribute('data-seg')));});
   $$('#paths3d [data-path]').forEach(function(b){b.addEventListener('click',function(){var k=b.getAttribute('data-path');select(k==='none'?null:k);});});
   var ray=new THREE.Raycaster(), ndc=new THREE.Vector2(), down=null;
@@ -1271,9 +1298,15 @@ if('IntersectionObserver' in window){
       {view:'both',show:['LA','LB','LC','LD','LP2'],flow:['LD','LP2','LB'],cut:['LA'],at:3,c:'--c4',t:'<b>Al frente.</b> Un parcheo va de <b>PB 7 arriba</b> a <b>PB 3 abajo</b>. Conectar en <b>abajo rompe el normal</b>, también en semi-normal. Ahora el EQ recibe la salida 3 de la interfaz y el sinte se queda en el patch bay.'}]},
     L3:{mode:'thru (abierto)',steps:[
       {view:'rear',show:['LA','LB'],flow:['LA'],cut:['LB'],at:3,cutText:'sin normal',c:'--c2',t:'PB 3 está en <b>thru</b>: arriba y abajo <b>no están unidos</b>. El sinte llega a PB 3 arriba, pero el EQ no recibe nada.'},
-      {view:'both',show:['LA','LB','LP3'],flow:['LA','LP3','LB'],c:'--c2',t:'<b>Al frente.</b> Un cable corto de <b>PB 3 arriba</b> a <b>PB 3 abajo</b>. En thru siempre necesitas un cable para que la señal pase. Ahora el sinte llega al EQ.'}]}
+      {view:'both',show:['LA','LB','LP3'],flow:['LA','LP3','LB'],c:'--c2',t:'<b>Al frente.</b> Un cable corto de <b>PB 3 arriba</b> a <b>PB 3 abajo</b>. En thru siempre necesitas un cable para que la señal pase. Ahora el sinte llega al EQ.'}]},
+    L4:{mode:'semi-normalizado',pb:0,strip:'full',steps:[
+      {view:'mic',show:['M1'],flow:['M1'],c:'--c1',t:'<b>Tracking de voz.</b> Un <b>micrófono de condensador</b> se conecta con un cable <b>XLR</b> balanceado a la entrada MIC del <b>preamplificador</b>. Este micrófono necesita <b>phantom power (+48 V)</b>: el preamp lo envía por el mismo cable. La señal del mic es muy baja (nivel de micrófono), por eso va directo al preamp y <b>no</b> pasa por el patch bay.'},
+      {view:'rear',show:['M1','C1a'],flow:['M1','C1a'],c:'--c1',t:'<b>Atrás.</b> El preamp sube la voz a <b>nivel de línea</b>. Su salida OUT 1 va a <b>PB 1 arriba</b>.'},
+      {view:'rear',show:['M1','C1a','C1b'],flow:['M1','C1a','N1','C1b'],c:'--c1',t:'<b>Atrás.</b> PB 1 abajo va a <b>Interfaz IN 1</b>. Por el normal, la voz ya se graba en IN 1. Así se graba una voz sin procesar.'},
+      {view:'rear',show:['M1','C1a','C1b','C4b','C5a','C5b','C6a','C6b'],flow:['M1','C1a','N1','C1b'],c:'--c1',t:'<b>Atrás.</b> También están cableados: PB 7 abajo → Compresor IN; Compresor OUT → PB 9 → EQ IN; EQ OUT → PB 11 → Interfaz IN 4. Por ahora el compresor no recibe nada.'},
+      {view:'both',show:['M1','C1a','C1b','C4b','C5a','C5b','C6a','C6b','LP4'],flow:['M1','C1a','N1','C1b'],also:['LP4','C4b','C5a','N9','C5b','C6a','N11','C6b'],c:'--c1',t:'<b>Al frente.</b> Un parcheo de <b>PB 1 arriba</b> a <b>PB 7 abajo</b>. En <b>semi-normalizado</b> el normal no se corta: <b>IN 1</b> graba la voz <b>seca</b> e <b>IN 4</b> graba la voz <b>con compresor y EQ</b>. Es común en tracking: si el procesado no sirve, tienes la toma limpia.'}]}
   };
-  var ORDER=['L1','L2','L3'], lesson='L1', stepI=0, cur=null;
+  var ORDER=['L1','L2','L3','L4'], lesson='L1', stepI=0, cur=null;
   var modeF=label('',new THREE.Vector3(jx(2),rowY(1)-4.4,1),FRONT,'pbmode'), modeB=label('',new THREE.Vector3(jx(2),rowY(1)-4.4,ZB-.6),BACK,'pbmode');
   var ui={text:$('#steptext'),count:$('#stepcount'),badge:$('#stepmode'),prev:$('#stepprev'),next:$('#stepnext')};
   function showStep(instant){
@@ -1281,7 +1314,8 @@ if('IntersectionObserver' in window){
     active={c:cur.c||'--c2',flow:cur.flow||[],also:cur.also||[],cut:cur.cut||[],at:cur.at};
     cutLbl.el.textContent=cur.cutText||'normal roto';
     if(cur.at){cutLbl.p.copy(CUTP[cur.at]);cutLbl.on=true;} else cutLbl.on=false;
-    modeF.el.textContent=modeB.el.textContent='PB 3 · '+L.mode; modeF.on=modeB.on=true;
+    var pbi=L.pb===undefined?1:L.pb; modeF.el.textContent=modeB.el.textContent='PB '+(2*pbi+1)+' · '+L.mode; modeF.on=modeB.on=cur.view!=='mic';
+    modeF.p.x=modeB.p.x=jx(2*pbi); drawStrip(stF); drawStrip(stB);
     if(ui.text) ui.text.innerHTML=cur.t;
     if(ui.count) ui.count.textContent='Paso '+(stepI+1)+' de '+L.steps.length;
     if(ui.badge) ui.badge.textContent=L.mode;
@@ -1308,7 +1342,7 @@ if('IntersectionObserver' in window){
   var NORMNAME={normal:'normalizado',semi:'semi-normalizado',thru:'thru (abierto)'};
   var SRCN=['Preamp OUT 1','Sinte OUT','Caja de ritmos OUT','Interfaz OUT 3','Compresor OUT','EQ OUT'];
   var DSTN=['Interfaz IN 1','Interfaz IN 2','Interfaz IN 3','Compresor IN','EQ IN','Interfaz IN 4'];
-  var RAW=['Preamp','Sinte','Caja de ritmos','Interfaz OUT 3'];
+  var RAW=['Voz (mic + preamp)','Sinte','Caja de ritmos','Interfaz OUT 3'];
   function pbn(i){return 'PB '+(2*i+1);}
   function jname(j){return pbn(j.c)+(j.r?' abajo':' arriba')+' ('+(j.r?DSTN[j.c]:SRCN[j.c])+')';}
   // invisible pick targets on the front jacks + a selection ring
@@ -1343,7 +1377,7 @@ if('IntersectionObserver' in window){
     return {sig:topSig(j,stack),why:'por el normal de '+pbn(j),via:'normal'};
   }
   function computeFree(){
-    FR={col:{},bad:{},loop:false,rows:[]};
+    FR={col:{M1:'--c1'},bad:{},loop:false,rows:[]};
     var ORIG=['--c1','--c2','--c3','--c4'];
     for(var i=0;i<6;i++){
       var ts=topSig(i,[]); if(ts.length) FR.col['C'+(i+1)+'a']=ORIG[ts[0].o];
@@ -1371,7 +1405,7 @@ if('IntersectionObserver' in window){
       lvl='warn'; msg.push('<b>Loopback.</b> La interfaz se graba a sí misma: OUT 3 entra a '+DSTN[d.c]+'. Sirve para grabar lo que reproduces, pero si monitoreas esa entrada puedes crear realimentación.');
     } else {
       msg.push('<b>Correcto: salida → entrada.</b> '+SRCN[t.c]+' ahora entra a '+DSTN[d.c]+'.');
-      if(dstDev==='comp'||dstDev==='eq') msg.push('Así procesas '+['la señal del preamp','el sinte','la caja de ritmos','la salida 3 de la interfaz','la salida del compresor','la salida del EQ'][t.c]+' con el '+(dstDev==='comp'?'compresor':'ecualizador')+'.');
+      if(dstDev==='comp'||dstDev==='eq') msg.push('Así procesas '+['la voz','el sinte','la caja de ritmos','la salida 3 de la interfaz','la salida del compresor','la salida del EQ'][t.c]+' con el '+(dstDev==='comp'?'compresor':'ecualizador')+'.');
       else msg.push('Esa señal se graba en la interfaz.');
     }
     if(t.c!==d.c){
