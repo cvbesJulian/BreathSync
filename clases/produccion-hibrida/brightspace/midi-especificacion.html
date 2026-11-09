@@ -1,0 +1,921 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>html{color-scheme:light}body{margin:0;font:14px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Especificación MIDI</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@500;600;700&family=Roboto:wght@400;500;700&family=Roboto+Mono:wght@400;500;600&display=swap">
+<style>
+/* Layout: rack-panel sections on Universidad El Bosque greens (deep green ground, lime accent in dark), orange only as a small accent */
+:root{
+  --bg:#F4FAF0; --surface:#FFFFFF; --fg:#011F19; --muted:#46625A; --line:#D3E5CC; --brand:#EA7600;
+  --accent:#00843F; --signal:#007680; --hot:#C54A07; --cold:#0077C8; --gnd:#00A653;
+  --f-display:"Hanken Grotesk", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --f-body:"Roboto", "Segoe UI", system-ui, -apple-system, Roboto, "Helvetica Neue", Arial, sans-serif;
+  --f-mono:"Roboto Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#011F19; --surface:#012820; --fg:#E9F5E4; --muted:#9DBAAF; --line:#1D4438; --brand:#FF8C2A;
+    --accent:#90FF00; --signal:#5CB8B2; --hot:#FF8A4C; --cold:#5CB3F0; --gnd:#3FD07F;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#011F19; --surface:#012820; --fg:#E9F5E4; --muted:#9DBAAF; --line:#1D4438; --brand:#FF8C2A;
+  --accent:#90FF00; --signal:#5CB8B2; --hot:#FF8A4C; --cold:#5CB3F0; --gnd:#3FD07F;
+  color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:calc(70px + env(safe-area-inset-top,0px))}
+@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:16.5px;line-height:1.6;-webkit-text-size-adjust:100%}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--surface)}
+h1,h2,h3{font-family:var(--f-display);font-weight:700;line-height:1.12;letter-spacing:-.01em;margin:0 0 .5em}
+h2{font-size:clamp(1.6rem,3.2vw,2.3rem)}
+h3{font-size:1.2rem;font-weight:600}
+p{margin:0 0 1em}
+a{color:var(--accent)}
+code,.mono{font-family:var(--f-mono);font-size:.92em}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px;border-radius:4px}
+.wrap{max-width:1180px;margin:0 auto;padding-left:max(16px, env(safe-area-inset-left,0px));padding-right:max(16px, env(safe-area-inset-right,0px))}
+
+/* Header */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--surface);border-bottom:1px solid var(--line)}
+.top .wrap{display:flex;align-items:center;gap:16px;padding-block:10px}
+.brand{font-family:var(--f-display);font-weight:700;font-size:1.05rem;white-space:nowrap;text-decoration:none;color:var(--fg);display:flex;align-items:center;gap:8px}
+.brand .led{width:9px;height:9px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 25%,transparent)}
+.nav{display:flex;gap:2px;overflow-x:auto;flex:1;min-width:0;scrollbar-width:none}
+.nav::-webkit-scrollbar{display:none}
+.nav a{font-size:.86rem;font-weight:500;color:var(--muted);text-decoration:none;padding:6px 10px;border-radius:6px;white-space:nowrap}
+.nav a:hover{color:var(--fg);background:var(--bg)}
+.theme-btn{flex:none}
+
+/* Buttons */
+.btn{font:inherit;font-size:.9rem;font-weight:600;border:1px solid var(--line);background:var(--surface);color:var(--fg);padding:8px 14px;border-radius:7px;cursor:pointer;line-height:1.2}
+.btn:hover{border-color:var(--muted)}
+.btn[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+.btn.small{font-size:.8rem;padding:6px 10px}
+
+/* Hero */
+.hero{padding-block:clamp(36px,7vw,80px) clamp(20px,4vw,40px)}
+.hero-grid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:clamp(24px,4vw,56px);align-items:center}
+.hero-grid>*{min-width:0}
+.kicker{font-family:var(--f-mono);font-size:.8rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-bottom:12px}
+.hero h1{font-size:clamp(2.3rem,6vw,4.1rem);margin-bottom:.35em}
+.hero h1 span{color:var(--accent)}
+.lede{font-size:1.12rem;color:var(--muted);max-width:56ch}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}
+.chip{font-family:var(--f-mono);font-size:.8rem;border:1px solid var(--line);background:var(--surface);padding:5px 10px;border-radius:999px}
+.chip b{color:var(--accent);font-weight:600}
+.chip.clk b{color:var(--signal)}
+.bytecard{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px;font-family:var(--f-mono);font-size:.85rem}
+.bytecard .hd{display:flex;justify-content:space-between;color:var(--muted);font-size:.75rem;text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px}
+.byte{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 14px;padding:10px 0;border-top:1px dashed var(--line);align-items:center}
+.bits{font-size:1.05rem;letter-spacing:.12em;white-space:nowrap}
+.bits .msb{color:var(--accent);font-weight:600}
+.byte .hex{font-weight:600}
+.byte .what{grid-column:1/-1;color:var(--muted);font-family:var(--f-body);font-size:.85rem}
+
+/* Rack sections */
+.rack{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:clamp(22px,3.4vw,42px) clamp(16px,3.4vw,42px);margin-block:22px}
+.rack::before,.rack::after{content:"";position:absolute;top:12px;width:10px;height:10px;border-radius:50%;border:2px solid var(--line);background:var(--bg)}
+.rack::before{left:12px}.rack::after{right:12px}
+.unit{font-family:var(--f-mono);font-size:.75rem;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;display:flex;gap:10px;align-items:center}
+.unit::before{content:"";width:22px;height:2px;background:var(--accent)}
+.intro{color:var(--muted);max-width:70ch}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:20px}
+.cols>*{min-width:0}
+.card{border:1px solid var(--line);border-radius:8px;padding:18px;background:var(--bg)}
+.card h3{margin-bottom:.4em}
+.card p:last-child,.card ul:last-child{margin-bottom:0}
+.note{border-left:3px solid var(--accent);background:color-mix(in srgb,var(--accent) 7%,var(--surface));padding:12px 16px;border-radius:0 8px 8px 0;margin:16px 0}
+.note.clk{border-left-color:var(--signal);background:color-mix(in srgb,var(--signal) 9%,var(--surface))}
+ul.tight{padding-left:1.2em;margin:0 0 1em}
+ul.tight li{margin-bottom:.3em}
+
+/* Tables */
+.tbl{overflow-x:auto;margin:14px 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;width:100%;font-size:.92rem}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:var(--f-mono);font-size:.74rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);background:var(--bg);white-space:nowrap}
+tr:last-child td{border-bottom:none}
+td code{white-space:nowrap}
+.tag{display:inline-block;font-family:var(--f-mono);font-size:.74rem;padding:1px 7px;border-radius:4px;border:1px solid currentColor}
+.tag.data{color:var(--accent)}
+.tag.clk{color:var(--signal)}
+.tag.mut{color:var(--muted)}
+
+/* Ports explainer */
+.portrow{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:18px 0}
+.portrow>*{min-width:0}
+.pcard{border:1px solid var(--line);border-radius:8px;padding:16px;background:var(--bg)}
+.pcard .pn{font-family:var(--f-mono);font-weight:600;font-size:1.05rem;display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.dot{width:14px;height:14px;border-radius:50%;border:2px solid var(--fg);flex:none}
+.dot.out{background:var(--fg)}
+.dot.thru{background:var(--muted);border-color:var(--muted)}
+.chains{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:18px;margin-top:10px}
+.chains>*{min-width:0}
+.chains svg{width:100%;height:auto;display:block}
+
+/* 3D */
+.lab{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:24px;align-items:start}
+.lab>*{min-width:0}
+.stage{position:relative;border:1px solid var(--line);border-radius:10px;background:var(--bg);aspect-ratio:4/3;overflow:hidden}
+#lab3d{position:absolute;inset:0}
+#lab3d canvas{display:block;width:100%!important;height:100%!important;touch-action:none}
+.stage-ui{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;align-items:center}
+.stage-hint{font-size:.82rem;color:var(--muted)}
+.fallback{position:absolute;inset:0;display:none;align-items:center;justify-content:center;text-align:center;padding:24px;color:var(--muted)}
+.stage.nogl .fallback{display:flex}
+.pinmap{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;margin:10px 0 14px;font-family:var(--f-mono);font-size:.78rem;text-align:center}
+.pinmap div{border:1px solid var(--line);border-radius:6px;padding:6px 2px;background:var(--bg)}
+.pinmap b{display:block;font-size:1rem}
+.pinmap .d{border-color:var(--accent);color:var(--accent)}
+
+/* Scenario */
+.scen-btns{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0}
+.diagram{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--bg);-webkit-overflow-scrolling:touch}
+.diagram svg{display:block;width:100%;min-width:760px;height:auto}
+.scen-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:20px;margin-top:16px}
+.scen-grid>*{min-width:0}
+.scen-panel h3{margin-bottom:.3em}
+.scen-ctrl{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.log{font-family:var(--f-mono);font-size:.8rem;list-style:none;margin:0;padding:0;max-height:270px;overflow:auto;border:1px solid var(--line);border-radius:8px;background:var(--bg)}
+.log li{padding:6px 10px;border-bottom:1px solid var(--line);display:grid;grid-template-columns:auto minmax(0,1fr);gap:2px 10px}
+.log li:last-child{border-bottom:none}
+.log .tm{color:var(--muted)}
+.log .bx{grid-column:2;color:var(--accent)}
+.log li.clk .bx{color:var(--signal)}
+.log li.err .bx{color:var(--fg);text-decoration:underline dashed}
+.log .empty{display:block;color:var(--muted)}
+.loghd{font-family:var(--f-mono);font-size:.75rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:0 0 6px}
+
+/* SVG */
+.sv-bg{fill:var(--bg)}
+.cable{fill:none;stroke:var(--muted);stroke-width:2.4;opacity:.55;transition:stroke .2s,opacity .2s}
+.cable.usb{stroke-dasharray:7 5}
+.cable.on{stroke:var(--accent);opacity:1;stroke-width:3.4}
+.cable.on.clk{stroke:var(--signal)}
+.dev{cursor:pointer}
+.dev:focus{outline:none}
+.dev .box{fill:var(--surface);stroke:var(--line);stroke-width:1.5;transition:stroke .2s}
+.dev:hover .box,.dev.sel .box{stroke:var(--accent)}
+.dev:focus-visible .box{stroke:var(--accent);stroke-width:3.5}
+.dev.hl .box{stroke:var(--accent);stroke-width:2.5}
+.t-title{font-family:var(--f-display);font-weight:600;font-size:15px;fill:var(--fg)}
+.t-sub{font-family:var(--f-body);font-size:11.5px;fill:var(--muted)}
+.t-port{font-family:var(--f-mono);font-size:9.5px;fill:var(--muted)}
+.t-status{font-family:var(--f-mono);font-size:10.5px;font-weight:600;fill:var(--accent)}
+.t-cab{font-family:var(--f-mono);font-size:9.5px;fill:var(--muted)}
+.port{fill:var(--surface);stroke:var(--fg);stroke-width:1.6}
+.port.out{fill:var(--fg)}
+.port.thru{fill:var(--muted);stroke:var(--muted)}
+.port.usbp{fill:var(--surface);stroke:var(--muted);stroke-dasharray:2 2}
+.keys rect{fill:var(--bg);stroke:var(--line)}
+.pkt circle{stroke:var(--surface);stroke-width:2}
+.pkt-data circle{fill:var(--accent)}
+.pkt-clock circle{fill:var(--signal)}
+.pkt-err circle{fill:var(--fg);stroke:var(--accent);stroke-dasharray:3 2;stroke-width:2.5}
+.pkt rect{fill:var(--surface);stroke:var(--line)}
+.pkt-data rect{stroke:var(--accent)}
+.pkt-clock rect{stroke:var(--signal)}
+.pkt text{font-family:var(--f-mono);font-size:10.5px;fill:var(--fg);font-weight:500}
+.lg-line{stroke:var(--muted);stroke-width:2.4}
+.lg-usb{stroke:var(--muted);stroke-width:2.4;stroke-dasharray:7 5}
+.lg-t{font-family:var(--f-body);font-size:11px;fill:var(--muted)}
+
+/* Devices */
+.devcards{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,170px),1fr));gap:10px;margin:16px 0}
+.devcard{font:inherit;text-align:left;border:1px solid var(--line);background:var(--bg);color:var(--fg);border-radius:8px;padding:12px;cursor:pointer;min-width:0}
+.devcard:hover{border-color:var(--muted)}
+.devcard[aria-pressed="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.devcard .n{font-family:var(--f-display);font-weight:600;font-size:1rem;display:block}
+.devcard .c{font-family:var(--f-mono);font-size:.75rem;color:var(--muted)}
+.devdetail{border:1px solid var(--line);border-radius:10px;padding:18px;background:var(--surface)}
+.devdetail dl{display:grid;grid-template-columns:max-content minmax(0,1fr);gap:8px 16px;margin:0}
+.devdetail dt{font-family:var(--f-mono);font-size:.76rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);padding-top:2px}
+.devdetail dd{margin:0}
+.ports{display:flex;flex-wrap:wrap;gap:6px}
+.ports span{font-family:var(--f-mono);font-size:.78rem;border:1px solid var(--line);border-radius:4px;padding:1px 8px;background:var(--bg)}
+.ports span.on{border-color:var(--accent);color:var(--accent)}
+.role{font-weight:600}
+.audio-side{display:grid;grid-template-columns:auto minmax(0,1fr);gap:16px;align-items:center;border:1px dashed var(--line);border-radius:10px;padding:16px;margin-top:20px}
+.audio-side svg{width:120px;height:auto}
+.a-hot{stroke:var(--hot)}.a-cold{stroke:var(--cold)}.a-gnd{stroke:var(--gnd)}
+
+/* Checklist */
+.check{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,330px),1fr));gap:8px 22px}
+.check li{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px;align-items:start;padding:10px 0;border-bottom:1px solid var(--line)}
+.check input{width:18px;height:18px;margin-top:3px;accent-color:var(--accent)}
+.check label{cursor:pointer}
+.check label b{display:block}
+.check label span{color:var(--muted);font-size:.9rem}
+.progress{display:flex;align-items:center;gap:12px;margin:12px 0 16px;flex-wrap:wrap}
+.bar{flex:1;min-width:140px;height:8px;border-radius:99px;background:var(--bg);border:1px solid var(--line);overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--accent);transition:width .25s}
+
+/* Quiz */
+.quiz{display:grid;gap:14px}
+fieldset{border:1px solid var(--line);border-radius:8px;padding:14px 16px;margin:0;min-width:0;background:var(--bg)}
+legend{font-weight:600;padding:0 6px}
+.opt{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px;align-items:start;padding:5px 0}
+.opt input{margin-top:5px;accent-color:var(--accent)}
+.fb{margin-top:6px;font-size:.92rem;min-height:1.2em}
+.fb.ok{color:var(--gnd)}
+.fb.ok::before{content:"Correcto. ";font-weight:600}
+.fb.no{color:var(--muted)}
+.fb.no::before{content:"No exactamente. ";font-weight:600;color:var(--fg)}
+.score{font-family:var(--f-mono);font-weight:600}
+
+footer{padding-block:36px 48px;color:var(--muted);font-size:.9rem}
+footer .wrap{display:flex;flex-wrap:wrap;gap:12px 28px;justify-content:space-between;border-top:1px solid var(--line);padding-top:24px}
+
+@media (max-width:860px){
+  .hero-grid,.lab,.scen-grid{grid-template-columns:minmax(0,1fr)}
+  .portrow{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width:520px){
+  .brand .txt{display:none}
+  body{font-size:16px}
+  .audio-side{grid-template-columns:minmax(0,1fr)}
+}
+/* Universidad El Bosque: orange only in small accents */
+header{box-shadow:inset 0 -3px 0 var(--brand)}
+.btn{border-radius:999px}
+h2::after{content:"";display:block;width:40px;height:4px;border-radius:99px;background:var(--brand);margin-top:.45em}
+::selection{background:var(--brand);color:#FFFFFF}
+/* ---- unidad: especificación MIDI ---- */
+.bits .ty{color:var(--signal);font-weight:700}
+.bits .chn{color:var(--accent)}
+.sub{margin-top:26px}
+.card.wide{grid-column:1/-1}
+.small{font-size:.85rem;color:var(--muted)}
+.mono{font-family:var(--f-mono)}
+.big{font-size:1.1rem;font-weight:600;color:var(--fg)}
+.erratum{border-left:3px solid var(--brand);padding-left:10px}
+.note.errata{border-left-color:var(--brand);background:color-mix(in srgb,var(--brand) 8%,var(--surface))}
+.note.errata h3{margin-bottom:.3em}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.rng{display:grid;grid-template-columns:auto minmax(0,1fr) 3.6em;gap:8px;align-items:center;margin:6px 0}
+.rng label{font-size:.85rem;color:var(--muted)}
+.rng input{width:100%;accent-color:var(--accent)}
+.rng output{font-family:var(--f-mono);text-align:right;font-variant-numeric:tabular-nums}
+select{font:inherit;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg);min-height:36px}
+/* builder */
+.builder{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.6fr);gap:20px;margin-top:10px}
+.bctl{display:grid;gap:6px;align-content:start}
+.bctl>label{font-size:.85rem;color:var(--muted)}
+.bctl .rng{grid-template-columns:7.5em minmax(0,1fr) 3em}
+.bout{border:1px solid var(--line);border-radius:10px;background:var(--bg);padding:16px;min-width:0}
+.bytebox{display:grid;grid-template-columns:5.5em minmax(0,1fr) 3em;gap:10px;align-items:center;padding:8px 0;border-bottom:1px dashed var(--line)}
+.bytebox:last-child{border-bottom:0}
+.bytebox .bn{font-family:var(--f-mono);font-size:.75rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.bitrow{display:flex;gap:3px;flex-wrap:wrap}
+.bit{width:1.7em;height:2em;display:inline-grid;place-items:center;border:1px solid var(--line);border-radius:5px;font-family:var(--f-mono);font-weight:700;background:var(--surface)}
+.bit.m{border-color:var(--fg)}
+.bit.t{border-color:var(--signal);color:var(--signal)}
+.bit.c{border-color:var(--accent);color:var(--accent)}
+.bytebox .hx{font-family:var(--f-mono);font-size:1.2rem;font-weight:700;text-align:right}
+.bmean{margin:10px 0 0}
+#typesTbl tbody tr{cursor:pointer}
+#typesTbl tbody tr:hover td,#typesTbl tbody tr.sel td{background:color-mix(in srgb,var(--accent) 10%,var(--surface))}
+#typesTbl tbody tr:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+/* 3D lab */
+.lab3{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:20px}
+#kb3d{position:absolute;inset:0}
+#kb3d canvas{display:block;width:100%!important;height:100%!important;touch-action:none}
+.stage .stage-hint{position:absolute;left:10px;bottom:8px;background:color-mix(in srgb,var(--surface) 85%,transparent);padding:2px 8px;border-radius:4px;pointer-events:none}
+.kbctl{display:grid;gap:6px;align-content:start;min-width:0}
+.kbctl>label{font-size:.85rem;color:var(--muted)}
+.kbctl .rng{grid-template-columns:minmax(0,1fr) 4.2em}
+.kbtns{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+#kLog{max-height:230px}
+/* note range */
+.range88{width:100%;height:auto;margin:6px 0}
+.range88 .r-all{fill:var(--line)}
+.range88 .r-piano{fill:color-mix(in srgb,var(--accent) 55%,transparent)}
+.range88 .r-mark{fill:var(--brand)}
+.pbcalc{display:grid;gap:4px;margin-top:8px;font-size:.9rem}
+.pbcalc b{color:var(--accent)}
+.meter{height:12px;border-radius:99px;background:var(--line);overflow:hidden;margin:8px 0}
+.meter i{display:block;height:100%;width:0;background:var(--accent);transition:width .15s}
+.pansvg{width:100%;max-width:280px;height:auto;display:block;margin:6px auto}
+.pansvg .arc{fill:none;stroke:var(--line);stroke-width:3;stroke-dasharray:4 5}
+.pansvg .spk{fill:var(--fg)}
+.pansvg .spt{fill:var(--muted);font:600 12px var(--f-mono);text-anchor:middle}
+.pansvg .src{fill:var(--accent)}
+/* clock */
+.clockviz{height:28px;border:1px solid var(--line);border-radius:8px;position:relative;overflow:hidden;background:var(--bg);margin:8px 0}
+.clockviz span{position:absolute;top:6px;left:6px;width:14px;height:14px;border-radius:50%;background:var(--signal);opacity:.25}
+.clockviz span.on{opacity:1}
+/* sysex */
+.sysex{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
+.sx{font-family:var(--f-mono);font-weight:700;padding:8px 10px;border-radius:6px;border:1px solid var(--line);background:var(--bg);cursor:help}
+.sx.st{border-color:var(--fg)}
+.sx.id{border-color:var(--signal);color:var(--signal)}
+.sx.bd{border-color:var(--accent);color:var(--accent)}
+.sx:focus-visible,.sx.on{outline:2px solid var(--brand);outline-offset:2px}
+/* running status */
+.rsrow{display:grid;grid-template-columns:11em minmax(0,1fr) auto;gap:10px;align-items:center;margin:8px 0}
+.stream{display:flex;flex-wrap:wrap;gap:2px;min-width:0}
+.stream i{width:10px;height:14px;border-radius:2px;background:var(--accent)}
+.stream i.s{background:var(--fg)}
+.sw{display:inline-block;width:10px;height:10px;border-radius:2px;vertical-align:-1px}
+.sw.st{background:var(--fg)} .sw.dt{background:var(--accent)}
+/* decoder */
+.dec input[type=text]{width:100%;font:600 1rem var(--f-mono);padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg)}
+.decex{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+.declist{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:6px}
+.declist li{display:grid;grid-template-columns:minmax(7em,auto) minmax(0,1fr);gap:4px 14px;padding:8px 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg)}
+.declist .hx{font-family:var(--f-mono);font-weight:700}
+.declist .rs{font-size:.75rem;color:var(--brand);font-family:var(--f-mono)}
+.declist li.err{border-color:var(--hot)}
+/* implementation chart */
+.chart td,.chart th{text-align:center}
+.chart td:first-child,.chart th:first-child{text-align:left}
+.ox{font:700 .95rem var(--f-mono);width:2.4em;min-height:30px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--fg);cursor:pointer}
+.ox.o{border-color:var(--gnd);color:var(--gnd)}
+.ox.x{color:var(--muted)}
+.res{font-size:.85rem}
+.res.ok{color:var(--gnd);font-weight:600}
+.res.ig{color:var(--brand)}
+.res.no{color:var(--muted)}
+.modes{width:100%}
+.modes td{padding:4px 6px}
+@media (max-width:860px){.builder,.lab3{grid-template-columns:1fr}.rsrow{grid-template-columns:1fr}}
+@media (max-width:520px){.bit{width:1.35em;height:1.8em;font-size:.85rem}.bytebox{grid-template-columns:4.2em minmax(0,1fr) 2.4em}.bctl .rng{grid-template-columns:minmax(0,1fr) 2.6em}.bctl .rng label{grid-column:1/-1}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="#inicio"><span class="led" aria-hidden="true"></span><span class="txt">Especificación MIDI</span></a>
+    <nav class="nav" aria-label="Secciones">
+      <a href="#bytes">Bytes</a>
+      <a href="#tipos">Tipos</a>
+      <a href="#teclado3d">Teclado 3D</a>
+      <a href="#canal">Mensajes de canal</a>
+      <a href="#cc">Control Change</a>
+      <a href="#sistema">Sistema</a>
+      <a href="#running">Running status</a>
+      <a href="#implementacion">Implementación</a>
+      <a href="#quiz">Quiz</a>
+    </nav>
+    <button class="btn small theme-btn" id="themeBtn" type="button" aria-label="Cambiar tema claro u oscuro">Tema</button>
+  </div>
+</header>
+
+<main id="inicio">
+<div class="wrap hero">
+  <div class="hero-grid">
+    <div>
+      <div class="kicker">Técnicas de Producción Híbrida · Unidad MIDI · Teoría</div>
+      <h1>La especificación <span>MIDI</span> a fondo</h1>
+      <p class="lede">Los mensajes MIDI son el idioma con el que se hablan teclados, sintetizadores, cajas de ritmos y el DAW. En esta unidad los desarmamos <strong>bit por bit</strong>: qué dice cada byte, qué tipos de mensaje existen, cómo funcionan los controles y cómo saber qué entiende cada equipo.</p>
+      <div class="chips">
+        <span class="chip"><b>8</b> tipos de mensaje</span>
+        <span class="chip"><b>16</b> canales (2<sup>4</sup>)</span>
+        <span class="chip"><b>0–127</b> en cada dato (2<sup>7</sup>)</span>
+        <span class="chip clk"><b>14 bits</b> en Pitch Bend</span>
+      </div>
+    </div>
+    <div class="bytecard" aria-label="Estructura binaria de un mensaje MIDI">
+      <div class="hd"><span>Estructura de un mensaje</span><span>Fig. 8.1</span></div>
+      <div class="byte"><span class="bits"><span class="msb">1</span><span class="ty">001</span> <span class="chn">0000</span></span><span class="hex">90</span><span class="what"><b>Status:</b> empieza en 1. Tres bits dicen el <b>tipo</b> (Note On) y cuatro el <b>canal</b> (canal 1).</span></div>
+      <div class="byte"><span class="bits"><span class="msb">0</span>011 1100</span><span class="hex">3C</span><span class="what"><b>Data 1:</b> empieza en 0. Nota 60, el Do central.</span></div>
+      <div class="byte"><span class="bits"><span class="msb">0</span>110 0100</span><span class="hex">64</span><span class="what"><b>Data 2 (opcional):</b> velocidad 100. Algunos mensajes solo tienen un dato.</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+
+<!-- 1 BYTES -->
+<section class="rack" id="bytes" aria-labelledby="h-by">
+  <div class="unit">8.1 – 8.3 · Bytes de status y de datos</div>
+  <h2 id="h-by">Dos clases de byte: status y datos</h2>
+  <p class="intro">Un mensaje MIDI tiene <b>dos o tres bytes</b>. El primero es el <b>byte de status</b> y dice qué hacer. Los demás son <b>bytes de datos</b> y dicen con qué valores. La diferencia está en el bit más significativo (el primero de la izquierda): <b>1</b> en el status, <b>0</b> en los datos. Por eso un dato solo tiene 7 bits libres y va de <b>0 a 127</b> (binario 0000 0000 a 0111 1111). Por eso también hay 128 programas y no 256.</p>
+  <div class="cols">
+    <div class="card"><h3>Byte de status</h3><p>Bit 7 siempre en 1. Los bits 6–4 (tres bits) eligen uno de los <b>8 tipos</b> de mensaje (2<sup>3</sup>). Los bits 3–0 (cuatro bits) eligen uno de los <b>16 canales</b> (2<sup>4</sup>): 0000 es el canal 1 y 1111 el canal 16.</p></div>
+    <div class="card"><h3>Bytes de datos</h3><p>Bit 7 siempre en 0. Quedan 7 bits: valores de 0 a 127. Nota, velocidad, número de control, valor, programa… Todos caben en ese rango.</p></div>
+    <div class="card"><h3>¿Por qué importa?</h3><p>El receptor sabe dónde empieza cada mensaje porque solo los status empiezan en 1. Si se pierde un byte, el equipo se recupera en el siguiente status.</p></div>
+  </div>
+
+  <h3 class="sub">Constructor de mensajes</h3>
+  <p>Elige un tipo de mensaje, un canal y los valores. Mira cómo cambian los bits y el código hexadecimal (base 16, la forma en que los manuales escriben los bytes).</p>
+  <div class="builder">
+    <div class="bctl">
+      <label for="bType">Tipo de mensaje</label>
+      <select id="bType"></select>
+      <label for="bCh">Canal</label>
+      <select id="bCh"></select>
+      <div class="rng" id="bD1w"><label for="bD1" id="bD1l">Dato 1</label><input type="range" id="bD1" min="0" max="127" value="60"><output id="bD1o">60</output></div>
+      <div class="rng" id="bD2w"><label for="bD2" id="bD2l">Dato 2</label><input type="range" id="bD2" min="0" max="127" value="100"><output id="bD2o">100</output></div>
+    </div>
+    <div class="bout" aria-live="polite">
+      <div id="bBytes"></div>
+      <p id="bMeaning" class="bmean"></p>
+    </div>
+  </div>
+</section>
+
+<!-- 2 TIPOS -->
+<section class="rack" id="tipos" aria-labelledby="h-ti">
+  <div class="unit">8.4 · Tipos de mensajes</div>
+  <h2 id="h-ti">Los 8 tipos de mensaje</h2>
+  <p class="intro">Con tres bits de tipo hay ocho combinaciones. Siete son <b>mensajes de canal</b>. La octava (1111) agrupa los <b>mensajes de sistema</b>, que no tienen canal. Haz clic en una fila para cargarla en el constructor.</p>
+  <div class="tbl">
+    <table id="typesTbl">
+      <thead><tr><th>Nombre</th><th>Binario</th><th>Hex</th><th>Data 1</th><th>Data 2</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+  <div class="note errata">
+    <h3>Fe de erratas del texto</h3>
+    <p>La tabla 8.1 del libro tiene tres valores cambiados. Esta tabla ya usa los valores correctos de la especificación MIDI 1.0:</p>
+    <ul class="tight">
+      <li><b>Program Change</b> es <code>1100 nnnn</code> = <code>Cn</code> (el libro dice En).</li>
+      <li><b>Channel Aftertouch</b> es <code>1101 nnnn</code> = <code>Dn</code> (el libro dice Cn).</li>
+      <li><b>Pitch Bend</b> es <code>1110 nnnn</code> = <code>En</code> (el libro dice Dn), y su primer dato es el <b>LSB</b> (byte menos significativo) y el segundo el <b>MSB</b> (byte más significativo).</li>
+    </ul>
+  </div>
+  <div class="cols">
+    <div class="card"><h3>Nadie entiende todo</h3><p>Un equipo no tiene que manejar todos los mensajes. Si recibe uno que no entiende, lo <b>ignora</b> y, si tiene MIDI THRU, lo reenvía igual que cualquier otro.</p></div>
+    <div class="card"><h3>Un dato o dos</h3><p>Program Change y Channel Aftertouch usan <b>un solo</b> byte de datos. Los demás mensajes de canal usan dos.</p></div>
+  </div>
+</section>
+
+<!-- 3 TECLADO 3D -->
+<section class="rack" id="teclado3d" aria-labelledby="h-3d">
+  <div class="unit">Laboratorio 3D · Fig. 8.2</div>
+  <h2 id="h-3d">Un teclado que muestra sus mensajes</h2>
+  <p class="intro">Toca una tecla del teclado 3D (o usa los controles). Mueve la rueda de <b>pitch bend</b> y la de <b>modulación</b>. Cada acción muestra el mensaje exacto que el teclado envía por MIDI OUT. Arrastra para girar el modelo.</p>
+  <div class="lab3">
+    <div class="stage" id="kbStage">
+      <div id="kb3d"></div>
+      <div class="fallback"><p>Tu navegador no pudo iniciar el visor 3D (WebGL). Los controles de la derecha siguen funcionando.</p></div>
+      <span class="stage-hint">arrastrar · zoom · clic en una tecla</span>
+    </div>
+    <div class="kbctl">
+      <label for="kVel">Velocidad (fuerza de la tecla)</label>
+      <div class="rng"><input type="range" id="kVel" min="1" max="127" value="100"><output id="kVelO">100</output></div>
+      <label for="kCh">Canal</label>
+      <select id="kCh"></select>
+      <label for="kPb">Rueda de pitch bend</label>
+      <div class="rng"><input type="range" id="kPb" min="-8192" max="8191" value="0"><output id="kPbO">0</output></div>
+      <button type="button" class="btn small" id="kPbReset">Soltar la rueda (vuelve al centro)</button>
+      <label for="kMod">Rueda de modulación (CC 1)</label>
+      <div class="rng"><input type="range" id="kMod" min="0" max="127" value="0"><output id="kModO">0</output></div>
+      <div class="kbtns"><button type="button" class="btn small" id="kSus" aria-pressed="false">Pedal de sostenido (CC 64)</button><button type="button" class="btn small" id="kPc">Program Change +1</button></div>
+      <h3 class="sub">MIDI OUT</h3>
+      <ol class="log" id="kLog" aria-live="polite"><li class="empty">Toca una tecla para ver el primer mensaje.</li></ol>
+    </div>
+  </div>
+</section>
+
+<!-- 4 MENSAJES DE CANAL -->
+<section class="rack" id="canal" aria-labelledby="h-ca">
+  <div class="unit">8.5 · Mensajes de canal</div>
+  <h2 id="h-ca">Note On, Note Off, aftertouch, pitch bend y programa</h2>
+  <p class="intro">Los mensajes de canal actúan sobre <b>un solo canal</b>, el que indican los cuatro bits bajos del status. Son la gran mayoría de los mensajes MIDI.</p>
+
+  <div class="cols">
+    <div class="card">
+      <h3>Note On · <code>9n</code></h3>
+      <p><b>Data 1 = altura</b> de la nota (0–127). <b>Data 2 = velocidad</b> de ataque (la fuerza con que se aprieta la tecla).</p>
+      <div class="rng"><label for="nNum">Nota</label><input type="range" id="nNum" min="0" max="127" value="60"><output id="nNumO">60</output></div>
+      <p class="mono big" id="nName">Do 4 · Do central</p>
+      <svg class="range88" viewBox="0 0 256 26" aria-label="Rango de notas MIDI y rango del piano"><rect class="r-all" x="0" y="6" width="256" height="14" rx="3"></rect><rect class="r-piano" x="42" y="6" width="176" height="14" rx="3"></rect><rect class="r-mark" id="nMark" x="120" y="2" width="2" height="22"></rect></svg>
+      <p class="small">Franja clara: las 128 notas MIDI (más de 10 octavas). Franja de color: el piano de 88 teclas, notas <b>21 a 108</b>. Los múltiplos de 12 son notas Do.</p>
+      <p class="small erratum">Errata: el libro dice “de la nota 21 a la 88”. Lo correcto es 21 a 108.</p>
+    </div>
+    <div class="card">
+      <h3>Note Off · <code>8n</code></h3>
+      <p>Termina la nota. Data 1 = altura, Data 2 = <b>velocidad de liberación</b>. Casi ningún equipo usa esa velocidad.</p>
+      <p>Por eso la mayoría de teclados envía un <b>Note On con velocidad 0</b> al soltar la tecla. Todos los sintetizadores lo entienden como Note Off. Si un teclado no detecta la velocidad, envía siempre <b>64</b>.</p>
+      <p class="mono">90 3C 00 = 80 3C 40 (en la práctica)</p>
+    </div>
+    <div class="card">
+      <h3>Aftertouch (postpulsación)</h3>
+      <p><b>Poly Aftertouch · <code>An</code></b>: presión de <b>cada tecla</b> (Data 1 = nota, Data 2 = presión). Envía decenas de mensajes por segundo por nota: puede saturar el cable. Por eso se puede desactivar.</p>
+      <p><b>Channel Aftertouch · <code>Dn</code></b>: versión económica. <b>Un solo dato</b>: la presión mayor de todo el canal. Afecta a todas las notas de ese canal.</p>
+    </div>
+  </div>
+
+  <div class="cols">
+    <div class="card">
+      <h3>Pitch Bend · <code>En</code></h3>
+      <p>Los dos datos se combinan en un valor de <b>14 bits</b> (2<sup>14</sup> = 16 384 pasos), de <b>−8192</b> a <b>+8191</b>. El centro (0) es la rueda en reposo. En General MIDI el rango por defecto es <b>± 2 semitonos</b>.</p>
+      <div class="rng"><label for="pbV">Rueda</label><input type="range" id="pbV" min="-8192" max="8191" value="0"><output id="pbVO">0</output></div>
+      <div class="pbcalc mono" id="pbCalc"></div>
+    </div>
+    <div class="card">
+      <h3>Program Change · <code>Cn</code></h3>
+      <p>Cambia el sonido (programa o <i>patch</i>). <b>Un solo dato</b>: el número de programa, de 0 a 127. Para tener más de 128 sonidos, los equipos usan <b>bancos</b> (ver Control Change 0 y 32).</p>
+      <div class="rng"><label for="pcV">Byte de datos</label><input type="range" id="pcV" min="0" max="127" value="0"><output id="pcVO">0</output></div>
+      <p class="mono big" id="pcTxt"></p>
+      <p class="small">Cuidado: muchos equipos numeran sus sonidos de <b>1 a 128</b>, pero el byte siempre va de <b>0 a 127</b>.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 5 CONTROL CHANGE -->
+<section class="rack" id="cc" aria-labelledby="h-cc">
+  <div class="unit">8.6 · Control Change · <code>Bn</code></div>
+  <h2 id="h-cc">128 controles en un solo tipo de mensaje</h2>
+  <p class="intro">Control Change agrupa <b>128 controles</b>. <b>Data 1</b> dice cuál control (0–127). <b>Data 2</b> dice su valor. Casi todos usan la escala 0–127; algunos solo funcionan como interruptor (apagado/encendido). Los envían las ruedas, los pedales, las superficies de control o el propio secuenciador, dibujando curvas con el ratón.</p>
+  <div class="tbl">
+    <table>
+      <thead><tr><th>CC</th><th>Nombre</th><th>Qué hace</th><th>GM</th></tr></thead>
+      <tbody id="ccTbl"></tbody>
+    </table>
+  </div>
+  <div class="cols">
+    <div class="card">
+      <h3>Volumen (CC 7) × Expresión (CC 11)</h3>
+      <p>La velocidad cambia <b>una nota</b>. El CC 7 cambia el volumen de <b>todo el canal</b>, como un fader. El CC 11 trabaja con él:</p>
+      <p class="mono">Volumen final = CC7 × CC11 ÷ 127</p>
+      <div class="rng"><label for="v7">CC 7</label><input type="range" id="v7" min="0" max="127" value="100"><output id="v7o">100</output></div>
+      <div class="rng"><label for="v11">CC 11</label><input type="range" id="v11" min="0" max="127" value="127"><output id="v11o">127</output></div>
+      <div class="meter"><i id="vBar"></i></div>
+      <p class="mono" id="vTxt"></p>
+      <p class="small">Usa el CC 7 para la mezcla y el CC 11 para la articulación de un pasaje. Si no lo usas, deja el CC 11 en 127.</p>
+    </div>
+    <div class="card">
+      <h3>Panorama (CC 10)</h3>
+      <p>Ubica el canal en un arco de 180°: <b>0</b> izquierda, <b>64</b> centro, <b>127</b> derecha.</p>
+      <div class="rng"><label for="pan">CC 10</label><input type="range" id="pan" min="0" max="127" value="64"><output id="panO">64</output></div>
+      <svg class="pansvg" viewBox="0 0 220 110" aria-label="Posición estéreo"><path class="arc" d="M20 100 A90 90 0 0 1 200 100"></path><rect class="spk" x="4" y="92" width="24" height="16" rx="3"></rect><rect class="spk" x="192" y="92" width="24" height="16" rx="3"></rect><text class="spt" x="16" y="88">L</text><text class="spt" x="204" y="88">R</text><circle class="src" id="panDot" cx="110" cy="10" r="8"></circle></svg>
+    </div>
+    <div class="card">
+      <h3>Sostenido (CC 64)</h3>
+      <p>Como el pedal del piano. Solo dos posiciones: <b>0–63 apagado</b>, <b>64–127 encendido</b>. Encendido, las notas siguen sonando después de soltar las teclas.</p>
+      <div class="rng"><label for="sus">CC 64</label><input type="range" id="sus" min="0" max="127" value="0"><output id="susO">0</output></div>
+      <p class="mono big" id="susTxt">Pedal: apagado</p>
+    </div>
+  </div>
+  <div class="cols">
+    <div class="card"><h3>Bancos (CC 0 y CC 32)</h3><p>El CC 0 (y en algunos equipos el CC 32, o los dos) elige el <b>banco</b>. Después se envía un <b>Program Change</b> para elegir el sonido dentro del banco. Si tienes dudas, revisa el manual del equipo.</p><p class="mono">B0 00 01 · C0 05 → banco 1, programa 6</p></div>
+    <div class="card"><h3>Mensajes de modo (CC 121–127)</h3><p><b>CC 121 Reset All Controllers</b>: devuelve los controles a sus valores por defecto. Útil al empezar un tema, por ejemplo después de un fundido de volumen a 0. <b>CC 123 All Notes Off</b>: apaga todas las notas, útil cuando una nota se queda “colgada” porque se perdió su Note Off.</p></div>
+    <div class="card"><h3>RPN y NRPN</h3><p>Para parámetros que no tienen un CC propio. <b>RPN</b> (parámetros registrados): CC 101 y 100 eligen el parámetro. <b>NRPN</b> (no registrados, propios de cada fabricante): CC 99 y 98. Después, CC 6 y CC 38 (Data Entry) dan el valor. Ejemplo RPN 0 = rango del pitch bend.</p></div>
+  </div>
+</section>
+
+<!-- 6 SISTEMA -->
+<section class="rack" id="sistema" aria-labelledby="h-si">
+  <div class="unit">8.7 · Mensajes de sistema · <code>Fx</code></div>
+  <h2 id="h-si">Mensajes sin canal: comunes, tiempo real y exclusivo</h2>
+  <p class="intro">Si el status empieza con <b>1111</b>, los cuatro bits bajos ya no son un canal: eligen uno de <b>16 mensajes de sistema</b>. Afectan a todos los equipos que los reciben. Se dividen en tres grupos.</p>
+  <div class="tbl">
+    <table>
+      <thead><tr><th>Grupo</th><th>Status</th><th>Mensaje</th><th>Para qué sirve</th></tr></thead>
+      <tbody>
+        <tr><td><span class="tag mut">Exclusivo</span></td><td><code>F0 … F7</code></td><td>System Exclusive (SysEx)</td><td>Formato libre para cada fabricante. Termina con EOX (<code>F7</code>).</td></tr>
+        <tr><td><span class="tag data">Común</span></td><td><code>F1</code></td><td>MIDI Time Code (cuarto de cuadro)</td><td>Sincroniza secuenciadores con grabadoras multipista o video. Status + 1 dato.</td></tr>
+        <tr><td><span class="tag data">Común</span></td><td><code>F2</code></td><td>Song Position Pointer</td><td>Ubica el secuenciador en un punto de la canción.</td></tr>
+        <tr><td><span class="tag data">Común</span></td><td><code>F3</code></td><td>Song Select</td><td>Elige un tema en memoria.</td></tr>
+        <tr><td><span class="tag clk">Tiempo real</span></td><td><code>F8</code></td><td>Timing Clock</td><td>Pulso de reloj: <b>24 por negra</b>. El maestro lo envía y el esclavo lo sigue.</td></tr>
+        <tr><td><span class="tag clk">Tiempo real</span></td><td><code>FA · FB · FC</code></td><td>Start · Continue · Stop</td><td>Controlan el transporte de los equipos esclavos.</td></tr>
+        <tr><td><span class="tag clk">Tiempo real</span></td><td><code>FE · FF</code></td><td>Active Sensing · System Reset</td><td>Comprobar que el cable sigue conectado; reiniciar el equipo.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="cols">
+    <div class="card">
+      <h3>Reloj: maestro y esclavo</h3>
+      <p>El maestro envía <code>F8</code> 24 veces por negra. Mueve el tempo y mira cuántos pulsos por segundo viajan por el cable.</p>
+      <div class="rng"><label for="bpm">Tempo (BPM)</label><input type="range" id="bpm" min="60" max="180" value="120"><output id="bpmO">120</output></div>
+      <div class="clockviz" aria-hidden="true"><span id="clkDot"></span></div>
+      <p class="mono" id="clkTxt"></p>
+    </div>
+    <div class="card wide">
+      <h3>System Exclusive: el “código máquina” de cada equipo</h3>
+      <p>Después de <code>F0</code> va el <b>ID del fabricante</b> y el <b>ID del modelo</b>. Luego, cualquier número de bytes de datos. Al final, <code>F7</code> (EOX). Un equipo lee los IDs: si no son los suyos, ignora todo hasta el <code>F7</code>. El fabricante debe publicar sus mensajes en el manual.</p>
+      <div class="sysex" id="sysex" aria-label="Estructura de un mensaje SysEx">
+        <span class="sx st" data-i="Inicio de SysEx: status F0 (1111 0000).">F0</span>
+        <span class="sx id" data-i="ID del fabricante (en este ejemplo, 41 = Roland). Byte de datos: empieza en 0.">41</span>
+        <span class="sx id" data-i="ID del modelo o del dispositivo.">10</span>
+        <span class="sx bd" data-i="Cuerpo del mensaje: cualquier número de bytes de datos (0–127 cada uno). Aquí va el parámetro o el volcado de memoria.">42</span>
+        <span class="sx bd" data-i="Cuerpo del mensaje.">12</span>
+        <span class="sx bd" data-i="Cuerpo del mensaje.">40</span>
+        <span class="sx bd" data-i="Cuerpo del mensaje.">00</span>
+        <span class="sx bd" data-i="Cuerpo del mensaje.">7F</span>
+        <span class="sx st" data-i="EOX (End of Exclusive): status F7 (1111 0111). Termina el mensaje.">F7</span>
+      </div>
+      <p class="small" id="sxInfo">Pasa el ratón o toca un byte para ver qué es.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 7 RUNNING STATUS + DECODER -->
+<section class="rack" id="running" aria-labelledby="h-rs">
+  <div class="unit">8.8 · Running status</div>
+  <h2 id="h-rs">Ahorrar bytes: running status</h2>
+  <p class="intro">El running status no es un mensaje: es una <b>regla de transmisión</b>. Si un mensaje es del mismo tipo y canal que el anterior, no hace falta repetir el status. Solo el primero ocupa 3 bytes; los siguientes ocupan 2. Es muy útil en ráfagas de controles continuos, como un fundido de volumen. Enviarlo es opcional, pero <b>todo receptor debe entenderlo</b>.</p>
+  <div class="cols">
+    <div class="card wide">
+      <h3>Un fundido de volumen (CC 7)</h3>
+      <div class="rng"><label for="rsN">Mensajes</label><input type="range" id="rsN" min="2" max="40" value="8"><output id="rsNO">8</output></div>
+      <div class="rsrow"><b>Sin running status</b><div class="stream" id="rsA"></div><span class="mono" id="rsAt"></span></div>
+      <div class="rsrow"><b>Con running status</b><div class="stream" id="rsB"></div><span class="mono" id="rsBt"></span></div>
+      <p class="small">Cada byte tarda 320 µs a 31 250 bit/s (10 bits por byte). <span class="sw st"></span> status · <span class="sw dt"></span> datos.</p>
+    </div>
+  </div>
+  <h3 class="sub">Decodificador de bytes</h3>
+  <p>Escribe bytes en hexadecimal, separados por espacios. El decodificador entiende el running status. Prueba con los ejemplos.</p>
+  <div class="dec">
+    <label for="decIn" class="vh">Bytes en hexadecimal</label>
+    <input type="text" id="decIn" spellcheck="false" autocomplete="off" value="90 3C 64 40 64 43 64 3C 00">
+    <div class="decex"><button type="button" class="btn small" data-ex="90 3C 64 40 64 43 64 3C 00">Acorde con running status</button><button type="button" class="btn small" data-ex="B0 07 7F 07 60 07 40 07 00">Fundido CC 7</button><button type="button" class="btn small" data-ex="B0 00 01 C0 05">Banco + programa</button><button type="button" class="btn small" data-ex="E0 00 40 E0 7F 7F E0 00 00">Pitch bend</button><button type="button" class="btn small" data-ex="F0 41 10 42 12 40 00 7F F7 F8 FA">SysEx + reloj</button></div>
+    <ol class="declist" id="decOut" aria-live="polite"></ol>
+  </div>
+</section>
+
+<!-- 8 GM + IMPLEMENTACION -->
+<section class="rack" id="implementacion" aria-labelledby="h-im">
+  <div class="unit">8.9 – 8.10 · General MIDI y hoja de implementación</div>
+  <h2 id="h-im">¿Qué entiende cada equipo?</h2>
+  <p class="intro">Un equipo <b>General MIDI</b> debe entender pitch bend, channel aftertouch, modulación (CC 1), volumen (CC 7), panorama (CC 10), expresión (CC 11), sostenido (CC 64), Reset All Controllers (CC 121) y All Notes Off (CC 123). Para el resto, cada manual trae una <b>hoja de implementación MIDI</b>: dos columnas, lo que el equipo <b>transmite</b> y lo que <b>recibe</b>. Un círculo (O) significa sí; una cruz (X) significa no.</p>
+  <p class="small erratum">Errata: en el apartado 8.9 el libro cambia los números. CC 121 es Reset All Controllers y CC 123 es All Notes Off (el apartado 8.6.9 sí lo dice bien).</p>
+  <div class="cols">
+    <div class="card wide">
+      <h3>Comparador de hojas de implementación</h3>
+      <p>A la izquierda, un <b>teclado controlador</b>: haz clic en su columna para cambiar lo que transmite. A la derecha, la <b>tarjeta de sonido</b> de la figura 8.3, que solo recibe. La última columna dice qué pasa con cada mensaje.</p>
+      <div class="tbl"><table class="chart" id="chart"><thead><tr><th>Función</th><th>Teclado · Transmite</th><th>Tarjeta · Recibe</th><th>Resultado</th></tr></thead><tbody></tbody></table></div>
+    </div>
+  </div>
+  <div class="cols">
+    <div class="card"><h3>Modos de recepción</h3><table class="modes"><tbody><tr><td><b>Modo 1</b></td><td>Omni activado · Poli</td></tr><tr><td><b>Modo 2</b></td><td>Omni activado · Mono</td></tr><tr><td><b>Modo 3</b></td><td>Omni desactivado · Poli</td></tr><tr><td><b>Modo 4</b></td><td>Omni desactivado · Mono</td></tr></tbody></table><p class="small"><b>Omni</b>: escucha los 16 canales. <b>Poli</b>: varias notas a la vez. La tarjeta de la figura 8.3 trabaja en modo 3.</p></div>
+    <div class="card"><h3>Para qué sirve la hoja</h3><p>Antes de conectar, compara la columna <b>Transmisión</b> del emisor con la columna <b>Recepción</b> del receptor. Así sabes qué mensajes van a funcionar y cuáles se van a ignorar, y evitas enviar datos inútiles.</p></div>
+  </div>
+</section>
+
+<!-- 9 QUIZ -->
+<section class="rack" id="quiz" aria-labelledby="h-qz">
+  <div class="unit">Autoevaluación</div>
+  <h2 id="h-qz">Quiz de la especificación</h2>
+  <p class="intro">Cada respuesta se corrige al momento. Puntaje: <span class="score" id="qScore">0 / 8</span></p>
+  <form class="quiz" id="quizForm" onsubmit="return false"></form>
+</section>
+
+</div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>Técnicas de Producción Híbrida · Unidad MIDI · Especificación</span>
+    <span>Basado en: Sergi Jordà Puig, <i>Audio digital y MIDI</i>, cap. 8, Anaya Multimedia, 1997. Erratas corregidas según la especificación MIDI 1.0.</span>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+(function(){
+"use strict";
+var root=document.documentElement;
+var mqReduce=window.matchMedia('(prefers-reduced-motion: reduce)');
+var mqDark=window.matchMedia('(prefers-color-scheme: dark)');
+function $(s){return document.querySelector(s);}
+function $$(s){return Array.prototype.slice.call(document.querySelectorAll(s));}
+function tok(n){return getComputedStyle(root).getPropertyValue(n).trim()||'#888888';}
+function hx(b){return ('0'+b.toString(16).toUpperCase()).slice(-2);}
+function bin(b){return ('0000000'+b.toString(2)).slice(-8);}
+
+/* ---------- theme ---------- */
+var themeListeners=[];
+function isDark(){var t=root.getAttribute('data-theme');return t?t==='dark':mqDark.matches;}
+$('#themeBtn').addEventListener('click',function(){root.setAttribute('data-theme',isDark()?'light':'dark');themeListeners.forEach(function(f){f();});});
+if(mqDark.addEventListener)mqDark.addEventListener('change',function(){themeListeners.forEach(function(f){f();});});
+
+/* ---------- shared MIDI knowledge ---------- */
+var NN=['Do','Do#','Re','Re#','Mi','Fa','Fa#','Sol','Sol#','La','La#','Si'];
+function noteName(n){return NN[n%12]+' '+(Math.floor(n/12)-1)+(n===60?' · Do central':'');}
+var CCN={0:'Cambio de banco (MSB)',1:'Modulación',6:'Data Entry (MSB)',7:'Volumen',10:'Panorama',11:'Expresión',32:'Cambio de banco (LSB)',38:'Data Entry (LSB)',64:'Sostenido',91:'Reverberación',93:'Chorus',98:'NRPN (LSB)',99:'NRPN (MSB)',100:'RPN (LSB)',101:'RPN (MSB)',120:'All Sound Off',121:'Reset All Controllers',122:'Local Control',123:'All Notes Off',124:'Omni Off',125:'Omni On',126:'Mono On',127:'Poly On'};
+function ccName(c){return CCN[c]||'Control '+c+' (sin uso estándar)';}
+var TYPES=[
+  {hi:8,n:'Note Off',d1:'altura (nota)',d2:'velocidad de liberación'},
+  {hi:9,n:'Note On',d1:'altura (nota)',d2:'velocidad'},
+  {hi:10,n:'Poly Aftertouch',d1:'altura (nota)',d2:'presión'},
+  {hi:11,n:'Control Change',d1:'número de control',d2:'valor'},
+  {hi:12,n:'Program Change',d1:'programa',d2:null},
+  {hi:13,n:'Channel Aftertouch',d1:'presión',d2:null},
+  {hi:14,n:'Pitch Bend',d1:'LSB (7 bits bajos)',d2:'MSB (7 bits altos)'},
+  {hi:15,n:'Mensaje de sistema',d1:null,d2:null}
+];
+function describe(st,d){ // st status byte, d array of data
+  var hi=st>>4, ch=(st&15)+1, t=TYPES[hi-8];
+  if(hi===8) return 'Note Off · canal '+ch+' · '+noteName(d[0])+' · velocidad de liberación '+d[1];
+  if(hi===9) return d[1]===0?'Note On con velocidad 0 = Note Off · canal '+ch+' · '+noteName(d[0]):'Note On · canal '+ch+' · '+noteName(d[0])+' (nota '+d[0]+') · velocidad '+d[1];
+  if(hi===10) return 'Poly Aftertouch · canal '+ch+' · '+noteName(d[0])+' · presión '+d[1];
+  if(hi===11) return 'Control Change · canal '+ch+' · CC '+d[0]+' '+ccName(d[0])+' · valor '+d[1]+(d[0]===64?(d[1]>=64?' (encendido)':' (apagado)'):'');
+  if(hi===12) return 'Program Change · canal '+ch+' · programa '+d[0]+' (aparece como '+(d[0]+1)+' en equipos que cuentan desde 1)';
+  if(hi===13) return 'Channel Aftertouch · canal '+ch+' · presión '+d[0];
+  if(hi===14){var v=((d[1]<<7)|d[0])-8192; return 'Pitch Bend · canal '+ch+' · valor '+v+' ('+(v/8192*2).toFixed(2)+' semitonos con rango ±2)';}
+  return t.n;
+}
+
+/* ---------- builder ---------- */
+var SYS=[{b:[0xF8],n:'Timing Clock: un pulso de reloj (24 por negra).'},{b:[0xFA],n:'Start: arranca el secuenciador esclavo desde el principio.'},{b:[0xFB],n:'Continue: continúa desde donde se detuvo.'},{b:[0xFC],n:'Stop: detiene el transporte.'},{b:[0xF1,0x20],n:'MIDI Time Code (cuarto de cuadro): status + 1 dato.'},{b:[0xF0,0x41,0x10,0x42,0x12,0xF7],n:'System Exclusive: F0, ID de fabricante, ID de modelo, datos y F7.'},{b:[0xFE],n:'Active Sensing: “sigo conectado”.'}];
+var bType=$('#bType'), bCh=$('#bCh'), bD1=$('#bD1'), bD2=$('#bD2');
+TYPES.forEach(function(t,i){var o=document.createElement('option');o.value=i;o.textContent=t.n+' ('+hx(t.hi<<4).charAt(0)+'n)';bType.appendChild(o);});
+for(var c=1;c<=16;c++){var o=document.createElement('option');o.value=c-1;o.textContent='Canal '+c;bCh.appendChild(o);}
+bType.value=1;
+var sysSel=document.createElement('select'); sysSel.id='bSys'; SYS.forEach(function(s,i){var o=document.createElement('option');o.value=i;o.textContent=s.b.map(hx).join(' ')+' · '+s.n.split(':')[0];sysSel.appendChild(o);});
+var sysLbl=document.createElement('label'); sysLbl.htmlFor='bSys'; sysLbl.textContent='Mensaje de sistema';
+bCh.insertAdjacentElement('afterend',sysSel); bCh.insertAdjacentElement('afterend',sysLbl);
+function byteBox(name,b,kind){
+  var bits=bin(b), h='<div class="bytebox"><span class="bn">'+name+'</span><span class="bitrow">';
+  for(var i=0;i<8;i++){var cl='bit'+(i===0?' m':kind==='st'&&i<4?' t':kind==='st'?' c':''); h+='<span class="'+cl+'">'+bits[i]+'</span>';}
+  return h+'</span><span class="hx">'+hx(b)+'</span></div>';
+}
+function build(){
+  var t=TYPES[+bType.value], sys=t.hi===15;
+  bCh.hidden=sys; $('label[for=bCh]').hidden=sys; sysSel.hidden=!sys; sysLbl.hidden=!sys;
+  $('#bD1w').hidden=sys||!t.d1; $('#bD2w').hidden=sys||!t.d2;
+  $('#bD1l').textContent='Data 1: '+(t.d1||''); $('#bD2l').textContent='Data 2: '+(t.d2||'');
+  $('#bD1o').textContent=bD1.value; $('#bD2o').textContent=bD2.value;
+  var h='', mean='';
+  if(sys){ var s=SYS[+sysSel.value]; s.b.forEach(function(b,i){h+=byteBox(b>=128?'Status':'Dato',b,b>=128?'st':'d');}); mean=s.n+' Los mensajes de sistema no tienen canal: los cuatro bits bajos eligen el mensaje.'; }
+  else {
+    var st=(t.hi<<4)|(+bCh.value), d=[+bD1.value]; if(t.d2) d.push(+bD2.value);
+    h+=byteBox('Status',st,'st'); h+=byteBox('Data 1',d[0],'d'); if(t.d2) h+=byteBox('Data 2',d[1],'d');
+    mean='<b>'+[st].concat(d).map(hx).join(' ')+'</b> → '+describe(st,d)+'. Bits <span style="color:var(--signal)">'+bin(st).slice(1,4)+'</span> = tipo, bits <span style="color:var(--accent)">'+bin(st).slice(4)+'</span> = canal '+((st&15)+1)+'.';
+  }
+  $('#bBytes').innerHTML=h; $('#bMeaning').innerHTML=mean;
+  $$('#typesTbl tbody tr').forEach(function(tr,i){tr.classList.toggle('sel',i===+bType.value);});
+}
+[bType,bCh,bD1,bD2,sysSel].forEach(function(e){e.addEventListener('input',build);});
+
+/* ---------- types table ---------- */
+var tb=$('#typesTbl tbody');
+TYPES.forEach(function(t,i){
+  var tr=document.createElement('tr'); tr.tabIndex=0;
+  tr.innerHTML='<td><b>'+t.n+'</b></td><td><code>'+bin(t.hi<<4).slice(0,4)+' '+(t.hi===15?'xxxx':'nnnn')+'</code></td><td><code>'+hx(t.hi<<4).charAt(0)+(t.hi===15?'x':'n')+'</code></td><td>'+(t.d1||'—')+'</td><td>'+(t.d2||'—')+'</td>';
+  function pick(){bType.value=i; build(); $('#bytes .builder').scrollIntoView({behavior:mqReduce.matches?'auto':'smooth',block:'center'});}
+  tr.addEventListener('click',pick); tr.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();pick();}});
+  tb.appendChild(tr);
+});
+build();
+
+/* ---------- channel messages widgets ---------- */
+function bindRange(id,fn){var el=$('#'+id),o=$('#'+id+'O')||$('#'+id+'o'); function up(){if(o)o.textContent=el.value; fn(+el.value);} el.addEventListener('input',up); up();}
+bindRange('nNum',function(v){$('#nName').textContent=noteName(v)+' · nota '+v+(v<21||v>108?' · fuera del piano':''); $('#nMark').setAttribute('x',(v/127*254).toFixed(1));});
+function pbBytes(v){var u=v+8192; return {lsb:u&127,msb:u>>7,u:u};}
+bindRange('pbV',function(v){var p=pbBytes(v); $('#pbCalc').innerHTML='<span>Valor sin signo = '+v+' + 8192 = <b>'+p.u+'</b></span><span>LSB = '+p.u+' mod 128 = <b>'+p.lsb+'</b> · MSB = '+p.u+' ÷ 128 = <b>'+p.msb+'</b></span><span>Mensaje: <b>E0 '+hx(p.lsb)+' '+hx(p.msb)+'</b> · '+(v/8192*2).toFixed(2)+' semitonos (±2)</span>';});
+bindRange('pcV',function(v){$('#pcTxt').textContent='C0 '+hx(v)+' → programa '+(v+1)+' en un equipo que cuenta desde 1';});
+function vol(){var a=+$('#v7').value,b=+$('#v11').value,r=Math.round(a*b/127); $('#v7o').textContent=a; $('#v11o').textContent=b; $('#vBar').style.width=(r/127*100)+'%'; $('#vTxt').textContent=a+' × '+b+' ÷ 127 = '+r;}
+$('#v7').addEventListener('input',vol); $('#v11').addEventListener('input',vol); vol();
+bindRange('pan',function(v){var a=Math.PI*(1-v/127), cx=110+90*Math.cos(a), cy=100-90*Math.sin(a); var d=$('#panDot'); d.setAttribute('cx',cx.toFixed(1)); d.setAttribute('cy',cy.toFixed(1));});
+bindRange('sus',function(v){$('#susTxt').textContent='B0 40 '+hx(v)+' · Pedal: '+(v>=64?'encendido':'apagado');});
+
+/* ---------- CC table ---------- */
+var CCROWS=[[0,'Cambio de banco','Elige el banco; va seguido de un Program Change. Algunos equipos usan el CC 32 o los dos.',''],[1,'Modulación','Rueda de modulación: vibrato, trémolo o filtro, según el sinte.','GM'],[6,'Data Entry','Da el valor de un RPN o NRPN (con el CC 38 para la parte fina).',''],[7,'Volumen','Volumen de todo el canal, como un fader.','GM'],[10,'Panorama','0 izquierda · 64 centro · 127 derecha.','GM'],[11,'Expresión','Trabaja con el CC 7: volumen = CC7 × CC11 ÷ 127.','GM'],[64,'Sostenido','Pedal: 0–63 apagado, 64–127 encendido.','GM'],[91,'Reverberación','Proporción de sonido reflejado: más valor, fuente más lejana.',''],[93,'Chorus','Efecto de duplicación: más valor, sonido más “grueso”.',''],[98,'NRPN','Eligen un parámetro no registrado (CC 99 y 98).',''],[100,'RPN','Eligen un parámetro registrado (CC 101 y 100).',''],[121,'Reset All Controllers','Devuelve los controles a sus valores por defecto.','GM'],[123,'All Notes Off','Apaga todas las notas colgadas.','GM']];
+$('#ccTbl').innerHTML=CCROWS.map(function(r){return '<tr><td><code>'+r[0]+(r[0]===98?' / 99':r[0]===100?' / 101':'')+'</code></td><td><b>'+r[1]+'</b></td><td>'+r[2]+'</td><td>'+(r[3]?'<span class="tag data">GM</span>':'')+'</td></tr>';}).join('');
+
+/* ---------- clock ---------- */
+var clkI=0, clkTimer=0;
+function clock(){
+  var b=+$('#bpm').value, ps=b/60*24; $('#bpmO').textContent=b;
+  $('#clkTxt').textContent=ps.toFixed(0)+' mensajes F8 por segundo · uno cada '+(1000/ps).toFixed(1)+' ms';
+  clearInterval(clkTimer); var dot=$('#clkDot');
+  if(mqReduce.matches){dot.classList.add('on');return;}
+  clkTimer=setInterval(function(){clkI=(clkI+1)%24; dot.classList.toggle('on',clkI%6===0); dot.style.left=(6+clkI/23*90)+'%';},1000/ps*1);
+}
+$('#bpm').addEventListener('input',clock); clock();
+
+/* ---------- sysex ---------- */
+$$('#sysex .sx').forEach(function(s){s.tabIndex=0; function show(){$$('#sysex .sx').forEach(function(x){x.classList.toggle('on',x===s);}); $('#sxInfo').textContent=s.textContent+' · '+s.getAttribute('data-i');} s.addEventListener('mouseenter',show); s.addEventListener('focus',show); s.addEventListener('click',show);});
+
+/* ---------- running status ---------- */
+function rs(){
+  var n=+$('#rsN').value; $('#rsNO').textContent=n;
+  var a='',b=''; for(var i=0;i<n;i++){a+='<i class="s"></i><i></i><i></i>'; b+=(i===0?'<i class="s"></i>':'')+'<i></i><i></i>';}
+  $('#rsA').innerHTML=a; $('#rsB').innerHTML=b;
+  var A=3*n, B=3+2*(n-1);
+  $('#rsAt').textContent=A+' bytes · '+(A*0.32).toFixed(1)+' ms';
+  $('#rsBt').textContent=B+' bytes · '+(B*0.32).toFixed(1)+' ms · ahorro '+Math.round((1-B/A)*100)+'%';
+}
+$('#rsN').addEventListener('input',rs); rs();
+
+/* ---------- decoder ---------- */
+function decode(str){
+  var toks=str.trim().split(/[\s,]+/).filter(Boolean), out=[], run=null, i=0, bytes=[];
+  for(var k=0;k<toks.length;k++){var v=parseInt(toks[k],16); if(isNaN(v)||v<0||v>255||!/^[0-9a-f]{1,2}$/i.test(toks[k])){out.push({err:true,h:toks[k],t:'“'+toks[k]+'” no es un byte hexadecimal (00 a FF).'});} else bytes.push(v);}
+  while(i<bytes.length){
+    var b=bytes[i];
+    if(b>=0xF8){out.push({h:hx(b),t:({248:'Timing Clock',250:'Start',251:'Continue',252:'Stop',254:'Active Sensing',255:'System Reset'})[b]||'Tiempo real (sin definir)'}); i++; continue;}
+    if(b===0xF0){var j=i+1; while(j<bytes.length&&bytes[j]!==0xF7) j++; var seg=bytes.slice(i,j+1); out.push({h:seg.map(hx).join(' '),t:'System Exclusive · fabricante '+hx(seg[1]||0)+(j>=bytes.length?' · falta el F7 de cierre':' · '+(seg.length-4)+' bytes de cuerpo'),err:j>=bytes.length}); run=null; i=j+1; continue;}
+    if(b>=0xF1){var nd=b===0xF2?2:(b===0xF1||b===0xF3)?1:0; out.push({h:bytes.slice(i,i+1+nd).map(hx).join(' '),t:({241:'MIDI Time Code (cuarto de cuadro)',242:'Song Position Pointer',243:'Song Select',246:'Tune Request',247:'EOX sin F0 previo'})[b]||'Sistema común (sin definir)'}); run=null; i+=1+nd; continue;}
+    var st, usedRun=false;
+    if(b>=0x80){st=b; run=b; i++;} else if(run){st=run; usedRun=true;} else {out.push({err:true,h:hx(b),t:'Byte de datos sin status: el receptor no sabe a qué mensaje pertenece y lo descarta.'}); i++; continue;}
+    var need=((st>>4)===12||(st>>4)===13)?1:2, d=bytes.slice(i,i+need);
+    if(d.length<need||d.some(function(x){return x>=128;})){out.push({err:true,h:[st].concat(d).map(hx).join(' '),t:'Mensaje incompleto: faltan bytes de datos.'}); i+=d.filter(function(x){return x<128;}).length; continue;}
+    out.push({h:(usedRun?'('+hx(st)+') ':'')+d.map(hx).join(' ').replace(/^/,usedRun?'':hx(st)+' '),t:describe(st,d),rs:usedRun}); i+=need;
+  }
+  $('#decOut').innerHTML=out.length?out.map(function(m){return '<li class="'+(m.err?'err':'')+'"><span class="hx">'+m.h+(m.rs?'<br><span class="rs">running status</span>':'')+'</span><span>'+m.t+'</span></li>';}).join(''):'<li>Escribe algunos bytes.</li>';
+}
+var decIn=$('#decIn'); decIn.addEventListener('input',function(){decode(decIn.value);});
+$$('[data-ex]').forEach(function(bt){bt.addEventListener('click',function(){decIn.value=bt.getAttribute('data-ex'); decode(decIn.value);});});
+decode(decIn.value);
+
+/* ---------- implementation chart ---------- */
+var CH=[['Note On / Note Off (velocidad)',1,1],['Poly Aftertouch',1,0],['Channel Aftertouch',1,0],['Pitch Bend',1,1],['CC 0 / 32 · banco',0,1],['CC 1 · modulación',1,1],['CC 7 · volumen',1,1],['CC 10 · panorama',0,1],['CC 11 · expresión',0,1],['CC 64 · sostenido',1,1],['CC 91 · reverb',0,1],['CC 93 · chorus',0,1],['CC 121 · Reset All Controllers',0,1],['CC 123 · All Notes Off',0,1],['Program Change',1,1],['System Exclusive',0,0]];
+function chart(){
+  $('#chart tbody').innerHTML=CH.map(function(r,i){
+    var res=r[1]&&r[2]?['ok','Funciona']:r[1]?['ig','Se envía, pero la tarjeta lo ignora']:['no','No se envía'];
+    return '<tr><td>'+r[0]+'</td><td><button type="button" class="ox '+(r[1]?'o':'x')+'" data-i="'+i+'" aria-label="'+r[0]+': transmite '+(r[1]?'sí':'no')+'">'+(r[1]?'O':'X')+'</button></td><td><span class="ox '+(r[2]?'o':'x')+'" style="display:inline-block;padding-top:4px">'+(r[2]?'O':'X')+'</span></td><td class="res '+res[0]+'">'+res[1]+'</td></tr>';
+  }).join('');
+}
+$('#chart').addEventListener('click',function(e){var b=e.target.closest('button[data-i]'); if(!b) return; var i=+b.getAttribute('data-i'); CH[i][1]=CH[i][1]?0:1; chart(); var nb=$('#chart button[data-i="'+i+'"]'); if(nb) nb.focus();});
+chart();
+
+/* ---------- quiz ---------- */
+var QZ=[
+  ['¿Qué bit distingue un byte de status de un byte de datos?',['El bit menos significativo','El bit más significativo: 1 en status, 0 en datos','Los cuatro bits bajos','No se distinguen'],1,'El bit más significativo es 1 en los status y 0 en los datos. Por eso los datos solo tienen 7 bits: 0 a 127.'],
+  ['¿Qué significa el mensaje 93 40 50?',['Note On, canal 4, nota 64, velocidad 80','Note On, canal 3, nota 64, velocidad 80','Note Off, canal 4, nota 40, velocidad 50','Control Change 64 en canal 3'],0,'9 = Note On; el nibble 3 = canal 4 (se cuenta desde 0). 40 hex = 64, 50 hex = 80.'],
+  ['¿Cuántos bytes de datos tiene un Program Change?',['Ninguno','Uno','Dos','Depende del fabricante'],1,'Program Change (Cn) y Channel Aftertouch (Dn) usan un solo byte de datos.'],
+  ['La rueda de pitch bend está en reposo. ¿Qué valor envía?',['0, con bytes E0 00 00','8191','0, con bytes E0 00 40 (centro de 14 bits)','−8192'],2,'El centro es 0 en la escala −8192…+8191, que equivale a 8192 sin signo: LSB 00, MSB 40.'],
+  ['CC 7 = 100 y CC 11 = 64. ¿Cuál es el volumen final aproximado?',['164','100','50','64'],2,'100 × 64 ÷ 127 ≈ 50.'],
+  ['Una nota se quedó sonando porque se perdió su Note Off. ¿Qué mensaje la apaga?',['CC 121 Reset All Controllers','CC 123 All Notes Off','CC 64 con valor 127','Program Change 0'],1,'CC 123 apaga todas las notas. CC 121 solo devuelve los controles a su valor por defecto.'],
+  ['Envías 10 mensajes seguidos de CC 7 en el mismo canal con running status. ¿Cuántos bytes viajan?',['30','21','20','12'],1,'El primero ocupa 3 bytes y los 9 siguientes 2 cada uno: 3 + 18 = 21.'],
+  ['Un equipo recibe un SysEx con un ID de fabricante que no es el suyo. ¿Qué hace?',['Se reinicia','Lo ignora hasta el F7','Lo convierte en Note On','Envía un error por MIDI OUT'],1,'Lee los IDs después del F0; si no coinciden, ignora todo hasta el byte F7 (EOX).']
+];
+var form=$('#quizForm'), ans={};
+form.innerHTML=QZ.map(function(q,i){return '<fieldset><legend>'+(i+1)+'. '+q[0]+'</legend>'+q[1].map(function(o,j){return '<label class="opt" for="q'+i+'_'+j+'"><input type="radio" name="q'+i+'" id="q'+i+'_'+j+'" value="'+j+'"><span>'+o+'</span></label>';}).join('')+'<p class="fb" id="q'+i+'fb"></p></fieldset>';}).join('');
+form.addEventListener('change',function(e){var m=/^q(\d+)$/.exec(e.target.name); if(!m) return; var i=+m[1], ok=+e.target.value===QZ[i][2]; ans[i]=ok; var fb=$('#q'+i+'fb'); fb.className='fb '+(ok?'ok':'no'); fb.textContent=(ok?'Correcto. ':'No. ')+QZ[i][3]; var s=0; Object.keys(ans).forEach(function(k){if(ans[k])s++;}); $('#qScore').textContent=s+' / '+QZ.length;});
+
+/* ---------- 3D keyboard ---------- */
+var kLog=$('#kLog'), kCh=$('#kCh');
+for(var c2=1;c2<=16;c2++){var o2=document.createElement('option');o2.value=c2-1;o2.textContent='Canal '+c2;kCh.appendChild(o2);}
+var prog=0;
+function log(bytes,txt){
+  var e=kLog.querySelector('.empty'); if(e) e.remove();
+  var li=document.createElement('li'); li.innerHTML='<span class="tm">'+bytes.map(hx).join(' ')+'</span><span class="bx">'+txt+'</span>';
+  kLog.insertBefore(li,kLog.firstChild); while(kLog.children.length>14) kLog.removeChild(kLog.lastChild);
+}
+function ch(){return +kCh.value;}
+var api={press:function(){},pb:function(){},mod:function(){}};
+function noteOn(n){var v=+$('#kVel').value; log([0x90|ch(),n,v],describe(0x90|ch(),[n,v])); api.press(n,true);}
+function noteOff(n){log([0x90|ch(),n,0],'Note On con velocidad 0 = Note Off · '+noteName(n)); api.press(n,false);}
+$('#kVel').addEventListener('input',function(){$('#kVelO').textContent=this.value;});
+var pbLast=0;
+function pbSend(v){$('#kPbO').textContent=v; var p=pbBytes(v); log([0xE0|ch(),p.lsb,p.msb],describe(0xE0|ch(),[p.lsb,p.msb])); api.pb(v);}
+$('#kPb').addEventListener('input',function(){pbSend(+this.value);});
+$('#kPbReset').addEventListener('click',function(){$('#kPb').value=0; pbSend(0);});
+$('#kMod').addEventListener('input',function(){var v=+this.value; $('#kModO').textContent=v; log([0xB0|ch(),1,v],describe(0xB0|ch(),[1,v])); api.mod(v);});
+$('#kSus').addEventListener('click',function(){var on=this.getAttribute('aria-pressed')!=='true'; this.setAttribute('aria-pressed',on?'true':'false'); var v=on?127:0; log([0xB0|ch(),64,v],describe(0xB0|ch(),[64,v]));});
+$('#kPc').addEventListener('click',function(){prog=(prog+1)%128; log([0xC0|ch(),prog],describe(0xC0|ch(),[prog]));});
+
+(function(){
+  var stage=$('#kbStage'), host=$('#kb3d');
+  if(!window.THREE){stage.classList.add('nogl');return;}
+  var renderer; try{renderer=new THREE.WebGLRenderer({antialias:true,alpha:true}); if(!renderer.getContext()) throw 0;}catch(e){stage.classList.add('nogl');return;}
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2)); host.appendChild(renderer.domElement);
+  var scene=new THREE.Scene(), cam=new THREE.PerspectiveCamera(36,1,.1,300);
+  cam.position.set(0,34,56);
+  var controls=THREE.OrbitControls?new THREE.OrbitControls(cam,renderer.domElement):null;
+  if(controls){controls.target.set(0,0,0);controls.enableDamping=!mqReduce.matches;controls.minDistance=18;controls.maxDistance=110;controls.maxPolarAngle=Math.PI*.49;} else cam.lookAt(0,0,0);
+  scene.add(new THREE.AmbientLight(0xffffff,.65)); var dl=new THREE.DirectionalLight(0xffffff,.75); dl.position.set(10,30,20); scene.add(dl);
+  function SM(){return new THREE.MeshStandardMaterial({roughness:.55,metalness:.2});}
+  var M={body:SM(),white:SM(),black:SM(),wheel:SM(),well:SM(),led:new THREE.MeshStandardMaterial({roughness:.4}),hit:SM(),screen:new THREE.MeshBasicMaterial()};
+  var g=new THREE.Group(); scene.add(g);
+  var LOW=48, N=25, KW=1.6, x0=-14;
+  var body=new THREE.Mesh(new THREE.BoxGeometry(50,3,16),M.body); body.position.set(2,-1.5,0); g.add(body);
+  var keys=[], whiteIdx=0;
+  var isBlack=function(n){return [1,3,6,8,10].indexOf(n%12)>=0;};
+  for(var k=0;k<N;k++){var n=LOW+k; if(!isBlack(n)){var m=new THREE.Mesh(new THREE.BoxGeometry(KW-.12,1,9),M.white); m.position.set(x0+whiteIdx*KW,.5,2.5); m.userData={n:n,y:.5}; g.add(m); keys[k]=m; whiteIdx++;}}
+  whiteIdx=0;
+  for(var k2=0;k2<N;k2++){var n2=LOW+k2; if(!isBlack(n2)){whiteIdx++;continue;} var mb=new THREE.Mesh(new THREE.BoxGeometry(KW*.6,1,5.6),M.black); mb.position.set(x0+(whiteIdx-.5)*KW,1.25,.8); mb.userData={n:n2,y:1.25}; g.add(mb); keys[k2]=mb;}
+  // wheels (fig. 8.2)
+  function wheel(x){var well=new THREE.Mesh(new THREE.BoxGeometry(2.2,1,7),M.well); well.position.set(x,.2,2.5); g.add(well);
+    var wh=new THREE.Mesh(new THREE.CylinderGeometry(2.6,2.6,1.4,32),M.wheel); wh.rotation.z=Math.PI/2; wh.position.set(x,.4,2.5); g.add(wh);
+    for(var r=0;r<12;r++){var rib=new THREE.Mesh(new THREE.BoxGeometry(1.45,.18,.5),M.well); var a=r/12*Math.PI*2; rib.position.set(0,Math.cos(a)*2.62,Math.sin(a)*2.62); rib.rotation.x=a; wh.add(rib);} return wh;}
+  var whPB=wheel(-21), whMod=wheel(-18);
+  var scr=new THREE.Mesh(new THREE.BoxGeometry(8,.3,2.6),M.screen); scr.position.set(-16,.1,-4.5); g.add(scr);
+  var din=new THREE.Mesh(new THREE.CylinderGeometry(1,1,1.2,24),M.led); din.rotation.x=Math.PI/2; din.position.set(18,-1.2,-8.2); g.add(din);
+  function theme(){M.body.color.copy(new THREE.Color(tok('--accent')).lerp(new THREE.Color('#1B1F22'),.75)); M.white.color.set('#ECEFEA'); M.black.color.set('#16191B'); /* physical key colours, same in both themes */ M.wheel.color.copy(new THREE.Color(tok('--muted'))); M.well.color.copy(new THREE.Color(tok('--fg')).lerp(new THREE.Color('#000000'),.5)); M.led.color.set(tok('--accent')); M.hit.color.set(tok('--accent')); M.screen.color.set(tok('--signal')); render();}
+  var down={};
+  api.press=function(n,on){var k=keys[n-LOW]; if(!k) return; k.material=on?M.hit:(isBlack(n)?M.black:M.white); k.position.y=k.userData.y-(on?.35:0); render();};
+  api.pb=function(v){whPB.rotation.x=v/8192*.7; render();};
+  api.mod=function(v){whMod.rotation.x=-v/127*1.2; render();};
+  var ray=new THREE.Raycaster(), ndc=new THREE.Vector2(), held=null, start=null;
+  function pick(e){var r=renderer.domElement.getBoundingClientRect(); ndc.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1); ray.setFromCamera(ndc,cam); var h=ray.intersectObjects(keys.filter(Boolean),false)[0]; return h?h.object.userData.n:null;}
+  renderer.domElement.addEventListener('pointerdown',function(e){start=[e.clientX,e.clientY]; var n=pick(e); if(n!==null){held=n; if(controls) controls.enabled=false; noteOn(n);}});
+  window.addEventListener('pointerup',function(){if(held!==null){noteOff(held); held=null; if(controls) controls.enabled=true;}});
+  renderer.domElement.addEventListener('pointermove',function(e){if(e.buttons) return; renderer.domElement.style.cursor=pick(e)!==null?'pointer':'';});
+  function render(){renderer.render(scene,cam);}
+  function size(){var w=host.clientWidth,h=host.clientHeight; if(!w||!h) return; renderer.setSize(w,h,false); cam.aspect=w/h; if(cam.aspect<1) cam.position.set(0,46,84); cam.updateProjectionMatrix(); render();}
+  if('ResizeObserver' in window) new ResizeObserver(size).observe(host); else window.addEventListener('resize',size);
+  size(); theme(); themeListeners.push(theme);
+  if(controls) controls.addEventListener('change',render);
+  (function loop(){ if(controls&&controls.enableDamping) controls.update(); requestAnimationFrame(loop); })();
+})();
+})();
+</script>
+
+</body>
+</html>
