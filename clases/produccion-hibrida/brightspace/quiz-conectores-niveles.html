@@ -1,0 +1,450 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>html{color-scheme:light}body{margin:0;font:14px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}[hidden]{display:none!important}</style>
+<title>Quiz de Conectores y Niveles</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@500;600;700&family=Roboto:wght@400;500;700&family=Roboto+Mono:wght@400;500;600&display=swap">
+<style>
+/* Layout: rack-panel sections on Universidad El Bosque greens (deep green ground, lime accent in dark), orange only as a small accent */
+:root{
+  --bg:#F4FAF0; --surface:#FFFFFF; --fg:#011F19; --muted:#46625A; --line:#D3E5CC; --brand:#EA7600;
+  --accent:#00843F; --signal:#007680; --hot:#C54A07; --cold:#0077C8; --gnd:#00A653;
+  --f-display:"Hanken Grotesk", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --f-body:"Roboto", "Segoe UI", system-ui, -apple-system, Roboto, "Helvetica Neue", Arial, sans-serif;
+  --f-mono:"Roboto Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#011F19; --surface:#012820; --fg:#E9F5E4; --muted:#9DBAAF; --line:#1D4438; --brand:#FF8C2A;
+    --accent:#90FF00; --signal:#5CB8B2; --hot:#FF8A4C; --cold:#5CB3F0; --gnd:#3FD07F;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#011F19; --surface:#012820; --fg:#E9F5E4; --muted:#9DBAAF; --line:#1D4438; --brand:#FF8C2A;
+  --accent:#90FF00; --signal:#5CB8B2; --hot:#FF8A4C; --cold:#5CB3F0; --gnd:#3FD07F;
+  color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:calc(70px + env(safe-area-inset-top,0px))}
+@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:16.5px;line-height:1.6;-webkit-text-size-adjust:100%}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--surface)}
+h1,h2,h3{font-family:var(--f-display);font-weight:700;line-height:1.12;letter-spacing:-.01em;margin:0 0 .5em}
+h2{font-size:clamp(1.6rem,3.2vw,2.3rem)}
+h3{font-size:1.2rem;font-weight:600}
+p{margin:0 0 1em}
+a{color:var(--accent)}
+code,.mono{font-family:var(--f-mono);font-size:.92em}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px;border-radius:4px}
+.wrap{max-width:1180px;margin:0 auto;padding-left:max(16px, env(safe-area-inset-left,0px));padding-right:max(16px, env(safe-area-inset-right,0px))}
+
+/* Header */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--surface);border-bottom:1px solid var(--line)}
+.top .wrap{display:flex;align-items:center;gap:16px;padding-block:10px}
+.brand{font-family:var(--f-display);font-weight:700;font-size:1.05rem;white-space:nowrap;text-decoration:none;color:var(--fg);display:flex;align-items:center;gap:8px}
+.brand .led{width:9px;height:9px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 25%,transparent)}
+.nav{display:flex;gap:2px;overflow-x:auto;flex:1;min-width:0;scrollbar-width:none}
+.nav::-webkit-scrollbar{display:none}
+.nav a{font-size:.86rem;font-weight:500;color:var(--muted);text-decoration:none;padding:6px 10px;border-radius:6px;white-space:nowrap}
+.nav a:hover{color:var(--fg);background:var(--bg)}
+.theme-btn{flex:none}
+
+/* Buttons */
+.btn{font:inherit;font-size:.9rem;font-weight:600;border:1px solid var(--line);background:var(--surface);color:var(--fg);padding:8px 14px;border-radius:7px;cursor:pointer;line-height:1.2}
+.btn:hover{border-color:var(--muted)}
+.btn[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+.btn.small{font-size:.8rem;padding:6px 10px}
+
+/* Hero */
+.hero{padding-block:clamp(36px,7vw,80px) clamp(20px,4vw,40px)}
+.hero-grid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:clamp(24px,4vw,56px);align-items:center}
+.hero-grid>*{min-width:0}
+.kicker{font-family:var(--f-mono);font-size:.8rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-bottom:12px}
+.hero h1{font-size:clamp(2.3rem,6vw,4.1rem);margin-bottom:.35em}
+.hero h1 span{color:var(--accent)}
+.lede{font-size:1.12rem;color:var(--muted);max-width:56ch}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}
+.chip{font-family:var(--f-mono);font-size:.8rem;border:1px solid var(--line);background:var(--surface);padding:5px 10px;border-radius:999px}
+.chip b{color:var(--accent);font-weight:600}
+.chip.clk b{color:var(--signal)}
+.bytecard{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px;font-family:var(--f-mono);font-size:.85rem}
+.bytecard .hd{display:flex;justify-content:space-between;color:var(--muted);font-size:.75rem;text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px}
+.byte{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 14px;padding:10px 0;border-top:1px dashed var(--line);align-items:center}
+.bits{font-size:1.05rem;letter-spacing:.12em;white-space:nowrap}
+.bits .msb{color:var(--accent);font-weight:600}
+.byte .hex{font-weight:600}
+.byte .what{grid-column:1/-1;color:var(--muted);font-family:var(--f-body);font-size:.85rem}
+
+/* Rack sections */
+.rack{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:clamp(22px,3.4vw,42px) clamp(16px,3.4vw,42px);margin-block:22px}
+.rack::before,.rack::after{content:"";position:absolute;top:12px;width:10px;height:10px;border-radius:50%;border:2px solid var(--line);background:var(--bg)}
+.rack::before{left:12px}.rack::after{right:12px}
+.unit{font-family:var(--f-mono);font-size:.75rem;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;display:flex;gap:10px;align-items:center}
+.unit::before{content:"";width:22px;height:2px;background:var(--accent)}
+.intro{color:var(--muted);max-width:70ch}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:20px}
+.cols>*{min-width:0}
+.card{border:1px solid var(--line);border-radius:8px;padding:18px;background:var(--bg)}
+.card h3{margin-bottom:.4em}
+.card p:last-child,.card ul:last-child{margin-bottom:0}
+.note{border-left:3px solid var(--accent);background:color-mix(in srgb,var(--accent) 7%,var(--surface));padding:12px 16px;border-radius:0 8px 8px 0;margin:16px 0}
+.note.clk{border-left-color:var(--signal);background:color-mix(in srgb,var(--signal) 9%,var(--surface))}
+ul.tight{padding-left:1.2em;margin:0 0 1em}
+ul.tight li{margin-bottom:.3em}
+
+/* Tables */
+.tbl{overflow-x:auto;margin:14px 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;width:100%;font-size:.92rem}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:var(--f-mono);font-size:.74rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);background:var(--bg);white-space:nowrap}
+tr:last-child td{border-bottom:none}
+td code{white-space:nowrap}
+.tag{display:inline-block;font-family:var(--f-mono);font-size:.74rem;padding:1px 7px;border-radius:4px;border:1px solid currentColor}
+.tag.data{color:var(--accent)}
+.tag.clk{color:var(--signal)}
+.tag.mut{color:var(--muted)}
+
+/* Ports explainer */
+.portrow{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:18px 0}
+.portrow>*{min-width:0}
+.pcard{border:1px solid var(--line);border-radius:8px;padding:16px;background:var(--bg)}
+.pcard .pn{font-family:var(--f-mono);font-weight:600;font-size:1.05rem;display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.dot{width:14px;height:14px;border-radius:50%;border:2px solid var(--fg);flex:none}
+.dot.out{background:var(--fg)}
+.dot.thru{background:var(--muted);border-color:var(--muted)}
+.chains{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:18px;margin-top:10px}
+.chains>*{min-width:0}
+.chains svg{width:100%;height:auto;display:block}
+
+/* 3D */
+.lab{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:24px;align-items:start}
+.lab>*{min-width:0}
+.stage{position:relative;border:1px solid var(--line);border-radius:10px;background:var(--bg);aspect-ratio:4/3;overflow:hidden}
+#lab3d{position:absolute;inset:0}
+#lab3d canvas{display:block;width:100%!important;height:100%!important;touch-action:none}
+.stage-ui{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;align-items:center}
+.stage-hint{font-size:.82rem;color:var(--muted)}
+.fallback{position:absolute;inset:0;display:none;align-items:center;justify-content:center;text-align:center;padding:24px;color:var(--muted)}
+.stage.nogl .fallback{display:flex}
+.pinmap{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;margin:10px 0 14px;font-family:var(--f-mono);font-size:.78rem;text-align:center}
+.pinmap div{border:1px solid var(--line);border-radius:6px;padding:6px 2px;background:var(--bg)}
+.pinmap b{display:block;font-size:1rem}
+.pinmap .d{border-color:var(--accent);color:var(--accent)}
+
+/* Scenario */
+.scen-btns{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0}
+.diagram{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--bg);-webkit-overflow-scrolling:touch}
+.diagram svg{display:block;width:100%;min-width:760px;height:auto}
+.scen-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:20px;margin-top:16px}
+.scen-grid>*{min-width:0}
+.scen-panel h3{margin-bottom:.3em}
+.scen-ctrl{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.log{font-family:var(--f-mono);font-size:.8rem;list-style:none;margin:0;padding:0;max-height:270px;overflow:auto;border:1px solid var(--line);border-radius:8px;background:var(--bg)}
+.log li{padding:6px 10px;border-bottom:1px solid var(--line);display:grid;grid-template-columns:auto minmax(0,1fr);gap:2px 10px}
+.log li:last-child{border-bottom:none}
+.log .tm{color:var(--muted)}
+.log .bx{grid-column:2;color:var(--accent)}
+.log li.clk .bx{color:var(--signal)}
+.log li.err .bx{color:var(--fg);text-decoration:underline dashed}
+.log .empty{display:block;color:var(--muted)}
+.loghd{font-family:var(--f-mono);font-size:.75rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:0 0 6px}
+
+/* SVG */
+.sv-bg{fill:var(--bg)}
+.cable{fill:none;stroke:var(--muted);stroke-width:2.4;opacity:.55;transition:stroke .2s,opacity .2s}
+.cable.usb{stroke-dasharray:7 5}
+.cable.on{stroke:var(--accent);opacity:1;stroke-width:3.4}
+.cable.on.clk{stroke:var(--signal)}
+.dev{cursor:pointer}
+.dev:focus{outline:none}
+.dev .box{fill:var(--surface);stroke:var(--line);stroke-width:1.5;transition:stroke .2s}
+.dev:hover .box,.dev.sel .box{stroke:var(--accent)}
+.dev:focus-visible .box{stroke:var(--accent);stroke-width:3.5}
+.dev.hl .box{stroke:var(--accent);stroke-width:2.5}
+.t-title{font-family:var(--f-display);font-weight:600;font-size:15px;fill:var(--fg)}
+.t-sub{font-family:var(--f-body);font-size:11.5px;fill:var(--muted)}
+.t-port{font-family:var(--f-mono);font-size:9.5px;fill:var(--muted)}
+.t-status{font-family:var(--f-mono);font-size:10.5px;font-weight:600;fill:var(--accent)}
+.t-cab{font-family:var(--f-mono);font-size:9.5px;fill:var(--muted)}
+.port{fill:var(--surface);stroke:var(--fg);stroke-width:1.6}
+.port.out{fill:var(--fg)}
+.port.thru{fill:var(--muted);stroke:var(--muted)}
+.port.usbp{fill:var(--surface);stroke:var(--muted);stroke-dasharray:2 2}
+.keys rect{fill:var(--bg);stroke:var(--line)}
+.pkt circle{stroke:var(--surface);stroke-width:2}
+.pkt-data circle{fill:var(--accent)}
+.pkt-clock circle{fill:var(--signal)}
+.pkt-err circle{fill:var(--fg);stroke:var(--accent);stroke-dasharray:3 2;stroke-width:2.5}
+.pkt rect{fill:var(--surface);stroke:var(--line)}
+.pkt-data rect{stroke:var(--accent)}
+.pkt-clock rect{stroke:var(--signal)}
+.pkt text{font-family:var(--f-mono);font-size:10.5px;fill:var(--fg);font-weight:500}
+.lg-line{stroke:var(--muted);stroke-width:2.4}
+.lg-usb{stroke:var(--muted);stroke-width:2.4;stroke-dasharray:7 5}
+.lg-t{font-family:var(--f-body);font-size:11px;fill:var(--muted)}
+
+/* Devices */
+.devcards{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,170px),1fr));gap:10px;margin:16px 0}
+.devcard{font:inherit;text-align:left;border:1px solid var(--line);background:var(--bg);color:var(--fg);border-radius:8px;padding:12px;cursor:pointer;min-width:0}
+.devcard:hover{border-color:var(--muted)}
+.devcard[aria-pressed="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.devcard .n{font-family:var(--f-display);font-weight:600;font-size:1rem;display:block}
+.devcard .c{font-family:var(--f-mono);font-size:.75rem;color:var(--muted)}
+.devdetail{border:1px solid var(--line);border-radius:10px;padding:18px;background:var(--surface)}
+.devdetail dl{display:grid;grid-template-columns:max-content minmax(0,1fr);gap:8px 16px;margin:0}
+.devdetail dt{font-family:var(--f-mono);font-size:.76rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);padding-top:2px}
+.devdetail dd{margin:0}
+.ports{display:flex;flex-wrap:wrap;gap:6px}
+.ports span{font-family:var(--f-mono);font-size:.78rem;border:1px solid var(--line);border-radius:4px;padding:1px 8px;background:var(--bg)}
+.ports span.on{border-color:var(--accent);color:var(--accent)}
+.role{font-weight:600}
+.audio-side{display:grid;grid-template-columns:auto minmax(0,1fr);gap:16px;align-items:center;border:1px dashed var(--line);border-radius:10px;padding:16px;margin-top:20px}
+.audio-side svg{width:120px;height:auto}
+.a-hot{stroke:var(--hot)}.a-cold{stroke:var(--cold)}.a-gnd{stroke:var(--gnd)}
+
+/* Checklist */
+.check{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,330px),1fr));gap:8px 22px}
+.check li{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px;align-items:start;padding:10px 0;border-bottom:1px solid var(--line)}
+.check input{width:18px;height:18px;margin-top:3px;accent-color:var(--accent)}
+.check label{cursor:pointer}
+.check label b{display:block}
+.check label span{color:var(--muted);font-size:.9rem}
+.progress{display:flex;align-items:center;gap:12px;margin:12px 0 16px;flex-wrap:wrap}
+.bar{flex:1;min-width:140px;height:8px;border-radius:99px;background:var(--bg);border:1px solid var(--line);overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--accent);transition:width .25s}
+
+/* Quiz */
+.quiz{display:grid;gap:14px}
+fieldset{border:1px solid var(--line);border-radius:8px;padding:14px 16px;margin:0;min-width:0;background:var(--bg)}
+legend{font-weight:600;padding:0 6px}
+.opt{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px;align-items:start;padding:5px 0}
+.opt input{margin-top:5px;accent-color:var(--accent)}
+.fb{margin-top:6px;font-size:.92rem;min-height:1.2em}
+.fb.ok{color:var(--gnd)}
+.fb.ok::before{content:"Correcto. ";font-weight:600}
+.fb.no{color:var(--muted)}
+.fb.no::before{content:"No exactamente. ";font-weight:600;color:var(--fg)}
+.score{font-family:var(--f-mono);font-weight:600}
+
+footer{padding-block:36px 48px;color:var(--muted);font-size:.9rem}
+footer .wrap{display:flex;flex-wrap:wrap;gap:12px 28px;justify-content:space-between;border-top:1px solid var(--line);padding-top:24px}
+
+@media (max-width:860px){
+  .hero-grid,.lab,.scen-grid{grid-template-columns:minmax(0,1fr)}
+  .portrow{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width:520px){
+  .brand .txt{display:none}
+  body{font-size:16px}
+  .audio-side{grid-template-columns:minmax(0,1fr)}
+}
+/* Universidad El Bosque: orange only in small accents */
+header{box-shadow:inset 0 -3px 0 var(--brand)}
+.btn{border-radius:999px}
+h2::after{content:"";display:block;width:40px;height:4px;border-radius:99px;background:var(--brand);margin-top:.45em}
+::selection{background:var(--brand);color:#FFFFFF}
+/* ---- unidad: especificación MIDI ---- */
+.bits .ty{color:var(--signal);font-weight:700}
+.bits .chn{color:var(--accent)}
+.sub{margin-top:26px}
+.card.wide{grid-column:1/-1}
+.small{font-size:.85rem;color:var(--muted)}
+.mono{font-family:var(--f-mono)}
+.big{font-size:1.1rem;font-weight:600;color:var(--fg)}
+.erratum{border-left:3px solid var(--brand);padding-left:10px}
+.note.errata{border-left-color:var(--brand);background:color-mix(in srgb,var(--brand) 8%,var(--surface))}
+.note.errata h3{margin-bottom:.3em}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.rng{display:grid;grid-template-columns:auto minmax(0,1fr) 3.6em;gap:8px;align-items:center;margin:6px 0}
+.rng label{font-size:.85rem;color:var(--muted)}
+.rng input{width:100%;accent-color:var(--accent)}
+.rng output{font-family:var(--f-mono);text-align:right;font-variant-numeric:tabular-nums}
+select{font:inherit;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg);min-height:36px}
+/* builder */
+.builder{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.6fr);gap:20px;margin-top:10px}
+.bctl{display:grid;gap:6px;align-content:start}
+.bctl>label{font-size:.85rem;color:var(--muted)}
+.bctl .rng{grid-template-columns:7.5em minmax(0,1fr) 3em}
+.bout{border:1px solid var(--line);border-radius:10px;background:var(--bg);padding:16px;min-width:0}
+.bytebox{display:grid;grid-template-columns:5.5em minmax(0,1fr) 3em;gap:10px;align-items:center;padding:8px 0;border-bottom:1px dashed var(--line)}
+.bytebox:last-child{border-bottom:0}
+.bytebox .bn{font-family:var(--f-mono);font-size:.75rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.bitrow{display:flex;gap:3px;flex-wrap:wrap}
+.bit{width:1.7em;height:2em;display:inline-grid;place-items:center;border:1px solid var(--line);border-radius:5px;font-family:var(--f-mono);font-weight:700;background:var(--surface)}
+.bit.m{border-color:var(--fg)}
+.bit.t{border-color:var(--signal);color:var(--signal)}
+.bit.c{border-color:var(--accent);color:var(--accent)}
+.bytebox .hx{font-family:var(--f-mono);font-size:1.2rem;font-weight:700;text-align:right}
+.bmean{margin:10px 0 0}
+#typesTbl tbody tr{cursor:pointer}
+#typesTbl tbody tr:hover td,#typesTbl tbody tr.sel td{background:color-mix(in srgb,var(--accent) 10%,var(--surface))}
+#typesTbl tbody tr:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+/* 3D lab */
+.lab3{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:20px}
+#kb3d{position:absolute;inset:0}
+#kb3d canvas{display:block;width:100%!important;height:100%!important;touch-action:none}
+.stage .stage-hint{position:absolute;left:10px;bottom:8px;background:color-mix(in srgb,var(--surface) 85%,transparent);padding:2px 8px;border-radius:4px;pointer-events:none}
+.kbctl{display:grid;gap:6px;align-content:start;min-width:0}
+.kbctl>label{font-size:.85rem;color:var(--muted)}
+.kbctl .rng{grid-template-columns:minmax(0,1fr) 4.2em}
+.kbtns{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+#kLog{max-height:230px}
+/* note range */
+.range88{width:100%;height:auto;margin:6px 0}
+.range88 .r-all{fill:var(--line)}
+.range88 .r-piano{fill:color-mix(in srgb,var(--accent) 55%,transparent)}
+.range88 .r-mark{fill:var(--brand)}
+.pbcalc{display:grid;gap:4px;margin-top:8px;font-size:.9rem}
+.pbcalc b{color:var(--accent)}
+.meter{height:12px;border-radius:99px;background:var(--line);overflow:hidden;margin:8px 0}
+.meter i{display:block;height:100%;width:0;background:var(--accent);transition:width .15s}
+.pansvg{width:100%;max-width:280px;height:auto;display:block;margin:6px auto}
+.pansvg .arc{fill:none;stroke:var(--line);stroke-width:3;stroke-dasharray:4 5}
+.pansvg .spk{fill:var(--fg)}
+.pansvg .spt{fill:var(--muted);font:600 12px var(--f-mono);text-anchor:middle}
+.pansvg .src{fill:var(--accent)}
+/* clock */
+.clockviz{height:28px;border:1px solid var(--line);border-radius:8px;position:relative;overflow:hidden;background:var(--bg);margin:8px 0}
+.clockviz span{position:absolute;top:6px;left:6px;width:14px;height:14px;border-radius:50%;background:var(--signal);opacity:.25}
+.clockviz span.on{opacity:1}
+/* sysex */
+.sysex{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
+.sx{font-family:var(--f-mono);font-weight:700;padding:8px 10px;border-radius:6px;border:1px solid var(--line);background:var(--bg);cursor:help}
+.sx.st{border-color:var(--fg)}
+.sx.id{border-color:var(--signal);color:var(--signal)}
+.sx.bd{border-color:var(--accent);color:var(--accent)}
+.sx:focus-visible,.sx.on{outline:2px solid var(--brand);outline-offset:2px}
+/* running status */
+.rsrow{display:grid;grid-template-columns:11em minmax(0,1fr) auto;gap:10px;align-items:center;margin:8px 0}
+.stream{display:flex;flex-wrap:wrap;gap:2px;min-width:0}
+.stream i{width:10px;height:14px;border-radius:2px;background:var(--accent)}
+.stream i.s{background:var(--fg)}
+.sw{display:inline-block;width:10px;height:10px;border-radius:2px;vertical-align:-1px}
+.sw.st{background:var(--fg)} .sw.dt{background:var(--accent)}
+/* decoder */
+.dec input[type=text]{width:100%;font:600 1rem var(--f-mono);padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg)}
+.decex{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+.declist{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:6px}
+.declist li{display:grid;grid-template-columns:minmax(7em,auto) minmax(0,1fr);gap:4px 14px;padding:8px 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg)}
+.declist .hx{font-family:var(--f-mono);font-weight:700}
+.declist .rs{font-size:.75rem;color:var(--brand);font-family:var(--f-mono)}
+.declist li.err{border-color:var(--hot)}
+/* implementation chart */
+.chart td,.chart th{text-align:center}
+.chart td:first-child,.chart th:first-child{text-align:left}
+.ox{font:700 .95rem var(--f-mono);width:2.4em;min-height:30px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--fg);cursor:pointer}
+.ox.o{border-color:var(--gnd);color:var(--gnd)}
+.ox.x{color:var(--muted)}
+.res{font-size:.85rem}
+.res.ok{color:var(--gnd);font-weight:600}
+.res.ig{color:var(--brand)}
+.res.no{color:var(--muted)}
+.modes{width:100%}
+.modes td{padding:4px 6px}
+@media (max-width:860px){.builder,.lab3{grid-template-columns:1fr}.rsrow{grid-template-columns:1fr}}
+@media (max-width:520px){.bit{width:1.35em;height:1.8em;font-size:.85rem}.bytebox{grid-template-columns:4.2em minmax(0,1fr) 2.4em}.bctl .rng{grid-template-columns:minmax(0,1fr) 2.6em}.bctl .rng label{grid-column:1/-1}}
+/* ---- quiz page ---- */
+.hero h1{max-width:20ch}
+.pbar{height:8px;border-radius:99px;background:var(--line);overflow:hidden;margin:0 0 16px}
+.pbar i{display:block;height:100%;width:0;background:var(--accent);transition:width .25s}
+fieldset.done.right{border-color:var(--gnd)}
+fieldset.done.wrong{border-color:var(--hot)}
+.opt.good span{color:var(--gnd);font-weight:600}
+.opt.bad span{color:var(--hot);text-decoration:line-through}
+.qn{font-family:var(--f-mono);color:var(--muted);margin-right:6px}
+.result{border:1px solid var(--line);border-radius:10px;padding:18px;background:var(--bg)}
+.result .big{font-size:1.15rem;font-weight:600;margin:0}
+.result .grade{font-family:var(--f-display);font-size:2.4rem;font-weight:700;line-height:1;margin:0 0 6px}
+.result .grade.pass{color:var(--gnd)} .result .grade.fail{color:var(--hot)}
+.result ul{margin:10px 0 0;padding-left:1.2em}
+.rbtns{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.fb.no::before{content:"Incorrecto. "}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="#inicio"><span class="led" aria-hidden="true"></span><span class="txt">Quiz · Conectores y niveles</span></a>
+    <nav class="nav" aria-label="Secciones"><a href="#quiz">Preguntas</a><a href="#resultado">Resultado</a></nav>
+    <button class="btn small theme-btn" id="themeBtn" type="button" aria-label="Cambiar tema claro u oscuro">Tema</button>
+  </div>
+</header>
+<main id="inicio">
+<div class="wrap hero">
+  <div class="kicker">Técnicas de Producción Híbrida · Evaluación</div>
+  <h1>Conexiones, conectores y <span>niveles de audio</span></h1>
+  <p class="lede">10 preguntas sobre señal balanceada y no balanceada, conectores (XLR, TRS, TS, RCA, Speakon) y niveles de micrófono, instrumento, línea y altavoz. Cada respuesta se corrige al momento y explica el porqué.</p>
+  <div class="chips"><span class="chip"><b>10</b> preguntas</span><span class="chip"><b>1</b> intento por pregunta</span><span class="chip clk"><b>70 %</b> para aprobar</span></div>
+</div>
+<div class="wrap">
+<section class="rack" id="quiz" aria-labelledby="h-qz">
+  <div class="unit">Preguntas</div>
+  <h2 id="h-qz">Responde las 10 preguntas</h2>
+  <p class="intro">Elige una opción. La respuesta queda fija y aparece la explicación. Progreso: <span class="score" id="qProg">0 / 10 respondidas</span></p>
+  <div class="pbar" aria-hidden="true"><i id="qBar"></i></div>
+  <form class="quiz" id="quizForm" onsubmit="return false"></form>
+</section>
+<section class="rack" id="resultado" aria-labelledby="h-rs">
+  <div class="unit">Resultado</div>
+  <h2 id="h-rs">Tu resultado</h2>
+  <div class="result" id="result" aria-live="polite"><p class="big">Responde las preguntas para ver tu resultado.</p></div>
+  <div class="rbtns"><button type="button" class="btn" id="qReset">Reiniciar el quiz</button><button type="button" class="btn" id="qShuffle">Reiniciar con otro orden</button></div>
+</section>
+</div>
+</main>
+<footer><div class="wrap"><span>Técnicas de Producción Híbrida · Quiz de conectores y niveles de audio</span><span>Valores de referencia: +4 dBu ≈ 1,23 V · −10 dBV ≈ 0,316 V · XLR según AES (pin 2 vivo).</span></div></footer>
+
+<script>
+(function(){
+"use strict";
+var root=document.documentElement, mqDark=window.matchMedia('(prefers-color-scheme: dark)');
+function $(s){return document.querySelector(s);}
+function isDark(){var t=root.getAttribute('data-theme');return t?t==='dark':mqDark.matches;}
+$('#themeBtn').addEventListener('click',function(){root.setAttribute('data-theme',isDark()?'light':'dark');});
+var Q=[
+ {t:'Señal balanceada',q:'¿Qué describe mejor una conexión balanceada?',o:['Dos conductores: señal y tierra','Tres conductores: vivo, frío con la polaridad invertida y tierra; el receptor cancela el ruido común','Un cable más grueso que no capta ruido','Dos cables de señal idénticos en la misma polaridad'],a:1,w:'El ruido entra igual en vivo y frío. El receptor invierte el frío y suma: la señal se duplica y el ruido común se cancela (rechazo de modo común).'},
+ {t:'XLR',q:'En un conector XLR cableado según la norma AES, ¿qué lleva el pin 2?',o:['Tierra (malla)','Vivo (+, hot)','Frío (−, cold)','Solo el phantom power'],a:1,w:'Pin 1 = tierra, pin 2 = vivo, pin 3 = frío. El phantom +48 V viaja por los pines 2 y 3 a la vez.'},
+ {t:'TRS',q:'Un conector TRS de 1/4" (6,35 mm) puede llevar…',o:['Solo señales de altavoz','Solo audio digital','Una señal mono balanceada o una señal estéreo no balanceada (L y R)','Solo una señal mono no balanceada'],a:2,w:'Mismo conector, dos usos: punta/anillo/manga como vivo/frío/tierra (mono balanceado) o como L/R/tierra (estéreo, por ejemplo audífonos). También sirve como cable de inserto (envío y retorno).'},
+ {t:'Nivel de línea',q:'¿Cuál es el nivel nominal de línea profesional?',o:['−10 dBV ≈ 0,316 V','+4 dBu ≈ 1,23 V','−50 dBu ≈ 2,5 mV','+40 dBu ≈ 77 V'],a:1,w:'Profesional: +4 dBu (≈ 1,23 V), normalmente balanceado. Consumo: −10 dBV (≈ 0,316 V), normalmente no balanceado con RCA o mini jack.'},
+ {t:'Orden de niveles',q:'Ordena los niveles de señal de menor a mayor.',o:['Línea < micrófono < instrumento < altavoz','Micrófono < instrumento < línea < altavoz','Instrumento < micrófono < altavoz < línea','Micrófono < línea < instrumento < altavoz'],a:1,w:'Micrófono (milivoltios) < instrumento (Hi-Z, algo más alto) < línea (≈ 1 V) < altavoz (decenas de voltios, amplificado).'},
+ {t:'DI box',q:'Quieres grabar una guitarra eléctrica en una entrada XLR de la consola, a 15 m de distancia. ¿Qué usas?',o:['Un cable TS largo directo a la entrada XLR','Una caja directa (DI): convierte la señal Hi-Z no balanceada en balanceada de baja impedancia','Un cable Speakon','Un adaptador RCA a XLR'],a:1,w:'La DI adapta impedancia y nivel, y entrega una señal balanceada para el cable largo. Un TS largo pierde agudos y capta ruido.'},
+ {t:'Phantom power',q:'¿Qué micrófono necesita phantom power (+48 V)?',o:['Un micrófono dinámico','Un micrófono de condensador','Ninguno: el phantom es para guitarras','Un micrófono inalámbrico de mano'],a:1,w:'El condensador necesita energía para polarizar la cápsula y para su preamplificador interno. Cuidado con micrófonos de cinta (ribbon) antiguos: un cableado defectuoso con phantom puede dañarlos.'},
+ {t:'Nivel de altavoz',q:'¿Qué conector es el más adecuado entre un amplificador de potencia y un altavoz pasivo de PA?',o:['TS de instrumento','RCA','Speakon','XLR de micrófono'],a:2,w:'Speakon tiene bloqueo, no deja contactos expuestos y acepta cable de calibre grueso. Un cable de instrumento (TS) es delgado y no es para potencia.'},
+ {t:'Balanceado a no balanceado',q:'Conectas una salida balanceada TRS a la entrada con un cable TS. ¿Qué pasa normalmente?',o:['Nada: suena igual','Se pierde el rechazo de ruido y unos 6 dB de nivel','La señal se duplica','Se daña la salida al instante'],a:1,w:'El TS une el frío a tierra: queda solo el vivo (la mitad de la señal diferencial, ≈ −6 dB) y desaparece la cancelación de ruido.'},
+ {t:'Conector no balanceado',q:'¿Cuál de estos conectores es no balanceado por diseño?',o:['XLR','TRS 1/4"','RCA','Bantam / TT'],a:2,w:'RCA tiene solo dos contactos (señal y tierra). Se usa en equipos de consumo (−10 dBV) y en S/PDIF coaxial.'}
+];
+var order=Q.map(function(_,i){return i;}), done={}, form=$('#quizForm');
+function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t;}return a;}
+function draw(){
+  done={};
+  form.innerHTML=order.map(function(qi,k){var q=Q[qi];return '<fieldset data-q="'+qi+'"><legend><span class="qn">'+(k+1)+'/10</span>'+q.q+'</legend>'+q.o.map(function(o,j){return '<label class="opt" for="q'+qi+'_'+j+'"><input type="radio" name="q'+qi+'" id="q'+qi+'_'+j+'" value="'+j+'"><span>'+o+'</span></label>';}).join('')+'<p class="fb" id="fb'+qi+'" aria-live="polite"></p></fieldset>';}).join('');
+  update();
+}
+function update(){
+  var n=Object.keys(done).length, ok=Object.keys(done).filter(function(k){return done[k];}).length;
+  $('#qProg').textContent=n+' / 10 respondidas'; $('#qBar').style.width=(n*10)+'%';
+  var r=$('#result');
+  if(n<Q.length){r.innerHTML='<p class="big">'+(n?'Llevas '+ok+' correctas de '+n+'. Faltan '+(Q.length-n)+' preguntas.':'Responde las preguntas para ver tu resultado.')+'</p>';return;}
+  var pass=ok>=7, miss=order.filter(function(i){return !done[i];}).map(function(i){return Q[i].t;});
+  r.innerHTML='<p class="grade '+(pass?'pass':'fail')+'">'+ok+' / 10</p><p class="big">'+(ok===10?'¡Perfecto! Dominas el tema.':pass?'Aprobado. Repasa los temas que fallaste.':'Todavía no. Repasa la lección y vuelve a intentarlo.')+'</p>'+(miss.length?'<p>Temas para repasar:</p><ul>'+miss.map(function(t){return '<li>'+t+'</li>';}).join('')+'</ul>':'');
+}
+form.addEventListener('change',function(e){
+  var fs=e.target.closest('fieldset'); if(!fs||fs.classList.contains('done')) return;
+  var qi=+fs.getAttribute('data-q'), q=Q[qi], v=+e.target.value, ok=v===q.a; done[qi]=ok;
+  fs.classList.add('done',ok?'right':'wrong');
+  fs.querySelectorAll('input').forEach(function(inp){inp.disabled=true; var lab=inp.closest('.opt'); if(+inp.value===q.a) lab.classList.add('good'); else if(+inp.value===v) lab.classList.add('bad');});
+  var fb=$('#fb'+qi); fb.className='fb '+(ok?'ok':'no'); fb.textContent=(ok?'':'La respuesta es: '+q.o[q.a]+'. ')+q.w;
+  update();
+});
+$('#qReset').addEventListener('click',function(){order=Q.map(function(_,i){return i;}); draw(); $('#quiz').scrollIntoView();});
+$('#qShuffle').addEventListener('click',function(){order=shuffle(Q.map(function(_,i){return i;})); draw(); $('#quiz').scrollIntoView();});
+draw();
+})();
+</script>
+
+</body>
+</html>
