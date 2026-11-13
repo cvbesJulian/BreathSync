@@ -1,0 +1,1720 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>html{color-scheme:light}body{margin:0;font:14px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Patch Bays en el Estudio</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@500;600;700&family=Roboto:wght@400;500;700&family=Roboto+Mono:wght@400;500;600&display=swap">
+<style>
+/* Layout: rack-panel sections on Universidad El Bosque greens (deep green ground, lime accent in dark), orange only as a small accent */
+:root{
+  --bg:#F4FAF0; --surface:#FFFFFF; --fg:#011F19; --muted:#46625A; --line:#D3E5CC; --brand:#EA7600;
+  --accent:#00843F; --signal:#007680; --hot:#C54A07; --cold:#0077C8; --gnd:#00A653;
+  --c1:#0077C8; --c2:#7A3FF0; --c3:#C54A07; --c4:#008C8C; --c5:#B8860B; --c6:#D6336C;
+  --f-display:"Hanken Grotesk", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --f-body:"Roboto", "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
+  --f-mono:"Roboto Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --radius:8px;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#011F19; --surface:#012820; --fg:#E9F5E4; --muted:#9DBAAF; --line:#1D4438; --brand:#FF8C2A;
+    --accent:#90FF00; --signal:#5CB8B2; --hot:#FF8A4C; --cold:#5CB3F0; --gnd:#3FD07F;
+    --c1:#5CB3F0; --c2:#B48CFF; --c3:#FF7A45; --c4:#4FD6CF; --c5:#FFD23F; --c6:#FF6FA0;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#011F19; --surface:#012820; --fg:#E9F5E4; --muted:#9DBAAF; --line:#1D4438; --brand:#FF8C2A;
+  --accent:#90FF00; --signal:#5CB8B2; --hot:#FF8A4C; --cold:#5CB3F0; --gnd:#3FD07F;
+    --c1:#5CB3F0; --c2:#B48CFF; --c3:#FF7A45; --c4:#4FD6CF; --c5:#FFD23F; --c6:#FF6FA0;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:72px}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:17px;line-height:1.6;-webkit-text-size-adjust:100%}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--surface)}
+h1,h2,h3,h4{font-family:var(--f-display);line-height:1.15;margin:0 0 .5em;letter-spacing:-.01em}
+h2{font-size:clamp(1.6rem,3.4vw,2.3rem);font-weight:700}
+h3{font-size:1.25rem;font-weight:600}
+p{margin:0 0 1em}
+a{color:var(--accent)}
+code,.mono{font-family:var(--f-mono);font-size:.92em}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px;border-radius:4px}
+.wrap{max-width:1140px;margin-inline:auto;padding-left:max(16px, env(safe-area-inset-left,0px));padding-right:max(16px, env(safe-area-inset-right,0px))}
+.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;max-width:100%}
+.muted{color:var(--muted)}
+
+/* Header */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--surface);border-bottom:1px solid var(--line)}
+.top .wrap{display:flex;align-items:center;gap:16px;padding-block:10px}
+.brand{font-family:var(--f-display);font-weight:700;font-size:1.05rem;white-space:nowrap;color:var(--fg);text-decoration:none;display:flex;align-items:center;gap:8px}
+.brand-dot{width:10px;height:10px;border-radius:50%;background:var(--signal);box-shadow:0 0 0 3px color-mix(in srgb,var(--signal) 25%,transparent)}
+.nav{flex:1;min-width:0;overflow-x:auto;scrollbar-width:none}
+.nav::-webkit-scrollbar{display:none}
+.nav ul{display:flex;gap:4px;list-style:none;margin:0;padding:0}
+.nav a{display:block;padding:6px 10px;border-radius:6px;color:var(--muted);text-decoration:none;font-size:.9rem;white-space:nowrap;font-weight:500}
+.nav a:hover,.nav a.on{color:var(--fg);background:color-mix(in srgb,var(--accent) 12%,transparent)}
+.btn{font:inherit;font-size:.9rem;font-weight:500;border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:6px;padding:7px 12px;cursor:pointer;min-height:36px}
+.btn:hover{border-color:var(--accent)}
+.btn[aria-pressed="true"]{background:var(--accent);color:var(--surface);border-color:var(--accent)}
+.theme-btn{white-space:nowrap;font-family:var(--f-mono);font-size:.8rem}
+
+/* Hero */
+.hero{padding-block:56px 32px}
+.hero-grid{display:grid;grid-template-columns:1.1fr 1fr;gap:40px;align-items:center}
+.hero-grid>*{min-width:0}
+.eyebrow{font-family:var(--f-mono);font-size:.8rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-bottom:12px}
+.hero h1{font-size:clamp(2.1rem,5.4vw,3.6rem);font-weight:700}
+.hero h1 em{font-style:normal;color:var(--signal)}
+.lead{font-size:1.15rem;color:var(--muted);max-width:56ch}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+.chip{font-family:var(--f-mono);font-size:.78rem;border:1px solid var(--line);background:var(--surface);border-radius:99px;padding:4px 10px;color:var(--muted)}
+.hero-art{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:14px}
+.hero-art svg{width:100%;height:auto;display:block}
+
+/* Rack sections */
+.rack{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);margin-block:28px;padding-block:36px 32px}
+.rack::before,.rack::after{content:"";position:absolute;top:14px;width:9px;height:9px;border-radius:50%;background:var(--bg);border:1px solid var(--line);box-shadow:inset 0 0 0 2px color-mix(in srgb,var(--muted) 30%,transparent)}
+.rack::before{left:12px}.rack::after{right:12px}
+.rack>.in{padding-inline:clamp(16px,4vw,44px)}
+.utag{font-family:var(--f-mono);font-size:.75rem;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;display:inline-block;border:1px solid var(--line);border-radius:4px;padding:2px 8px;margin-bottom:12px}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px}
+.cols>*{min-width:0}
+.card{border:1px solid var(--line);border-radius:var(--radius);padding:18px;background:var(--bg)}
+.card h3{margin-bottom:.35em}
+.card p:last-child{margin-bottom:0}
+.k{font-family:var(--f-mono);font-size:.78rem;padding:1px 6px;border-radius:4px;background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--accent);white-space:nowrap}
+.k.sig{background:color-mix(in srgb,var(--signal) 18%,transparent);color:var(--fg)}
+.k.hot{background:color-mix(in srgb,var(--hot) 16%,transparent);color:var(--hot)}
+.callout{border-left:4px solid var(--signal);background:color-mix(in srgb,var(--signal) 9%,transparent);padding:12px 16px;border-radius:0 6px 6px 0;margin-block:16px}
+.callout.hot{border-left-color:var(--hot);background:color-mix(in srgb,var(--hot) 8%,transparent)}
+table{border-collapse:collapse;width:100%;font-size:.95rem}
+th,td{border-bottom:1px solid var(--line);padding:9px 10px;text-align:left;vertical-align:top}
+th{font-family:var(--f-mono);font-size:.78rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:500}
+td.ok{color:var(--gnd);font-weight:600}
+td.no{color:var(--hot);font-weight:600}
+
+/* SVG shared */
+svg text{font-family:var(--f-body)}
+.s-box{fill:var(--surface);stroke:var(--line);stroke-width:1.5}
+.s-dev{fill:var(--bg);stroke:var(--muted);stroke-width:1.2}
+.s-dev.live{stroke:var(--signal);stroke-width:2}
+.s-dev.ret{stroke:var(--cold);stroke-width:2}
+.s-panel{fill:color-mix(in srgb,var(--muted) 14%,var(--surface));stroke:var(--line);stroke-width:1.5}
+.s-pb{fill:color-mix(in srgb,var(--muted) 9%,transparent);stroke:var(--muted);stroke-dasharray:4 4;stroke-width:1}
+.s-t{fill:var(--fg);font-size:13px;font-weight:500}
+.s-s{fill:var(--muted);font-size:11px}
+.s-m{fill:var(--muted);font-family:var(--f-mono)!important;font-size:10.5px;letter-spacing:.04em}
+.s-wire{stroke:var(--line);stroke-width:2.5;fill:none}
+.s-rear{stroke:var(--muted);stroke-width:1.6;fill:none;stroke-dasharray:2 4;opacity:.75}
+.s-norm{stroke:var(--muted);stroke-width:2;fill:none;stroke-dasharray:1 3}
+.s-devl{stroke:var(--muted);stroke-width:1.4;fill:none;stroke-dasharray:6 4;opacity:.6}
+.s-cable{stroke:var(--accent);stroke-width:5;fill:none;stroke-linecap:round;opacity:.9}
+.s-cut{stroke:var(--hot);stroke-width:2;fill:none;stroke-dasharray:3 4}
+.s-jack{fill:var(--surface);stroke:var(--muted);stroke-width:1.5}
+.s-hole{fill:var(--fg)}
+.s-plug{fill:var(--accent)}
+.flow{stroke:var(--signal);stroke-width:3;fill:none;stroke-dasharray:6 9;stroke-linecap:round;animation:flow .9s linear infinite}
+.flow.ret{stroke:var(--cold)}
+@keyframes flow{to{stroke-dashoffset:-30}}
+.s-hotx{stroke:var(--hot);stroke-width:4;stroke-linecap:round}
+.s-sig{fill:var(--signal)}
+.s-hotf{fill:var(--hot)}
+
+/* Simulator */
+.sim{display:grid;gap:18px}
+.sim-stage{border:1px solid var(--line);border-radius:var(--radius);background:var(--bg);padding:10px}
+.sim-stage svg{display:block;width:100%;min-width:660px;height:auto}
+.jackbtn{cursor:pointer}
+.jackbtn:focus{outline:none}
+.jackbtn:focus-visible .s-jack{stroke:var(--accent);stroke-width:4}
+.jackbtn:hover .s-jack{stroke:var(--accent)}
+.sim-ctl{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.ch{border:1px solid var(--line);border-radius:var(--radius);padding:12px;background:var(--surface);min-width:0}
+.ch.sel{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.ch h4{font-size:1rem;margin-bottom:8px;display:flex;justify-content:space-between;gap:6px}
+.ch label{font-size:.8rem;color:var(--muted);display:block;margin-bottom:4px}
+.ch select{width:100%;font:inherit;font-size:.9rem;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--fg);margin-bottom:8px}
+.ch .row{display:flex;gap:6px;flex-wrap:wrap}
+.ch .row .btn{flex:1;padding:6px 8px;font-size:.82rem}
+.ch .st{font-size:.85rem;margin:10px 0 0;line-height:1.45}
+.sim-legend{display:flex;flex-wrap:wrap;gap:14px;font-size:.85rem;color:var(--muted)}
+.sw{display:inline-block;width:22px;height:4px;border-radius:2px;vertical-align:middle;margin-right:6px}
+.sw.s{background:var(--signal)}.sw.r{background:var(--cold)}.sw.c{background:var(--accent);height:6px}.sw.x{background:var(--hot)}
+.xsec-wrap{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:18px;align-items:center}
+.xsec-wrap svg{width:100%;height:auto;display:block;min-width:460px}
+.xsec-txt{font-size:.95rem}
+.xsec-txt ul{padding-left:18px;margin:8px 0}
+.mini svg{width:100%;height:auto;display:block}
+
+/* Cases */
+.case{border-top:1px solid var(--line);padding-top:26px;margin-top:26px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:24px}
+.case:first-of-type{border-top:0;margin-top:8px;padding-top:0}
+.case>*{min-width:0}
+.case .num{font-family:var(--f-mono);color:var(--signal);font-weight:500;font-size:.85rem}
+.case ol{padding-left:20px;margin:10px 0}
+.case li{margin-bottom:6px;padding:4px 8px;border-radius:6px;transition:background .2s}
+.case li.cur{background:color-mix(in srgb,var(--signal) 15%,transparent)}
+.diag{border:1px solid var(--line);border-radius:var(--radius);background:var(--bg);padding:8px}
+.diag svg{display:block;width:100%;min-width:520px;height:auto}
+.stepper{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;align-items:center}
+.stepper span{font-size:.8rem;color:var(--muted);margin-right:4px}
+
+/* Label strip */
+.strip{display:grid;grid-template-columns:repeat(24,minmax(46px,1fr));gap:0;min-width:1104px;border:2px solid var(--muted);border-radius:6px;overflow:hidden;font-family:var(--f-mono)}
+.strip .c{border-right:1px solid var(--line);padding:6px 3px;text-align:center;font-size:10.5px;line-height:1.25;min-height:58px;display:flex;flex-direction:column;justify-content:center;gap:2px;background:var(--surface)}
+.strip .c:nth-child(24n){border-right:0}
+.strip .n{color:var(--muted);font-size:9.5px}
+.strip .row-top{border-bottom:1px solid var(--line)}
+.strip .md{font-size:9.5px;font-weight:500;border-radius:3px;padding:0 3px;align-self:center}
+.md.S{background:color-mix(in srgb,var(--signal) 22%,transparent)}
+.md.N{background:color-mix(in srgb,var(--accent) 20%,transparent)}
+.md.T{background:color-mix(in srgb,var(--muted) 22%,transparent)}
+.md.P{background:color-mix(in srgb,var(--gnd) 25%,transparent)}
+.strip .grp-pre{box-shadow:inset 0 4px 0 var(--signal)}
+.strip .grp-ins{box-shadow:inset 0 4px 0 var(--accent)}
+.strip .grp-sum{box-shadow:inset 0 4px 0 var(--cold)}
+.strip .grp-mult{box-shadow:inset 0 4px 0 var(--gnd)}
+.strip .grp-thru{box-shadow:inset 0 4px 0 var(--muted)}
+.strip-mid{grid-column:1/-1;height:10px;background:color-mix(in srgb,var(--muted) 18%,var(--surface))}
+
+/* 3D */
+.stage3d{position:relative;border:1px solid var(--line);border-radius:var(--radius);background:radial-gradient(ellipse at 50% 30%,var(--surface),var(--bg));height:min(70vh,520px);min-height:320px;overflow:hidden}
+.stage3d canvas{display:block;width:100%!important;height:100%!important;touch-action:none}
+.stage3d .hint{position:absolute;left:12px;bottom:10px;font-family:var(--f-mono);font-size:.75rem;color:var(--muted);background:color-mix(in srgb,var(--surface) 80%,transparent);padding:3px 8px;border-radius:4px;pointer-events:none}
+.fallback{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;color:var(--muted)}
+
+/* Quiz */
+.quiz{display:grid;gap:16px}
+.q{border:1px solid var(--line);border-radius:var(--radius);padding:16px;background:var(--bg)}
+.q h3{font-size:1.05rem;font-family:var(--f-body);font-weight:600}
+.opts{display:grid;gap:8px}
+.opt{text-align:left;font:inherit;font-size:.95rem;border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:6px;padding:10px 12px;cursor:pointer}
+.opt:hover{border-color:var(--accent)}
+.opt.right{border-color:var(--gnd);background:color-mix(in srgb,var(--gnd) 14%,var(--surface))}
+.opt.wrong{border-color:var(--hot);background:color-mix(in srgb,var(--hot) 10%,var(--surface))}
+.fb{margin:10px 0 0;font-size:.92rem;min-height:1.4em}
+.fb.good{color:var(--gnd)}.fb.bad{color:var(--hot)}
+.score{font-family:var(--f-mono);font-size:.9rem;color:var(--muted)}
+
+footer{border-top:1px solid var(--line);background:var(--surface);margin-top:40px}
+footer .wrap{padding-block:28px;display:flex;flex-wrap:wrap;gap:16px;justify-content:space-between;font-size:.9rem;color:var(--muted)}
+
+@media (max-width:860px){
+  .hero-grid,.case,.xsec-wrap{grid-template-columns:minmax(0,1fr)}
+  .sim-ctl{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .hero{padding-block:32px 16px}
+}
+@media (max-width:480px){
+  body{font-size:16px}
+  .sim-ctl{grid-template-columns:minmax(0,1fr)}
+  .brand span.long{display:none}
+}
+@media (prefers-reduced-motion: reduce){
+  html{scroll-behavior:auto}
+  .flow{animation:none;stroke-dasharray:none}
+  .case li{transition:none}
+}
+.views3d{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-block:12px}
+.views3d label{display:inline-flex;gap:6px;align-items:center;font-size:.9rem}
+.views3d .lbltg{display:inline-flex;flex-wrap:wrap;gap:6px 14px;margin-left:auto}
+.lbl3d{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.l3{position:absolute;left:0;top:0;white-space:nowrap;font-family:var(--f-mono);font-size:11px;line-height:1.2;padding:2px 6px;border-radius:4px;background:color-mix(in srgb,var(--surface) 88%,transparent);color:var(--fg);border:1px solid var(--line)}
+.l3.dev{font-family:var(--f-display);font-weight:700;font-size:12.5px;border-color:var(--fg)}
+.l3.jk{font-size:10px;color:var(--muted)}
+.l3.row{font-size:10px;color:var(--muted);border-style:dashed}
+.l3.tag{border:2px solid var(--lc,var(--fg));font-weight:600;pointer-events:auto;cursor:pointer;font-size:11px}
+.l3.tag:hover,.l3.tag:focus-visible{background:var(--surface);outline:2px solid var(--lc,var(--fg));outline-offset:1px}
+[hidden]{display:none!important}
+.l3.dim{opacity:.35}
+.l3.pbmode{font-weight:700;border:2px solid var(--brand);color:var(--fg)}
+.modes3d{display:inline-flex;gap:0;border:1px solid var(--line);border-radius:999px;padding:3px;background:var(--surface);margin-block:4px 12px}
+.modes3d .btn{border:0;min-height:34px;padding:6px 16px}
+.modes3d .btn[aria-pressed="true"]{background:var(--accent);color:var(--surface)}
+.steps3d{margin-top:12px;padding:14px 16px;border:1px solid var(--line);border-left:4px solid var(--brand);border-radius:var(--radius);background:var(--surface);display:grid;gap:10px}
+.steps3d p{margin:0;max-width:70ch}
+.sbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+.sbadge{font-family:var(--f-mono);font-size:.78rem;text-transform:uppercase;letter-spacing:.06em;padding:3px 10px;border-radius:999px;border:1px solid var(--accent);color:var(--accent)}
+.scount{font-family:var(--f-mono);font-size:.8rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.snav{display:flex;gap:8px;justify-content:space-between;flex-wrap:wrap}
+.btn.sprimary{background:var(--accent);border-color:var(--accent);color:var(--surface);font-weight:600}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.sm{min-height:28px;padding:2px 10px;font-size:.8rem}
+.btn.sm.on{border-color:var(--accent);color:var(--accent)}
+.ft{display:inline-flex;gap:6px;align-items:center;font-size:.85rem;color:var(--muted)}
+.jackgrid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
+.jk3.nodst{opacity:.6;border-style:dashed}
+.chal{display:grid;gap:8px;padding-bottom:12px;border-bottom:1px solid var(--line)}
+.chal h4{margin:0;font-family:var(--f-display);font-size:1.15rem}
+.chal p{margin:0;max-width:75ch}
+.chbtns{display:inline-flex;flex-wrap:wrap;gap:6px}
+.chbtns .btn{min-height:32px;padding:4px 12px}
+.goals{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.goals li{padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg)}
+.goals li.ok{border-color:var(--gnd)}
+.goals .gk{display:inline-block;width:1.2em;font-weight:700;color:var(--muted)}
+.goals li.ok .gk{color:var(--gnd)}
+.goals .why{display:block;margin-top:4px;font-size:.85rem;color:var(--muted)}
+.layout3d{display:grid;gap:4px;margin-block:4px 12px}.layout3d p{margin:0}.small{font-size:.85rem;color:var(--muted)}
+.jackgrid .rowlbl{grid-column:1/-1;font-family:var(--f-mono);font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.jk3{font:inherit;display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:7px 8px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--fg);cursor:pointer;text-align:left;min-width:0;position:relative}
+.jk3 .pbn{font-family:var(--f-mono);font-size:.72rem;color:var(--muted)}
+.jk3 .jn{font-size:.82rem;font-weight:500;line-height:1.2;overflow-wrap:anywhere}
+.jk3 .cnum{position:absolute;top:5px;right:6px;font-family:var(--f-mono);font-size:.7rem;font-weight:700;color:var(--brand)}
+.jk3.used{border-color:var(--brand)}
+.jk3[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent)}
+.jk3:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.fmsg{margin:0;padding:10px 12px;border-radius:8px;border:1px solid var(--line);border-left-width:4px;background:var(--bg);max-width:none}
+.fmsg.ok{border-left-color:var(--gnd)} .fmsg.warn{border-left-color:var(--brand)} .fmsg.err{border-left-color:var(--hot)} .fmsg.info{border-left-color:var(--accent)}
+.fcols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);gap:16px}
+.fcols h4{margin:0 0 6px;font-family:var(--f-display);font-size:1rem}
+.flist{margin:0 0 8px;padding-left:1.2em;display:grid;gap:6px;font-size:.9rem}
+.flist .cn{font-family:var(--f-mono);font-weight:700;color:var(--brand);margin-right:4px}
+.flist .cn.bad{color:var(--hot)}
+.routes{list-style:none;padding-left:0}
+.routes li{padding:6px 8px;border-radius:6px;border:1px solid var(--line)}
+.routes li.off{color:var(--muted)}
+.routes li.note{border-style:dashed}
+.routes li.err{border-color:var(--hot)}
+.routes .why{display:block;font-family:var(--f-mono);font-size:.75rem;color:var(--muted)}
+@media (max-width:700px){.jackgrid{grid-template-columns:repeat(2,minmax(0,1fr))}.fcols{grid-template-columns:1fr}}
+.l3.cut{border:2px solid var(--hot);color:var(--hot);font-weight:700;font-size:11px}
+.paths3d{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-block:0 12px}
+.paths3d .pl{font-family:var(--f-mono);font-size:.75rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-right:4px}
+.paths3d .btn{min-height:32px;padding:4px 12px;font-family:var(--f-mono);font-size:.85rem}
+.pathinfo{margin-top:12px;padding:12px 14px;border:1px solid var(--line);border-left:4px solid var(--brand);border-radius:var(--radius);background:var(--surface);max-width:none}
+.l3.tag::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--lc,var(--fg));margin-right:5px;vertical-align:0}
+.wires{width:100%;border-collapse:collapse;font-size:.9rem;min-width:560px}
+.wires th,.wires td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+.wires th{font-family:var(--f-mono);font-size:.75rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.wires .sw{display:inline-block;width:14px;height:14px;border-radius:50%;vertical-align:-2px;margin-right:6px}
+.tblwrap{overflow-x:auto;margin-top:14px}
+@media (max-width:600px){.l3{font-size:9.5px;padding:1px 4px}.l3.dev{font-size:11px}}
+/* Universidad El Bosque: orange only in small accents */
+header{box-shadow:inset 0 -3px 0 var(--brand)}
+.btn{border-radius:999px}
+h2::after{content:"";display:block;width:40px;height:4px;border-radius:99px;background:var(--brand);margin-top:.45em}
+::selection{background:var(--brand);color:#FFFFFF}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="#inicio"><span class="brand-dot" aria-hidden="true"></span>Patch bays<span class="long">&nbsp;· TPH</span></a>
+    <nav class="nav" aria-label="Secciones">
+      <ul>
+        <li><a href="#que-es">Qué es</a></li>
+        <li><a href="#formatos">Formatos</a></li>
+        <li><a href="#modos">Modos</a></li>
+        <li><a href="#simulador">Simulador</a></li>
+        <li><a href="#casos">Casos de uso</a></li>
+        <li><a href="#etiquetado">Etiquetado</a></li>
+        <li><a href="#rack3d">Rack 3D</a></li>
+        <li><a href="#quiz">Quiz</a></li>
+      </ul>
+    </nav>
+    <button class="btn theme-btn" id="theme-btn" type="button" aria-label="Cambiar tema claro u oscuro">Tema</button>
+  </div>
+</header>
+
+<main id="inicio">
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <div>
+        <div class="eyebrow">Técnicas de Producción Híbrida · Unidad de ruteo</div>
+        <h1>El patch bay: donde <em>la señal</em> decide su camino</h1>
+        <p class="lead">Un panel de conexiones que reúne todas las entradas y salidas del estudio en un solo lugar. Entender su normalización es la diferencia entre parchear en segundos o pasar la sesión buscando por qué no suena nada.</p>
+        <div class="chips">
+          <span class="chip">normalizado</span><span class="chip">semi-normalizado</span><span class="chip">thru</span><span class="chip">mult</span><span class="chip">TRS · TT · XLR · RCA</span>
+        </div>
+      </div>
+      <div class="hero-art" aria-hidden="true">
+        <svg viewBox="0 0 420 200">
+          <rect class="s-panel" x="10" y="40" width="400" height="110" rx="6"/>
+          <rect class="s-box" x="18" y="88" width="384" height="14" rx="2"/>
+          <g id="hero-jacks"></g>
+          <path class="s-cable" d="M85 69 C 120 10, 230 10, 265 121"/>
+          <path class="flow" d="M85 69 C 120 10, 230 10, 265 121"/>
+          <path class="s-cable" style="stroke:var(--signal);opacity:.55" d="M180 69 C 190 190, 330 200, 345 121"/>
+          <text class="s-m" x="18" y="30">OUT · fila superior</text>
+          <text class="s-m" x="18" y="178">IN · fila inferior</text>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <div class="wrap">
+
+  <section class="rack" id="que-es">
+    <div class="in">
+      <span class="utag">U-01 · Fundamentos</span>
+      <h2>Qué es un patch bay</h2>
+      <p>Un patch bay (bahía de conexiones) es un panel, normalmente de 1U de rack, que lleva las entradas y salidas de todos los equipos a un frontal accesible. En lugar de meterte detrás del rack cada vez que quieres cambiar una conexión, lo haces delante con <strong>cables de parcheo cortos</strong> (patch cords de 30 a 90 cm).</p>
+      <div class="cols">
+        <div class="card">
+          <h3>Fila superior = salidas</h3>
+          <p>Cada jack de arriba está conectado por detrás a la <strong>salida</strong> de un equipo: preamplificador, compresor, sintetizador, salida de línea de la interfaz. Son las <em>fuentes</em>.</p>
+        </div>
+        <div class="card">
+          <h3>Fila inferior = entradas</h3>
+          <p>Cada jack de abajo está conectado a la <strong>entrada</strong> de un equipo: entrada de línea de la interfaz, entrada del compresor, del EQ, del sumador. Son los <em>destinos</em>.</p>
+        </div>
+        <div class="card">
+          <h3>Trasera fija, frontal flexible</h3>
+          <p>La parte trasera se cablea <strong>una sola vez</strong> y no se toca. El frontal es donde trabajas. La normalización decide qué pasa en los pares arriba/abajo cuando <em>no</em> hay cable.</p>
+        </div>
+      </div>
+      <p style="margin-top:18px">Cada columna es un <strong>par</strong>: el jack de arriba y el de abajo de la misma posición. Lo interesante es que, según cómo esté configurado ese par, la salida de arriba puede llegar sola a la entrada de abajo sin ningún cable en el frontal. Eso es la <strong>normalización</strong>.</p>
+    </div>
+  </section>
+
+  <section class="rack" id="formatos">
+    <div class="in">
+      <span class="utag">U-02 · Conectores</span>
+      <h2>Formatos y balanceo</h2>
+      <div class="scroll">
+        <table>
+          <thead><tr><th>Formato</th><th>Densidad típica</th><th>Balanceado</th><th>Dónde aparece</th></tr></thead>
+          <tbody>
+            <tr><td><strong>TRS 1/4"</strong> (6,35 mm)</td><td>48 puntos (2×24) en 1U</td><td>Sí (punta +, anillo −, cuerpo masa)</td><td>El estándar en home y project studios. Robusto y barato.</td></tr>
+            <tr><td><strong>TT / Bantam</strong> (4,4 mm)</td><td>96 puntos (2×48) en 1U</td><td>Sí</td><td>Consolas grandes y estudios profesionales. Más compacto; cables y jacks más caros.</td></tr>
+            <tr><td><strong>XLR</strong></td><td>8 a 16 por panel</td><td>Sí</td><td>Líneas de micrófono de sala (tie lines), cajas de conexión de pared.</td></tr>
+            <tr><td><strong>RCA</strong></td><td>16 a 32 pares</td><td>No</td><td>Equipos de consumo, tocadiscos, algunos sintetizadores y cajas de ritmos antiguas.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="cols" style="margin-top:18px">
+        <div class="card">
+          <h3>Balanceado</h3>
+          <p>Tres conductores: la señal viaja dos veces, una invertida. El receptor resta ambas y el ruido inducido en el cable se cancela. Ideal para líneas largas y para casi todo el equipo de estudio con salidas a +4 dBu.</p>
+        </div>
+        <div class="card">
+          <h3>No balanceado</h3>
+          <p>Dos conductores (señal y masa). Más sensible a zumbidos. Muchos sintetizadores y cajas de ritmos tienen salidas TS no balanceadas: funcionan en un patch bay TRS, pero el anillo queda a masa o abierto según el cable.</p>
+        </div>
+        <div class="card">
+          <h3>Masa: ground lift y ground compensated</h3>
+          <p>Algunos paneles permiten levantar la masa (<em>ground lift</em>) por canal para cortar bucles de tierra. Otros usan conexión <em>ground compensated</em>: el cuerpo del jack se conecta solo en un extremo para que equipos balanceados y no balanceados convivan con menos zumbido.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="rack" id="modos">
+    <div class="in">
+      <span class="utag">U-03 · Normalización</span>
+      <h2>Los modos de un par arriba / abajo</h2>
+      <p>Dentro de cada jack hay láminas metálicas (contactos de conmutación). Sin clavija, la lámina descansa sobre un <strong>contacto normal</strong> que une el jack con su pareja. Al insertar una clavija, la lámina se levanta y ese contacto se abre. Cuántos jacks del par tienen ese contacto es lo que define el modo.</p>
+      <div class="cols">
+        <div class="card">
+          <h3>Normalizado <span class="k">full normal</span></h3>
+          <div class="mini" data-mini="normal"></div>
+          <p>Sin cable, arriba pasa a abajo. Ambos jacks tienen contacto normal: un cable en <strong>arriba o en abajo</strong> rompe la conexión.</p>
+        </div>
+        <div class="card">
+          <h3>Semi-normalizado <span class="k sig">half normal</span></h3>
+          <div class="mini" data-mini="semi"></div>
+          <p>Sin cable, arriba pasa a abajo. Un cable en <strong>arriba</strong> es una toma (multiple): la señal sigue llegando abajo <em>y</em> sale por el cable. Un cable en <strong>abajo</strong> rompe el normal. Es el modo más común.</p>
+        </div>
+        <div class="card">
+          <h3>Thru / no normalizado <span class="k">open · de paso</span></h3>
+          <div class="mini" data-mini="thru"></div>
+          <p>También llamado <em>full thru</em> o <em>through</em>. Arriba y abajo no están unidos: cada jack es solo una extensión de su conector trasero. Para que algo suene, hace falta un cable.</p>
+        </div>
+      </div>
+
+      <h3 style="margin-top:28px">Tabla de comportamiento</h3>
+      <div class="scroll">
+        <table>
+          <thead><tr><th>Modo</th><th>Sin cable</th><th>Cable solo arriba</th><th>Cable solo abajo</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Normalizado</strong></td><td class="ok">Salida → entrada</td><td>La señal sale por el cable; <span class="k hot">la entrada queda en silencio</span></td><td>La entrada recibe lo que llega por el cable; la salida no va a ningún sitio</td></tr>
+            <tr><td><strong>Semi-normalizado</strong></td><td class="ok">Salida → entrada</td><td>La señal sale por el cable <strong>y</strong> sigue llegando a la entrada</td><td>La entrada recibe lo del cable; el normal se rompe</td></tr>
+            <tr><td><strong>Thru</strong></td><td class="no">Nada</td><td>La señal sale por el cable</td><td>La entrada recibe lo del cable</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="cols" style="margin-top:22px">
+        <div class="card">
+          <h3>Paralelo / multiple (mult)</h3>
+          <p>Varios jacks unidos entre sí (por ejemplo, los dos de una columna, o cuatro seguidos). Una señal que entra por uno aparece en todos los demás: sirve para <strong>dividir</strong> una salida hacia varios destinos. Un mult pasivo divide, no suma: no lo uses para mezclar dos salidas juntas.</p>
+        </div>
+        <div class="card">
+          <h3>Normalización conmutable</h3>
+          <p>Muchos paneles modernos permiten elegir el modo de cada columna con un interruptor frontal o superior, o girando una pequeña placa del circuito por detrás. Así puedes poner en semi las entradas de la interfaz y en thru los equipos sin relación fija, sin soldar nada.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="rack" id="simulador">
+    <div class="in">
+      <span class="utag">U-04 · Interactivo</span>
+      <h2>Simulador de normalización</h2>
+      <p>Cuatro columnas de un patch bay. Elige el modo de cada una y haz clic (o pulsa Enter) en un jack para conectar o quitar un cable. La línea <span class="k sig">ámbar</span> es la señal de la salida de arriba; la <span class="k">azul</span> es lo que llega por un cable de parcheo desde otro equipo.</p>
+      <div class="sim">
+        <div class="sim-stage scroll"><svg id="sim-svg" viewBox="0 0 760 440" role="group" aria-label="Patch bay simulado con cuatro columnas"></svg></div>
+        <div class="sim-legend">
+          <span><i class="sw s"></i>Señal de la fuente (fila superior)</span>
+          <span><i class="sw r"></i>Señal que entra por cable</span>
+          <span><i class="sw c"></i>Cable de parcheo</span>
+          <span>Línea punteada: cableado trasero / normal interno</span>
+        </div>
+        <div class="sim-ctl" id="sim-ctl"></div>
+        <p id="sim-live" class="muted" aria-live="polite" style="margin:0"></p>
+        <div class="card">
+          <h3 id="xsec-title">Corte del jack: canal 1</h3>
+          <div class="xsec-wrap">
+            <div class="scroll"><svg id="xsec" viewBox="0 0 560 280" role="img" aria-labelledby="xsec-title"></svg></div>
+            <div class="xsec-txt" id="xsec-txt"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="rack" id="casos">
+    <div class="in">
+      <span class="utag">U-05 · Estudio híbrido</span>
+      <h2>Casos de uso paso a paso</h2>
+      <p>Nuestro estudio de ejemplo: interfaz de audio con 12 entradas y 8 salidas de línea, cuatro preamplificadores, un compresor y un ecualizador de hardware estéreo, un sintetizador, una caja de ritmos y un sumador analógico. Usa los botones de cada diagrama para avanzar.</p>
+
+      <article class="case" id="caso-1">
+        <div>
+          <div class="num">CASO 01 · Semi-normal</div>
+          <h3>Preamp a la interfaz, y "robar" la señal para un compresor</h3>
+          <ol data-steps="c1">
+            <li>Sin cables: la salida del Preamp 1 está cableada arriba; la entrada IN 1 de la interfaz, abajo. El semi-normal los une: ya puedes grabar.</li>
+            <li>Conectas un cable en el jack de <strong>arriba</strong> (Pre 1) hacia la entrada del compresor. En semi-normal eso es una toma: IN 1 sigue recibiendo la señal limpia.</li>
+            <li>La salida del compresor va con otro cable al jack de <strong>abajo</strong> de IN 2. Grabas a la vez la pista seca y la comprimida, y decides después.</li>
+          </ol>
+          <p class="muted">Ojo: al conectar en abajo de IN 2 rompes su normal con el Preamp 2. Si ese preamp estaba en uso, se queda sin destino.</p>
+        </div>
+        <div><div class="stepper" data-for="c1"></div><div class="diag scroll"><svg data-diag="c1" viewBox="0 0 640 260" role="img" aria-label="Diagrama del caso 1"></svg></div></div>
+      </article>
+
+      <article class="case" id="caso-2">
+        <div>
+          <div class="num">CASO 02 · Inserción híbrida</div>
+          <h3>Compresor y EQ en cadena desde una salida de la interfaz</h3>
+          <ol data-steps="c2">
+            <li>La salida OUT 3 de la interfaz está normalizada a la entrada del compresor; la salida del compresor, a la del EQ; la salida del EQ, a IN 9. Sin un solo cable, tienes un <em>insert</em> de hardware: en la DAW mandas una pista a OUT 3 y la grabas (o la monitorizas) desde IN 9. Ese es el corazón del procesamiento híbrido y del re-amping de pistas.</li>
+            <li>¿Quieres saltarte el EQ? Un cable desde la salida del compresor (arriba) a IN 9 (abajo). El cable de abajo rompe el normal EQ → IN 9; el EQ sigue recibiendo señal, pero su salida ya no llega a ningún sitio.</li>
+          </ol>
+          <p class="muted">En la DAW, compensa la latencia del viaje de ida y vuelta (la función de <em>hardware insert</em> suele medirla con un ping).</p>
+        </div>
+        <div><div class="stepper" data-for="c2"></div><div class="diag scroll"><svg data-diag="c2" viewBox="0 0 640 260" role="img" aria-label="Diagrama del caso 2"></svg></div></div>
+      </article>
+
+      <article class="case" id="caso-3">
+        <div>
+          <div class="num">CASO 03 · Siempre listos</div>
+          <h3>Sintetizador y caja de ritmos directos a la interfaz, y desviar uno a un EQ</h3>
+          <ol data-steps="c3">
+            <li>El sintetizador está semi-normalizado a IN 5 y la caja de ritmos a IN 7. Al abrir la sesión, todo suena sin tocar el patch bay.</li>
+            <li>Quieres ecualizar la caja: un cable desde su salida (arriba) a la entrada del EQ (abajo). El cable en abajo corta el normal del compresor al EQ; el EQ, a través de su propio normal, saca la señal por IN 9.</li>
+            <li>Gracias al semi-normal, la caja sigue entrando seca por IN 7: tienes la versión limpia y la ecualizada para mezclarlas en paralelo.</li>
+          </ol>
+        </div>
+        <div><div class="stepper" data-for="c3"></div><div class="diag scroll"><svg data-diag="c3" viewBox="0 0 640 260" role="img" aria-label="Diagrama del caso 3"></svg></div></div>
+      </article>
+
+      <article class="case" id="caso-4">
+        <div>
+          <div class="num">CASO 04 · Mult</div>
+          <h3>Duplicar la caja de ritmos hacia dos procesadores</h3>
+          <ol data-steps="c4">
+            <li>La caja de ritmos llega semi-normalizada a IN 7. Un grupo de cuatro jacks del patch bay está configurado como <strong>mult</strong>: todos unidos.</li>
+            <li>Un cable desde la salida de la caja (arriba) a cualquier jack del mult. IN 7 sigue recibiendo la señal seca.</li>
+            <li>Desde otros dos jacks del mult, cables a la entrada del compresor y a la del EQ. Ahora la misma señal alimenta tres destinos: seco, comprimido y ecualizado.</li>
+          </ol>
+          <p class="muted">Cada destino adicional carga un poco la salida. Con entradas modernas de alta impedancia, dos o tres destinos son seguros; para más, usa un amplificador de distribución.</p>
+        </div>
+        <div><div class="stepper" data-for="c4"></div><div class="diag scroll"><svg data-diag="c4" viewBox="0 0 640 260" role="img" aria-label="Diagrama del caso 4"></svg></div></div>
+      </article>
+
+      <article class="case" id="caso-5">
+        <div>
+          <div class="num">CASO 05 · Convención y seguridad</div>
+          <h3>Salidas arriba, entradas abajo, y altavoces nunca</h3>
+          <ol data-steps="c5">
+            <li><strong>Salidas arriba:</strong> en semi-normal el jack que no rompe el normal es el de arriba. Si ahí está la fuente, conectar un cable es una toma segura. Además se lee de arriba abajo, como fluye la señal, y todos los estudios lo hacen igual.</li>
+            <li><strong>Si lo inviertes</strong>, la toma sin corte estaría en una entrada: un cable ahí no "saca" nada útil y, en cambio, al parchear una fuente en un jack con normal estarías juntando dos salidas en un mismo punto.</li>
+            <li><strong>Salidas de altavoz nunca:</strong> un amplificador de potencia entrega decenas de voltios y mucha corriente. Al insertar una clavija TRS la punta roza el anillo y el cuerpo: cortocircuito en la salida del amplificador. Y un error de parcheo mandaría nivel de altavoz a una entrada de línea. Los altavoces se cablean directos al amplificador.</li>
+          </ol>
+          <div class="callout hot">Los monitores activos reciben nivel de línea: esos sí pueden pasar por el patch bay. Lo prohibido es la salida de un amplificador hacia altavoces pasivos.</div>
+        </div>
+        <div><div class="stepper" data-for="c5"></div><div class="diag scroll"><svg data-diag="c5" viewBox="0 0 640 260" role="img" aria-label="Diagrama del caso 5"></svg></div></div>
+      </article>
+
+      <article class="case" id="caso-6">
+        <div>
+          <div class="num">CASO 06 · Thru</div>
+          <h3>Equipos sin relación fija</h3>
+          <ol data-steps="c6">
+            <li>Una pedalera de efectos y una salida libre de la interfaz (OUT 7 / IN 11) están en modo thru: sin cables, no se conecta nada con nada. Es lo que quieres para equipos que no tienen un destino natural.</li>
+            <li>Cable desde OUT 7 (arriba) a la entrada de la pedalera (abajo): mandas una pista de la DAW a los pedales, como un re-amp.</li>
+            <li>Cable desde la salida de la pedalera (arriba) a IN 11 (abajo): grabas el resultado. Al terminar, quitas los cables y todo vuelve a estar aislado.</li>
+          </ol>
+          <p class="muted">Si estas columnas fueran normalizadas, OUT 7 entraría siempre en IN 11 y crearías un bucle de realimentación en la DAW al grabar con monitorización.</p>
+        </div>
+        <div><div class="stepper" data-for="c6"></div><div class="diag scroll"><svg data-diag="c6" viewBox="0 0 640 260" role="img" aria-label="Diagrama del caso 6"></svg></div></div>
+      </article>
+    </div>
+  </section>
+
+  <section class="rack" id="etiquetado">
+    <div class="in">
+      <span class="utag">U-06 · Documentación</span>
+      <h2>Tira de etiquetado: un 2×24 para este estudio</h2>
+      <p>Un patch bay sin etiquetar es inútil. Esta es una distribución posible para nuestro estudio. Arriba, las salidas; abajo, las entradas. La etiqueta pequeña indica el modo: <span class="k">N</span> normalizado, <span class="k sig">S</span> semi, <span class="k">T</span> thru, <span class="k">P</span> paralelo (mult).</p>
+      <div class="scroll" style="padding-bottom:6px"><div class="strip" id="strip" role="table" aria-label="Etiquetado del patch bay 2 por 24"></div></div>
+      <div class="cols" style="margin-top:18px">
+        <div class="card"><h3>Agrupa por función</h3><p>Preamps y fuentes a la izquierda, inserciones en el centro, sumador y utilidades a la derecha. La barra de color superior marca el grupo.</p></div>
+        <div class="card"><h3>Estéreo en pares</h3><p>Izquierdo en impar, derecho en par, siempre. Así un cable doble o dos cables paralelos no se cruzan.</p></div>
+        <div class="card"><h3>Deja huecos</h3><p>Reserva dos o tres columnas libres en thru: el próximo equipo que compres ya tendrá sitio.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="rack" id="rack3d">
+    <div class="in">
+      <span class="utag">U-07 · Vista 3D</span>
+      <h2>El rack en tres dimensiones</h2>
+      <p>Arrastra para orbitar, rueda o pellizca para acercarte. En <b>Paso a paso</b> armas una conexión a la vez: primero en normalizado, luego en semi-normalizado y en thru. La lección 4 graba una voz con un micrófono de condensador. En <b>Estudio completo</b> ves todo el rack cableado y puedes seguir cada cable. En <b>Conexión libre</b> eliges el modo del patch bay y conectas tus propios cables. En <b>Desafíos</b> resuelves un escenario de estudio con objetivos.</p>
+      <div class="layout3d"><p><b>Distribución del patch bay.</b> PB 1–8: arriba los instrumentos (Caja de ritmos L/R, Sinte 1, Sinte 2, Mic 1, Mic 2, Guitarra, Bajo), abajo las entradas 1–8 de la interfaz. PB 9–10: salidas 3/4 de la interfaz hacia el compresor estéreo. PB 11–12: compresor L/R hacia el ecualizador estéreo. PB 13–14: salidas L/R del ecualizador, libres para parchear.</p><p class="small">Los micrófonos y la guitarra/bajo no entran directo al patch bay: primero pasan por el preamp (XLR con +48 V para los condensadores, entrada Hi-Z para guitarra y bajo). El patch bay trabaja a nivel de línea.</p></div>
+      <div class="modes3d" id="modes3d" role="group" aria-label="Modo de la vista 3D"><button type="button" class="btn" data-mode="guided" aria-pressed="true">Paso a paso</button><button type="button" class="btn" data-mode="full" aria-pressed="false">Estudio completo</button><button type="button" class="btn" data-mode="free" aria-pressed="false">Conexión libre</button><button type="button" class="btn" data-mode="chal" aria-pressed="false">Desafíos</button></div>
+      <div class="paths3d" id="lessons3d" role="group" aria-label="Lección"><span class="pl">Lección</span><button type="button" class="btn" data-lesson="L1" aria-pressed="true">1 · Normalizado</button><button type="button" class="btn" data-lesson="L2" aria-pressed="false">2 · Semi-normalizado</button><button type="button" class="btn" data-lesson="L3" aria-pressed="false">3 · Thru</button><button type="button" class="btn" data-lesson="L4" aria-pressed="false">4 · Tracking de voz</button></div>
+      <div class="views3d" id="views3d" role="group" aria-label="Vista del rack">
+        <button type="button" class="btn" data-view="mic" aria-pressed="false">Micrófonos</button>
+        <button type="button" class="btn" data-view="instr" aria-pressed="false">Guitarra y bajo</button>
+        <button type="button" class="btn" data-view="rear" aria-pressed="true">Trasera</button>
+        <button type="button" class="btn" data-view="front" aria-pressed="false">Frente</button>
+        <button type="button" class="btn" data-view="side" aria-pressed="false">Lado</button>
+        <button type="button" class="btn" data-view="top" aria-pressed="false">Arriba</button>
+        <span class="lbltg"><label for="focus-only"><input type="checkbox" id="focus-only" checked> Solo la conexión actual</label><label for="lbl-dev"><input type="checkbox" id="lbl-dev" checked> Nombres de equipos e instrumentos</label><label for="lbl-toggle"><input type="checkbox" id="lbl-toggle" checked> Nombres de conectores y cables</label></span>
+      </div>
+      <div class="paths3d" id="norm3d" hidden role="group" aria-label="Modo del patch bay"><span class="pl">1 · Modo del patch bay</span><button type="button" class="btn" data-norm="normal" aria-pressed="false">Normalizado</button><button type="button" class="btn" data-norm="semi" aria-pressed="true">Semi-normalizado</button><button type="button" class="btn" data-norm="thru" aria-pressed="false">Thru</button></div>
+      <div class="paths3d" id="paths3d" hidden role="group" aria-label="Sigue la señal"><span class="pl">Sigue la señal</span><button type="button" class="btn" data-path="P1" aria-pressed="false">P1</button><button type="button" class="btn" data-path="P2" aria-pressed="false">P2</button><button type="button" class="btn" data-path="C1" aria-pressed="false">C1</button><button type="button" class="btn" data-path="C2" aria-pressed="false">C2</button><button type="button" class="btn" data-path="C3" aria-pressed="false">C3</button><button type="button" class="btn" data-path="C4" aria-pressed="false">C4</button><button type="button" class="btn" data-path="C5" aria-pressed="false">C5</button><button type="button" class="btn" data-path="C6" aria-pressed="false">C6</button><button type="button" class="btn" data-path="none" aria-pressed="false">Quitar</button></div>
+      <div class="stage3d" id="stage3d"><div class="lbl3d" id="lbl3d"></div><span class="hint">arrastrar · zoom · clic en un cable o jack</span></div>
+      <div class="steps3d" id="steps3d"><div class="sbar"><span class="sbadge" id="stepmode">normalizado</span><span class="scount" id="stepcount">Paso 1 de 5</span></div><p id="steptext" aria-live="polite">Vamos a conectar el sintetizador al ecualizador pasando por el patch bay.</p><div class="snav"><button type="button" class="btn" id="stepprev">← Anterior</button><button type="button" class="btn sprimary" id="stepnext">Siguiente →</button></div></div>
+      <div class="steps3d freepanel" id="freepanel" hidden>
+        <div class="chal" id="chal3d" hidden>
+          <div class="sbar"><span class="pl">Desafío</span><span class="chbtns" role="group" aria-label="Elegir desafío"><button type="button" class="btn" data-chal="0" aria-pressed="true">1</button><button type="button" class="btn" data-chal="1" aria-pressed="false">2</button><button type="button" class="btn" data-chal="2" aria-pressed="false">3</button><button type="button" class="btn" data-chal="3" aria-pressed="false">4</button><button type="button" class="btn" data-chal="4" aria-pressed="false">5</button><button type="button" class="btn" data-chal="5" aria-pressed="false">6</button></span></div>
+          <h4 id="chaltitle">1 · Voz seca y comprimida</h4>
+          <p id="chaltext"></p>
+          <p class="small">Modo del patch bay en este desafío: <b id="chalnorm">semi-normalizado</b></p>
+          <ul class="goals" id="chalgoals"></ul>
+          <div class="snav"><span class="chbtns"><button type="button" class="btn sprimary" id="chalcheck">Comprobar</button><button type="button" class="btn" id="chalreset">Reiniciar</button></span><button type="button" class="btn" id="chalsol">Ver solución</button></div>
+          <p class="fmsg" id="chalres" hidden aria-live="polite"></p>
+        </div>
+        <div class="sbar"><span class="pl">2 · Conecta: toca un jack y luego otro</span><label for="free-turn" class="ft"><input type="checkbox" id="free-turn" checked> Girar para ver atrás al conectar</label></div>
+        <div class="jackgrid" id="jackgrid" role="group" aria-label="Jacks del frente del patch bay"><span class="rowlbl">Arriba · salidas</span><button type="button" class="jk3" data-jc="0" data-jr="0" aria-pressed="false"><span class="pbn">PB 1 ↑</span><span class="jn">Voz · Preamp OUT 1</span><span class="cnum"></span></button><button type="button" class="jk3" data-jc="1" data-jr="0" aria-pressed="false"><span class="pbn">PB 3 ↑</span><span class="jn">Sinte OUT</span><span class="cnum"></span></button><button type="button" class="jk3" data-jc="2" data-jr="0" aria-pressed="false"><span class="pbn">PB 5 ↑</span><span class="jn">Caja OUT</span><span class="cnum"></span></button><button type="button" class="jk3" data-jc="3" data-jr="0" aria-pressed="false"><span class="pbn">PB 7 ↑</span><span class="jn">Interfaz OUT 3</span><span class="cnum"></span></button><button type="button" class="jk3" data-jc="4" data-jr="0" aria-pressed="false"><span class="pbn">PB 9 ↑</span><span class="jn">Compresor OUT</span><span class="cnum"></span></button><button type="button" class="jk3" data-jc="5" data-jr="0" aria-pressed="false"><span class="pbn">PB 11 ↑</span><span class="jn">EQ OUT</span><span class="cnum"></span></button><span class="rowlbl">Abajo · entradas</span><button type="button" class="jk3" data-jc="0" data-jr="1" aria-pressed="false"><span class="pbn">PB 1 ↓</span><span class="jn">Interfaz IN 1</span><span class="cnum"></span></button><button type="button" class="jk3" data-jc="1" data-jr="1" aria-pressed="false"><span class="pbn">PB 3 ↓</span><span class="jn">Interfaz IN 2</span><span class="cnum"></span></button><button type="button" class="jk3" data-jc="2" data-jr="1" aria-pressed="false"><span class="pbn">PB 5 ↓</span><span class="jn">Interfaz IN 3</span><span class="cnum"></span></button><button type="button" class="jk3" data-jc="3" data-jr="1" aria-pressed="false"><span class="pbn">PB 7 ↓</span><span class="jn">Compresor IN</span><span class="cnum"></span></button><button type="button" class="jk3" data-jc="4" data-jr="1" aria-pressed="false"><span class="pbn">PB 9 ↓</span><span class="jn">EQ IN</span><span class="cnum"></span></button><button type="button" class="jk3" data-jc="5" data-jr="1" aria-pressed="false"><span class="pbn">PB 11 ↓</span><span class="jn">Interfaz IN 4</span><span class="cnum"></span></button></div>
+        <p class="fmsg info" id="freemsg" aria-live="polite">Elige el modo del patch bay. Después toca un jack del frente (en el 3D o en estos botones) y luego el otro extremo.</p>
+        <div class="fcols"><div><h4>Tus cables</h4><ol class="flist" id="freecords"></ol><button type="button" class="btn sm" id="free-clear">Quitar todos</button></div>
+        <div><h4>Caminos de la señal</h4><ul class="flist routes" id="freeroutes"></ul></div></div>
+      </div>
+      <p class="pathinfo" id="pathinfo" hidden aria-live="polite">Haz clic en un cable o en su etiqueta (por ejemplo <b>P1</b>). El rack gira y muestra por dónde viaja la señal: al frente y atrás.</p>
+      <div class="tblwrap" id="wires3d" hidden><table class="wires">
+        <thead><tr><th>Columna</th><th>Arriba · salida (fuente)</th><th>Abajo · entrada</th><th>Señal</th></tr></thead>
+        <tbody></tbody></table></div>
+    </div>
+  </section>
+
+  <section class="rack" id="quiz">
+    <div class="in">
+      <span class="utag">U-08 · Comprueba</span>
+      <h2>Quiz rápido</h2>
+      <p class="score" id="score" aria-live="polite">0 de 5 respondidas</p>
+      <div class="quiz" id="quiz-box"></div>
+    </div>
+  </section>
+
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>Técnicas de Producción Híbrida · Patch bays y normalización</span>
+    <span class="mono">arriba = OUT · abajo = IN · semi = por defecto</span>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+(function(){
+"use strict";
+var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+function $(s,r){return (r||document).querySelector(s)}
+function $$(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))}
+
+/* ---------- Theme ---------- */
+var root=document.documentElement, tbtn=$('#theme-btn');
+try{var saved=localStorage.getItem('pb-theme'); if(saved==='light'||saved==='dark') root.setAttribute('data-theme',saved);}catch(e){}
+function curDark(){var t=root.getAttribute('data-theme'); if(t) return t==='dark'; return window.matchMedia('(prefers-color-scheme: dark)').matches;}
+function labelTheme(){tbtn.textContent=curDark()?'Tema: oscuro':'Tema: claro';}
+labelTheme();
+tbtn.addEventListener('click',function(){var n=curDark()?'light':'dark';root.setAttribute('data-theme',n);try{localStorage.setItem('pb-theme',n)}catch(e){}labelTheme();});
+if(window.matchMedia){var mq=window.matchMedia('(prefers-color-scheme: dark)'); if(mq.addEventListener) mq.addEventListener('change',labelTheme);}
+
+/* ---------- Hero jacks ---------- */
+(function(){var g=$('#hero-jacks'),h='';for(var i=0;i<12;i++){var x=38+i*31.5;h+='<circle class="s-jack" cx="'+x+'" cy="69" r="9"/><circle class="s-hole" cx="'+x+'" cy="69" r="3.5"/><circle class="s-jack" cx="'+x+'" cy="121" r="9"/><circle class="s-hole" cx="'+x+'" cy="121" r="3.5"/>';}g.innerHTML=h;})();
+
+/* ---------- Signal logic ---------- */
+function evalCh(mode,top,bot){
+  var normal = mode==='normal' ? (!top && !bot) : mode==='semi' ? !bot : false;
+  var destGets = bot ? 'ext' : (normal ? 'src' : null);
+  return {normal:normal, cabTop:top, destGets:destGets};
+}
+
+/* ---------- Jack cross-section ---------- */
+function crossSVG(mode,top,bot){
+  var r=evalCh(mode,top,bot), T=80, B=200, h='';
+  var topHas = mode==='normal', botHas = mode!=='thru';
+  h+='<line x1="60" y1="20" x2="60" y2="260" stroke="var(--muted)" stroke-width="3"/>';
+  h+='<text class="s-m" x="66" y="16">FRONTAL</text><text class="s-m" x="380" y="16">TRASERA</text>';
+  function jack(y,ins,hasN,closedFlow,label){
+    var s='';
+    s+='<rect x="60" y="'+(y-22)+'" width="140" height="44" rx="4" class="s-box"/>';
+    s+='<rect x="60" y="'+(y-9)+'" width="120" height="18" fill="var(--bg)" stroke="var(--line)"/>';
+    if(ins){
+      s+='<path d="M0 '+(y-14)+' H40 V'+(y-8)+' H175 L188 '+y+' L175 '+(y+8)+' H40 V'+(y+14)+' H0 Z" class="s-plug"/>';
+    }
+    var endY = ins ? y-9 : y+14;
+    s+='<polyline points="380,'+y+' 250,'+y+' 206,'+endY+'" fill="none" stroke="var(--fg)" stroke-width="3" stroke-linejoin="round"/>';
+    if(hasN){
+      s+='<rect x="198" y="'+(y+16)+'" width="26" height="6" rx="2" fill="'+(closedFlow?'var(--signal)':'var(--muted)')+'"/>';
+      s+='<text class="s-s" x="96" y="'+(y+42)+'">contacto normal: '+(ins?'abierto':'cerrado')+'</text>';
+    } else {
+      s+='<text class="s-s" x="96" y="'+(y+42)+'">sin contacto normal</text>';
+    }
+    s+='<text class="s-t" x="66" y="'+(y-30)+'">'+label+'</text>';
+    return s;
+  }
+  // wires to devices
+  h+='<path class="s-wire" d="M380 '+T+' H452"/><path class="flow" d="M452 '+T+' H380"/>';
+  h+='<rect class="s-dev live" x="452" y="'+(T-20)+'" width="100" height="40" rx="5"/><text class="s-t" x="462" y="'+(T+5)+'">Equipo OUT</text>';
+  var dcls = r.destGets==='src'?'live':r.destGets==='ext'?'ret':'';
+  h+='<path class="s-wire" d="M380 '+B+' H452"/>'+(r.destGets?'<path class="flow'+(r.destGets==='ext'?' ret':'')+'" d="M380 '+B+' H452"/>':'');
+  h+='<rect class="s-dev '+dcls+'" x="452" y="'+(B-20)+'" width="100" height="40" rx="5"/><text class="s-t" x="464" y="'+(B+5)+'">Equipo IN</text>';
+  // link
+  if(mode==='normal'){
+    var a = 'M224 '+(T+19)+' H300 V'+(B+19)+' H224';
+    h+='<path class="s-norm" d="'+a+'"/>'+(r.normal?'<path class="flow" d="'+a+'"/>':'');
+  } else if(mode==='semi'){
+    var b = 'M330 '+T+' V'+(B+19)+' H224';
+    h+='<circle cx="330" cy="'+T+'" r="4" fill="var(--fg)"/><path class="s-norm" d="'+b+'"/>'+(r.normal?'<path class="flow" d="'+b+'"/>':'');
+  }
+  // spring flows
+  h+='<path class="flow" d="M380 '+T+' H250"/>';
+  if(top) h+='<path class="flow" d="M40 '+(T)+' H0" style="stroke-width:4"/>';
+  if(bot) h+='<path class="flow ret" d="M0 '+B+' H40"/><path class="flow ret" d="M250 '+B+' H380"/>';
+  else if(r.normal) h+='<path class="flow" d="M250 '+B+' H380"/>';
+  h+=jack(T,top,topHas,mode==='normal'&&r.normal,'Jack superior');
+  h+=jack(B,bot,botHas,r.normal,'Jack inferior');
+  return h;
+}
+$$('[data-mini]').forEach(function(el){
+  el.innerHTML='<svg viewBox="0 0 560 280" role="img" aria-label="Corte del par en modo '+el.getAttribute('data-mini')+' sin cables">'+crossSVG(el.getAttribute('data-mini'),false,false)+'</svg>';
+});
+
+/* ---------- Simulator ---------- */
+var CH=[
+  {src:'Preamp 1 OUT',dst:'Interfaz IN 1',xt:['Compresor','IN'],xb:['Compresor','OUT'],mode:'semi'},
+  {src:'Synth L OUT',dst:'Interfaz IN 5',xt:['EQ','IN'],xb:['EQ','OUT'],mode:'semi'},
+  {src:'Interfaz OUT 5',dst:'Sumador IN 1',xt:['Compresor','IN'],xb:['Caja ritmos','OUT'],mode:'normal'},
+  {src:'Interfaz OUT 7',dst:'Pedalera IN',xt:['Reamp','IN'],xb:['Synth R','OUT'],mode:'thru'}
+];
+CH.forEach(function(c){c.top=false;c.bot=false;});
+var selCh=0;
+var MODE_NAME={normal:'Normalizado',semi:'Semi-normal',thru:'Thru'};
+var simSvg=$('#sim-svg'), ctl=$('#sim-ctl');
+
+function statusText(c){
+  var r=evalCh(c.mode,c.top,c.bot), s=[];
+  if(c.top) s.push(c.src+' sale por el cable hacia '+c.xt.join(' ')+'.');
+  if(r.destGets==='src') s.push(c.dst+' recibe '+c.src+(c.top?' (toma sin corte).':' por el normal.'));
+  else if(r.destGets==='ext') s.push(c.dst+' recibe '+c.xb.join(' ')+' por el cable; el normal está roto.');
+  else s.push(c.dst+' está en silencio.');
+  if(!c.top && r.destGets!=='src') s.push('La señal de '+c.src+' no va a ningún sitio.');
+  return s.join(' ');
+}
+
+function renderSim(){
+  var h='<rect class="s-panel" x="20" y="140" width="720" height="150" rx="6"/>';
+  h+='<text class="s-m" x="730" y="156" text-anchor="end">FRONTAL DEL PATCH BAY</text>';
+  CH.forEach(function(c,i){
+    var cx=95+i*180, jx=cx-40, T=185, B=250, r=evalCh(c.mode,c.top,c.bot);
+    // source
+    h+='<rect class="s-dev live" x="'+(jx-48)+'" y="20" width="96" height="40" rx="5"/>';
+    h+='<text class="s-t" x="'+jx+'" y="44" text-anchor="middle" style="font-size:12px">'+c.src+'</text>';
+    h+='<path class="s-rear" d="M'+jx+' 60 V'+(T-14)+'"/><path class="flow" d="M'+jx+' 60 V'+(T-14)+'"/>';
+    // normal link
+    h+='<path class="s-norm" d="M'+jx+' '+(T+14)+' V'+(B-14)+'" style="'+(c.mode==='thru'?'opacity:.25':'')+'"/>';
+    if(r.normal) h+='<path class="flow" d="M'+jx+' '+(T+14)+' V'+(B-14)+'"/>';
+    else if(c.mode!=='thru') h+='<path class="s-cut" d="M'+(jx-6)+' '+(T+26)+' L'+(jx+6)+' '+(T+38)+' M'+(jx+6)+' '+(T+26)+' L'+(jx-6)+' '+(T+38)+'"/>';
+    // dest
+    var dc = r.destGets==='src'?' live':r.destGets==='ext'?' ret':'';
+    h+='<path class="s-rear" d="M'+jx+' '+(B+14)+' V380"/>';
+    if(r.destGets) h+='<path class="flow'+(r.destGets==='ext'?' ret':'')+'" d="M'+jx+' '+(B+14)+' V380"/>';
+    h+='<rect class="s-dev'+dc+'" x="'+(jx-48)+'" y="380" width="96" height="40" rx="5"/>';
+    h+='<text class="s-t" x="'+jx+'" y="404" text-anchor="middle" style="font-size:12px">'+c.dst+'</text>';
+    // ext boxes
+    var ex=cx+12;
+    h+='<rect class="s-dev'+(c.top?' live':'')+'" x="'+ex+'" y="78" width="74" height="40" rx="5" style="'+(c.top?'':'opacity:.5')+'"/>';
+    h+='<text class="s-s" x="'+(ex+37)+'" y="95" text-anchor="middle">'+c.xt[0]+'</text><text class="s-m" x="'+(ex+37)+'" y="110" text-anchor="middle">'+c.xt[1]+'</text>';
+    h+='<rect class="s-dev'+(c.bot?' ret':'')+'" x="'+ex+'" y="312" width="74" height="40" rx="5" style="'+(c.bot?'':'opacity:.5')+'"/>';
+    h+='<text class="s-s" x="'+(ex+37)+'" y="329" text-anchor="middle">'+c.xb[0]+'</text><text class="s-m" x="'+(ex+37)+'" y="344" text-anchor="middle">'+c.xb[1]+'</text>';
+    if(c.top){var pt='M'+(jx+10)+' '+(T-4)+' C'+(jx+50)+' '+(T-10)+' '+(ex+37)+' 150 '+(ex+37)+' 118';h+='<path class="s-cable" d="'+pt+'"/><path class="flow" d="'+pt+'"/>';}
+    if(c.bot){var pb='M'+(ex+37)+' 312 C'+(ex+37)+' 280 '+(jx+50)+' '+(B+8)+' '+(jx+10)+' '+(B+4);h+='<path class="s-cable" d="'+pb+'"/><path class="flow ret" d="'+pb+'"/>';}
+    // jacks
+    [['top',T,c.top],['bot',B,c.bot]].forEach(function(j){
+      h+='<g class="jackbtn" role="button" tabindex="0" data-ch="'+i+'" data-pos="'+j[0]+'" aria-pressed="'+j[2]+'" aria-label="Canal '+(i+1)+', jack '+(j[0]==='top'?'superior':'inferior')+': '+(j[2]?'quitar':'conectar')+' cable">';
+      h+='<circle cx="'+jx+'" cy="'+j[1]+'" r="20" fill="transparent"/>';
+      h+='<circle class="s-jack" cx="'+jx+'" cy="'+j[1]+'" r="13"/><circle class="s-hole" cx="'+jx+'" cy="'+j[1]+'" r="5"/>';
+      if(j[2]) h+='<circle class="s-plug" cx="'+jx+'" cy="'+j[1]+'" r="9"/>';
+      h+='</g>';
+    });
+    h+='<text class="s-m" x="'+(jx-30)+'" y="'+(T+4)+'" text-anchor="end">'+(i+1)+'</text>';
+    h+='<text class="s-m" x="'+jx+'" y="282" text-anchor="middle" style="fill:var(--fg)">'+MODE_NAME[c.mode].toUpperCase()+'</text>';
+  });
+  h+='<text class="s-m" x="740" y="176" text-anchor="end">OUT</text><text class="s-m" x="740" y="254" text-anchor="end">IN</text>';
+  var foc=document.activeElement, key=null;
+  if(foc && foc.getAttribute && foc.getAttribute('data-pos')) key=foc.getAttribute('data-ch')+foc.getAttribute('data-pos');
+  simSvg.innerHTML=h;
+  if(key){var el=simSvg.querySelector('[data-ch="'+key[0]+'"][data-pos="'+key.slice(1)+'"]'); if(el) el.focus();}
+  // controls
+  CH.forEach(function(c,i){
+    var card=$('#ch-'+i);
+    card.classList.toggle('sel',i===selCh);
+    $('#mode-'+i).value=c.mode;
+    var bt=$('#bt-'+i), bb=$('#bb-'+i);
+    bt.setAttribute('aria-pressed',c.top); bt.textContent=c.top?'Quitar arriba':'Cable arriba';
+    bb.setAttribute('aria-pressed',c.bot); bb.textContent=c.bot?'Quitar abajo':'Cable abajo';
+    $('#st-'+i).textContent=statusText(c);
+  });
+  var c=CH[selCh];
+  $('#xsec-title').textContent='Corte del jack: canal '+(selCh+1)+' ('+MODE_NAME[c.mode]+')';
+  $('#xsec').innerHTML=crossSVG(c.mode,c.top,c.bot);
+  var tx='<p><strong>'+MODE_NAME[c.mode]+'</strong>, '+(c.top?'cable arriba':'sin cable arriba')+', '+(c.bot?'cable abajo':'sin cable abajo')+'.</p><ul>';
+  if(c.mode==='normal') tx+='<li>Los dos jacks tienen contacto normal. Cualquier clavija levanta su lámina y abre el camino.</li>';
+  if(c.mode==='semi') tx+='<li>Solo el jack inferior tiene contacto normal. La lámina del superior está unida siempre a la fuente, por eso una clavija arriba solo "escucha".</li>';
+  if(c.mode==='thru') tx+='<li>Ningún jack tiene contacto normal: cada uno es una prolongación directa de su conector trasero.</li>';
+  tx+='<li>'+statusText(c)+'</li></ul>';
+  $('#xsec-txt').innerHTML=tx;
+}
+function buildCtl(){
+  var h='';
+  CH.forEach(function(c,i){
+    h+='<div class="ch" id="ch-'+i+'"><h4><span>Canal '+(i+1)+'</span><span class="mono muted" style="font-size:.75rem;font-weight:400">'+c.src.replace(' OUT','')+'</span></h4>';
+    h+='<label for="mode-'+i+'">Modo</label><select id="mode-'+i+'" data-ch="'+i+'"><option value="normal">Normalizado</option><option value="semi">Semi-normalizado</option><option value="thru">Thru (sin normal)</option></select>';
+    h+='<div class="row"><button type="button" class="btn" id="bt-'+i+'" data-ch="'+i+'" data-pos="top" aria-pressed="false">Cable arriba</button><button type="button" class="btn" id="bb-'+i+'" data-ch="'+i+'" data-pos="bot" aria-pressed="false">Cable abajo</button></div>';
+    h+='<p class="st" id="st-'+i+'"></p></div>';
+  });
+  ctl.innerHTML=h;
+}
+function toggle(i,pos){
+  var c=CH[i]; c[pos]=!c[pos]; selCh=i; renderSim();
+  $('#sim-live').textContent='Canal '+(i+1)+': '+statusText(c);
+}
+buildCtl();
+ctl.addEventListener('change',function(e){var i=+e.target.getAttribute('data-ch');if(e.target.tagName==='SELECT'){CH[i].mode=e.target.value;selCh=i;renderSim();$('#sim-live').textContent='Canal '+(i+1)+' en modo '+MODE_NAME[CH[i].mode]+'. '+statusText(CH[i]);}});
+ctl.addEventListener('click',function(e){var b=e.target.closest('button[data-pos]');if(b) toggle(+b.getAttribute('data-ch'),b.getAttribute('data-pos'));});
+simSvg.addEventListener('click',function(e){var g=e.target.closest('[data-pos]');if(g) toggle(+g.getAttribute('data-ch'),g.getAttribute('data-pos'));});
+simSvg.addEventListener('keydown',function(e){if(e.key!=='Enter'&&e.key!==' ')return;var g=e.target.closest('[data-pos]');if(g){e.preventDefault();toggle(+g.getAttribute('data-ch'),g.getAttribute('data-pos'));}});
+renderSim();
+
+/* ---------- Case diagrams ---------- */
+function dev(x,y,w,t,s,hgt){return {k:'dev',x:x,y:y,w:w,h:hgt||40,t:t,s:s};}
+function jk(x,y,t,pos){return {k:'jack',x:x,y:y,t:t,pos:pos||'t'};}
+function E(d,k,sig,step,until){return {d:d,k:k,sig:sig,step:step||1,until:until};}
+function colEdges(x,yTopDev,yT,yB,yBotDev,sig,step,until){
+  return [E('M'+x+' '+yTopDev+' V'+(yT-10),'rear',sig,step),E('M'+x+' '+(yT+10)+' V'+(yB-10),'norm',sig,step,until),E('M'+x+' '+(yB+10)+' V'+yBotDev,'rear',sig,step,until)];
+}
+var SPECS={
+  c1:{n:3,pb:[240,24,150,196,'Patch bay · semi'],
+    nodes:[dev(20,58,150,'Preamp 1','salida de línea'),dev(460,20,160,'Compresor','IN · OUT'),dev(460,196,160,'Interfaz','IN 1 · IN 2'),
+      jk(280,80,'Pre 1'),jk(350,80,'Pre 2'),jk(280,170,'IN 1','b'),jk(350,170,'IN 2','b')],
+    edges:[E('M170 80 H268','rear','s'),E('M280 90 V160','norm','s'),E('M280 180 C280 222 400 214 460 214','rear','s'),
+      E('M350 90 V160','norm',null,1,3),
+      E('M290 80 C380 80 400 42 460 42','cable','s',2),
+      E('M540 60 C540 130 420 170 360 170','cable','r',3),E('M350 180 C350 232 420 230 460 230','rear','r',3)]},
+  c2:{n:2,pb:[50,72,540,116,'Patch bay · semi'],
+    nodes:[dev(55,10,130,'Interfaz','OUT 3'),dev(255,10,130,'Compresor','OUT'),dev(455,10,130,'EQ','OUT'),
+      dev(55,212,130,'Compresor','IN'),dev(255,212,130,'EQ','IN'),dev(455,212,130,'Interfaz','IN 9'),
+      jk(120,100,'',''),jk(320,100,'',''),jk(520,100,'',''),jk(120,160,'',''),jk(320,160,'',''),jk(520,160,'','')],
+    edges:[].concat(colEdges(120,50,100,160,212,'s',1),colEdges(320,50,100,160,212,'s',1),colEdges(520,50,100,160,212,'s',1,2),
+      [E('M185 232 C222 232 222 30 255 30','devl','s'),E('M385 232 C422 232 422 30 455 30','devl','s'),
+       E('M330 100 C420 100 430 160 510 160','cable','s',2),E('M520 170 V212','rear','s',2)])},
+  c3:{n:3,pb:[30,72,580,116,'Patch bay · semi'],
+    nodes:[dev(35,10,110,'Synth','OUT'),dev(195,10,110,'Caja ritmos','OUT'),dev(355,10,110,'Compresor','OUT'),dev(515,10,110,'EQ','OUT'),
+      dev(35,212,110,'Interfaz','IN 5'),dev(195,212,110,'Interfaz','IN 7'),dev(355,212,110,'EQ','IN'),dev(515,212,110,'Interfaz','IN 9'),
+      jk(90,100,''),jk(250,100,''),jk(410,100,''),jk(570,100,''),jk(90,160,''),jk(250,160,''),jk(410,160,''),jk(570,160,'')],
+    edges:[].concat(colEdges(90,50,100,160,212,'s',1),colEdges(250,50,100,160,212,'s',1),colEdges(410,50,100,160,212,null,1,2),colEdges(570,50,100,160,212,'s',2),
+      [E('M465 232 C492 232 492 30 515 30','devl','s',2),E('M260 100 C330 100 340 160 400 160','cable','s',2),E('M410 170 V212','rear','s',2)])},
+  c4:{n:3,pb:[150,20,350,176,'Patch bay'],
+    nodes:[dev(10,40,120,'Caja ritmos','OUT L'),dev(130,212,120,'Interfaz','IN 7'),dev(280,212,100,'Compresor','IN'),dev(400,212,100,'EQ','IN'),
+      jk(190,60,'Caja L'),jk(190,150,'IN 7','l'),jk(330,150,'Comp','l'),jk(440,150,'EQ','l'),
+      jk(260,100,''),jk(310,100,''),jk(360,100,''),jk(410,100,'')],
+    extra:'<rect x="244" y="84" width="182" height="32" rx="16" fill="none" stroke="var(--gnd)" stroke-width="1.5"/><text class="s-m" x="335" y="78" text-anchor="middle" style="fill:var(--gnd)">MULT</text>',
+    edges:[E('M130 60 H180','rear','s'),E('M190 70 V140','norm','s'),E('M190 160 V212','rear','s'),
+      E('M260 100 H410','norm','s',2),
+      E('M200 60 C235 60 255 70 260 90','cable','s',2),
+      E('M310 110 C310 130 330 128 330 140','cable','s',3),E('M360 110 C380 140 425 120 440 140','cable','s',3),
+      E('M330 160 V212','rear','s',3),E('M440 160 V212','rear','s',3)]},
+  c5:{n:3,
+    nodes:[dev(30,14,140,'Equipo','salida (fuente)'),jk(100,90,'ARRIBA · OUT','r'),jk(100,150,'ABAJO · IN','r'),dev(30,206,140,'Equipo','entrada (destino)'),
+      dev(380,40,160,'Amplificador','de potencia'),dev(380,190,160,'Altavoz pasivo','nivel de potencia')],
+    extra:'<rect class="s-pb" x="60" y="66" width="190" height="110" rx="6"/><text class="s-m" x="250" y="62" text-anchor="end">SEMI</text>'+
+      '<path d="M120 200 L120 206" stroke="none"/>'+
+      '<rect class="s-pb" x="420" y="112" width="80" height="50" rx="4"/><text class="s-m" x="460" y="140" text-anchor="middle">PATCH</text>'+
+      '<path class="s-hotx" d="M425 117 L495 157 M495 117 L425 157"/><text x="512" y="142" class="s-t" style="fill:var(--hot);font-weight:700">NUNCA</text>'+
+      '<path d="M300 20 V240" stroke="var(--line)" stroke-width="1"/>',
+    edges:[E('M100 54 V80','rear','s'),E('M100 100 V140','norm','s'),E('M100 160 V206','rear','s'),
+      E('M110 90 C180 90 200 40 230 30','cable','s',2),
+      E('M380 60 C330 60 330 210 380 210','cable','s',3)]},
+  c6:{n:3,pb:[170,30,240,180,'Patch bay · thru'],
+    nodes:[dev(10,100,120,'Pedalera','IN · OUT',50),dev(470,100,150,'Interfaz','OUT 7 · IN 11',50),
+      jk(220,70,'Pedal OUT'),jk(220,175,'Pedal IN','b'),jk(360,70,'OUT 7'),jk(360,175,'IN 11','b')],
+    extra:'<text class="s-m" x="226" y="126">sin normal</text><text class="s-m" x="366" y="126">sin normal</text>',
+    edges:[E('M130 112 C170 112 180 70 210 70','rear','r',3),E('M210 175 C175 175 165 140 130 140','rear','s',2),
+      E('M470 112 C430 112 420 70 370 70','rear','s',2),E('M370 175 C420 175 430 140 470 140','rear','r',3),
+      E('M360 80 C360 130 220 120 220 165','cable','s',2),E('M220 80 C220 130 360 120 360 165','cable','r',3)]}
+};
+function renderDiag(id,n){
+  var sp=SPECS[id], svg=$('[data-diag="'+id+'"]'), h='';
+  if(sp.pb) h+='<rect class="s-pb" x="'+sp.pb[0]+'" y="'+sp.pb[1]+'" width="'+sp.pb[2]+'" height="'+sp.pb[3]+'" rx="6"/><text class="s-m" x="'+(sp.pb[0]+8)+'" y="'+(sp.pb[1]+14)+'">'+sp.pb[4].toUpperCase()+'</text>';
+  if(sp.extra) h+=sp.extra;
+  sp.edges.forEach(function(e){
+    var cut = e.until && e.until<=n;
+    if(e.k==='cable' && e.step>n) return;
+    var cls = cut ? 's-cut' : ({rear:'s-rear',norm:'s-norm',devl:'s-devl',cable:'s-cable'})[e.k];
+    h+='<path class="'+cls+'" d="'+e.d+'"/>';
+    if(e.sig && e.step<=n && !cut) h+='<path class="flow'+(e.sig==='r'?' ret':'')+'" d="'+e.d+'"/>';
+  });
+  sp.nodes.forEach(function(o){
+    if(o.k==='dev'){
+      h+='<rect class="s-dev" x="'+o.x+'" y="'+o.y+'" width="'+o.w+'" height="'+o.h+'" rx="5"/>';
+      h+='<text class="s-t" x="'+(o.x+o.w/2)+'" y="'+(o.y+o.h/2-2)+'" text-anchor="middle">'+o.t+'</text>';
+      h+='<text class="s-s" x="'+(o.x+o.w/2)+'" y="'+(o.y+o.h/2+12)+'" text-anchor="middle">'+o.s+'</text>';
+    } else {
+      h+='<circle class="s-jack" cx="'+o.x+'" cy="'+o.y+'" r="10"/><circle class="s-hole" cx="'+o.x+'" cy="'+o.y+'" r="4"/>';
+      if(o.t){
+        var tx=o.x, ty=o.y-16, an='middle';
+        if(o.pos==='b') ty=o.y+24; if(o.pos==='r'){tx=o.x+16;ty=o.y+4;an='start';} if(o.pos==='l'){tx=o.x-14;ty=o.y+24;an='middle';}
+        h+='<text class="s-m" x="'+tx+'" y="'+ty+'" text-anchor="'+an+'" style="fill:var(--fg)">'+o.t+'</text>';
+      }
+    }
+  });
+  sp.edges.forEach(function(e){ if(e.k==='cable' && e.step<=n){ var m=/^M([\d.]+) ([\d.]+)/.exec(e.d); if(m) h+='<circle class="s-plug" cx="'+m[1]+'" cy="'+m[2]+'" r="4"/>'; }});
+  svg.innerHTML=h;
+  $$('[data-steps="'+id+'"] li').forEach(function(li,k){li.classList.toggle('cur',k===n-1);});
+  $$('[data-for="'+id+'"] button').forEach(function(b){b.setAttribute('aria-pressed',+b.getAttribute('data-n')===n);});
+}
+Object.keys(SPECS).forEach(function(id){
+  var st=$('[data-for="'+id+'"]'), h='<span>Paso</span>';
+  for(var k=1;k<=SPECS[id].n;k++) h+='<button type="button" class="btn" data-n="'+k+'" aria-label="Paso '+k+'">'+k+'</button>';
+  st.innerHTML=h;
+  st.addEventListener('click',function(e){var b=e.target.closest('button');if(b) renderDiag(id,+b.getAttribute('data-n'));});
+  renderDiag(id,1);
+});
+
+/* ---------- Label strip ---------- */
+var TOP=[['Pre 1','S','pre'],['Pre 2','S','pre'],['Pre 3','S','pre'],['Pre 4','S','pre'],['Synth L','S','pre'],['Synth R','S','pre'],['Caja L','S','pre'],['Caja R','S','pre'],
+  ['Int OUT 3','S','ins'],['Int OUT 4','S','ins'],['Comp OUT L','S','ins'],['Comp OUT R','S','ins'],['EQ OUT L','S','ins'],['EQ OUT R','S','ins'],
+  ['Int OUT 5','N','sum'],['Int OUT 6','N','sum'],['Int OUT 7','N','sum'],['Int OUT 8','N','sum'],['Sum OUT L','S','sum'],['Sum OUT R','S','sum'],
+  ['MULT A','P','mult'],['MULT A','P','mult'],['Int OUT 7*','T','thru'],['Pedal OUT','T','thru']];
+var BOT=[['Int IN 1'],['Int IN 2'],['Int IN 3'],['Int IN 4'],['Int IN 5'],['Int IN 6'],['Int IN 7'],['Int IN 8'],
+  ['Comp IN L'],['Comp IN R'],['EQ IN L'],['EQ IN R'],['Int IN 9'],['Int IN 10'],
+  ['Sum IN 1'],['Sum IN 2'],['Sum IN 3'],['Sum IN 4'],['Int IN 11'],['Int IN 12'],
+  ['MULT A'],['MULT A'],['Pedal IN'],['Libre']];
+TOP[22]=['Libre','T','thru'];
+(function(){
+  var h='';
+  TOP.forEach(function(t,i){h+='<div class="c row-top grp-'+t[2]+'" role="cell"><span class="n">'+(i+1)+'</span><span>'+t[0]+'</span><span class="md '+t[1]+'">'+t[1]+'</span></div>';});
+  h+='<div class="strip-mid" aria-hidden="true"></div>';
+  BOT.forEach(function(b,i){h+='<div class="c" role="cell"><span>'+b[0]+'</span><span class="n">'+(i+25)+'</span></div>';});
+  $('#strip').innerHTML=h;
+})();
+
+/* ---------- Quiz ---------- */
+var Q=[
+  {q:'Si conecto un cable en la fila de arriba de un par semi-normalizado, ¿qué pasa?',o:['La entrada de abajo se queda en silencio','La señal sale por el cable y además sigue llegando a la entrada de abajo','No sale nada por el cable hasta que conecte también abajo','La señal se invierte de fase'],a:1,e:'En semi-normal el jack superior no tiene contacto normal: el cable solo "escucha" y el normal sigue cerrado.'},
+  {q:'En un par normalizado (full normal), conecto un cable solo en la fila de abajo. ¿Qué recibe la entrada?',o:['La salida de arriba más lo del cable, mezclado','Solo lo que llega por el cable; la salida de arriba ya no llega','Nada, porque el normal está roto','La salida de arriba, el cable se ignora'],a:1,e:'Cualquier clavija en un par normalizado abre el contacto: la entrada pasa a escuchar el cable.'},
+  {q:'Un par en modo thru, sin ningún cable en el frontal. ¿Qué se conecta?',o:['Arriba pasa a abajo','Solo pasa en estéreo','Nada: arriba y abajo no están unidos','Se activa el mult automáticamente'],a:2,e:'Thru (de paso, no normalizado) solo prolonga cada conector trasero al frontal.'},
+  {q:'¿Por qué la salida de un amplificador hacia altavoces pasivos nunca debe pasar por el patch bay?',o:['Porque suena con menos agudos','Porque los jacks no admiten señales estéreo','Porque al insertar una clavija se cortocircuita una salida de alta potencia y un error de parcheo puede destruir equipos','Porque los altavoces necesitan conectores RCA'],a:2,e:'Nivel de potencia, corriente alta y cortocircuitos al insertar: los altavoces van directos al amplificador.'},
+  {q:'Quieres mandar la caja de ritmos a un compresor, un EQ y la interfaz a la vez. ¿Qué usas?',o:['Un par thru','Un mult (paralelo) del patch bay','Un par normalizado con cable abajo','Un ground lift'],a:1,e:'El mult une varios jacks y reparte una misma salida a varios destinos.'}
+];
+var answered=0, right=0, qb=$('#quiz-box');
+(function(){
+  var h='';
+  Q.forEach(function(x,i){
+    h+='<div class="q" id="q-'+i+'"><h3>'+(i+1)+'. '+x.q+'</h3><div class="opts" role="group" aria-label="Opciones de la pregunta '+(i+1)+'">';
+    x.o.forEach(function(o,k){h+='<button type="button" class="opt" id="q'+i+'o'+k+'" data-q="'+i+'" data-k="'+k+'">'+o+'</button>';});
+    h+='</div><p class="fb" id="fb-'+i+'" aria-live="polite"></p></div>';
+  });
+  qb.innerHTML=h;
+})();
+qb.addEventListener('click',function(e){
+  var b=e.target.closest('.opt'); if(!b) return;
+  var i=+b.getAttribute('data-q'), k=+b.getAttribute('data-k'), box=$('#q-'+i);
+  if(box.getAttribute('data-done')) return;
+  box.setAttribute('data-done','1'); answered++;
+  var ok=k===Q[i].a; if(ok) right++;
+  $$('.opt',box).forEach(function(o){var kk=+o.getAttribute('data-k'); if(kk===Q[i].a) o.classList.add('right'); else if(kk===k) o.classList.add('wrong'); o.setAttribute('aria-disabled','true');});
+  var fb=$('#fb-'+i); fb.className='fb '+(ok?'good':'bad'); fb.textContent=(ok?'Correcto. ':'No exactamente. ')+Q[i].e;
+  $('#score').textContent=answered+' de '+Q.length+' respondidas · '+right+' correctas';
+});
+
+/* ---------- Nav highlight ---------- */
+if('IntersectionObserver' in window){
+  var links={}; $$('.nav a').forEach(function(a){links[a.getAttribute('href').slice(1)]=a;});
+  var io=new IntersectionObserver(function(en){en.forEach(function(x){if(x.isIntersecting){$$('.nav a').forEach(function(a){a.classList.remove('on')}); var l=links[x.target.id]; if(l) l.classList.add('on');}});},{rootMargin:'-40% 0px -55% 0px'});
+  Object.keys(links).forEach(function(id){var s=document.getElementById(id); if(s) io.observe(s);});
+}
+
+/* ---------- 3D rack ---------- */
+(function(){
+  var host=$('#stage3d'), lblHost=$('#lbl3d');
+  function fail(msg){var d=document.createElement('div');d.className='fallback';d.textContent=msg||'Tu navegador no pudo iniciar WebGL, así que la vista 3D no está disponible. El resto de la página funciona igual.';host.appendChild(d);var h=host.querySelector('.hint');if(h)h.remove();}
+
+  /* ================= patch bay layout (shared by 3D, tables and the signal engine) ================= */
+  // 14 columns. Top row = outputs of gear (sources), bottom row = inputs of gear.
+  var COLS=[
+    {top:'Caja de ritmos L',ts:'CAJA L',st:'estéreo L',bot:'Interfaz IN 1',bs:'IN 1',src:['drum','OUT L'],dst:['iface','IN 1']},
+    {top:'Caja de ritmos R',ts:'CAJA R',st:'estéreo R',bot:'Interfaz IN 2',bs:'IN 2',src:['drum','OUT R'],dst:['iface','IN 2']},
+    {top:'Sinte 1',ts:'SINTE1',st:'mono',bot:'Interfaz IN 3',bs:'IN 3',src:['synth1','OUT'],dst:['iface','IN 3']},
+    {top:'Sinte 2',ts:'SINTE2',st:'mono',bot:'Interfaz IN 4',bs:'IN 4',src:['synth2','OUT'],dst:['iface','IN 4']},
+    {top:'Mic 1 (Preamp OUT 1)',ts:'MIC 1',st:'mono',bot:'Interfaz IN 5',bs:'IN 5',src:['pre','OUT 1'],dst:['iface','IN 5']},
+    {top:'Mic 2 (Preamp OUT 2)',ts:'MIC 2',st:'mono',bot:'Interfaz IN 6',bs:'IN 6',src:['pre','OUT 2'],dst:['iface','IN 6']},
+    {top:'Guitarra (Preamp OUT 3)',ts:'GTR',st:'mono',bot:'Interfaz IN 7',bs:'IN 7',src:['pre','OUT 3'],dst:['iface','IN 7']},
+    {top:'Bajo (Preamp OUT 4)',ts:'BAJO',st:'mono',bot:'Interfaz IN 8',bs:'IN 8',src:['pre','OUT 4'],dst:['iface','IN 8']},
+    {top:'Interfaz OUT 3',ts:'OUT 3',st:'estéreo L',bot:'Compresor IN L',bs:'CMP L',src:['iface','OUT 3'],dst:['comp','IN L']},
+    {top:'Interfaz OUT 4',ts:'OUT 4',st:'estéreo R',bot:'Compresor IN R',bs:'CMP R',src:['iface','OUT 4'],dst:['comp','IN R']},
+    {top:'Compresor OUT L',ts:'CMP L',st:'estéreo L',bot:'EQ IN L',bs:'EQ L',src:['comp','OUT L'],dst:['eq','IN L']},
+    {top:'Compresor OUT R',ts:'CMP R',st:'estéreo R',bot:'EQ IN R',bs:'EQ R',src:['comp','OUT R'],dst:['eq','IN R']},
+    {top:'EQ OUT L',ts:'EQ L',st:'estéreo L',bot:'(sin equipo)',bs:'—',src:['eq','OUT L'],dst:null},
+    {top:'EQ OUT R',ts:'EQ R',st:'estéreo R',bot:'(sin equipo)',bs:'—',src:['eq','OUT R'],dst:null}
+  ];
+  var NC=COLS.length, NRAW=10;            // columns 0..9 are raw sources; 10..13 are processor outputs
+  var PROC={10:{inp:8,name:'Compresor L'},11:{inp:9,name:'Compresor R'},12:{inp:10,name:'EQ L'},13:{inp:11,name:'EQ R'}};
+  var ONAME=['Caja de ritmos L','Caja de ritmos R','Sinte 1','Sinte 2','Mic 1','Mic 2','Guitarra','Bajo','Interfaz OUT 3','Interfaz OUT 4'];
+  var OT=['--c3','--c3','--c2','--c6','--c1','--c4','--c5','--gnd','--fg','--fg'];   // colour per origin
+  var COLTOK=OT.concat(['--signal','--signal','--accent','--accent']);
+  var SRCDEV=['drum','drum','synth1','synth2','pre','pre','pre','pre','iface','iface','comp','comp','eq','eq'];
+  var DSTDEV=['iface','iface','iface','iface','iface','iface','iface','iface','comp','comp','eq','eq',null,null];
+  var STEREO={0:1,1:0,8:9,9:8,10:11,11:10,12:13,13:12}; // stereo pairs (by column)
+  function pbn(i){return 'PB '+(i+1);}
+
+  /* static tables (work even without WebGL) */
+  (function(){
+    var tb=$('#wires3d tbody');
+    if(tb) tb.innerHTML=COLS.map(function(c,i){return '<tr><td><span class="sw" style="background:var('+COLTOK[i]+')"></span><b>'+pbn(i)+'</b></td><td>'+c.top+'</td><td>'+c.bot+'</td><td>'+c.st+'</td></tr>';}).join('');
+    var jg=$('#jackgrid');
+    if(jg){
+      var h='<span class="rowlbl">Arriba · salidas (fuentes)</span>';
+      COLS.forEach(function(c,i){h+='<button type="button" class="jk3" data-jc="'+i+'" data-jr="0" aria-pressed="false"><span class="pbn">'+pbn(i)+' ↑</span><span class="jn">'+c.top+'</span><span class="cnum"></span></button>';});
+      h+='<span class="rowlbl">Abajo · entradas</span>';
+      COLS.forEach(function(c,i){h+='<button type="button" class="jk3'+(c.dst?'':' nodst')+'" data-jc="'+i+'" data-jr="1" aria-pressed="false"><span class="pbn">'+pbn(i)+' ↓</span><span class="jn">'+c.bot+'</span><span class="cnum"></span></button>';});
+      jg.innerHTML=h;
+    }
+    var ph=$('#paths3d');
+    if(ph){
+      var b='<span class="pl">Sigue la señal</span>';
+      [[0,'Caja de ritmos'],[2,'Sinte 1'],[3,'Sinte 2'],[4,'Mic 1'],[5,'Mic 2'],[6,'Guitarra'],[7,'Bajo'],[8,'Interfaz OUT 3/4']].forEach(function(x){b+='<button type="button" class="btn" data-path="'+x[0]+'" aria-pressed="false">'+x[1]+'</button>';});
+      ph.innerHTML=b+'<button type="button" class="btn" data-path="none" aria-pressed="false">Quitar</button>';
+    }
+  })();
+
+  if(!window.THREE){fail('No se pudo cargar la librería 3D. El resto de la página funciona igual. Usa la tabla de abajo.');return;}
+  var renderer;
+  try{renderer=new THREE.WebGLRenderer({antialias:true,alpha:true}); if(!renderer.getContext()) throw new Error('no ctx');}catch(e){fail();return;}
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+  host.insertBefore(renderer.domElement,host.firstChild);
+  var scene=new THREE.Scene(), cam=new THREE.PerspectiveCamera(38,1,0.1,900);
+  var VIEWS={mic:[-78,18,52],instr:[70,10,62],front:[8,10,54],rear:[-16,8,-96],side:[90,22,-30],top:[0,95,-12]};
+  var TGT={mic:[-36,-4,0],instr:[30,-4,4],front:[0,5,0],rear:[0,-2,-10],side:[0,-2,-10],top:[0,-2,-10]};
+  cam.position.fromArray(VIEWS.rear);
+  var controls = THREE.OrbitControls ? new THREE.OrbitControls(cam,renderer.domElement) : null;
+  if(controls){controls.target.set(0,-2,-10);controls.enableDamping=!reduce;controls.dampingFactor=.08;controls.minDistance=22;controls.maxDistance=200;controls.autoRotate=false;}
+  else cam.lookAt(0,-2,-10);
+  scene.add(new THREE.AmbientLight(0xffffff,.6));
+  var dl=new THREE.DirectionalLight(0xffffff,.7); dl.position.set(20,40,50); scene.add(dl);
+  var dl2=new THREE.DirectionalLight(0xffffff,.55); dl2.position.set(-25,30,-60); scene.add(dl2);
+  function tok(n){return getComputedStyle(root).getPropertyValue(n).trim()||'#888888';}
+  function M(){return new THREE.MeshStandardMaterial({roughness:.6,metalness:.25});}
+  var mat={frame:M(),chassis:M(),panel:M(),pbPanel:M(),jack:M(),knob:M(),desk:M(),keys:M(),wood:M(),dark:M(),
+    led:new THREE.MeshStandardMaterial({roughness:.4})};
+  function mix(a,b,t){var c=new THREE.Color(a);return c.lerp(new THREE.Color(b),t);}
+
+  var U=4.445, W=48.2, g=new THREE.Group(); scene.add(g);
+  var labels=[];
+  function label(text,p,n,cls,color){
+    var isTag=/tag/.test(cls||''), el=document.createElement(isTag?'button':'span'); el.className='l3 '+(cls||''); el.textContent=text;
+    if(isTag){el.type='button';el.setAttribute('aria-label','Seguir la señal del cable '+text);} else el.setAttribute('aria-hidden','true');
+    lblHost.appendChild(el); var o={el:el,p:p.clone(),n:n?n.clone():null,tokColor:color||null}; labels.push(o); return o;
+  }
+  var FRONT=new THREE.Vector3(0,0,1), BACK=new THREE.Vector3(0,0,-1);
+  function box(w,h,d,m,x,y,z){var o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);o.position.set(x,y,z);g.add(o);return o;}
+  function cyl(r,h,m,x,y,z,rx){var o=new THREE.Mesh(new THREE.CylinderGeometry(r,r,h,20),m);if(rx)o.rotation.x=Math.PI/2;o.position.set(x,y,z);g.add(o);return o;}
+  function jackAt(x,y,z,facing){
+    var j=new THREE.Mesh(new THREE.CylinderGeometry(.62,.62,.5,16),mat.panel);j.rotation.x=Math.PI/2;j.position.set(x,y,z);g.add(j);
+    var h=new THREE.Mesh(new THREE.CylinderGeometry(.3,.3,.55,12),mat.jack);h.rotation.x=Math.PI/2;h.position.set(x,y,z+.06*facing);g.add(h);
+  }
+
+  /* ---- rack and gear ---- */
+  var DEV={
+    iface:{name:'Interfaz de audio',jacks:{'IN 1':-21,'IN 2':-18.6,'IN 3':-16.2,'IN 4':-13.8,'IN 5':-11.4,'IN 6':-9,'IN 7':-6.6,'IN 8':-4.2,'OUT 1':2,'OUT 2':4.4,'OUT 3':9,'OUT 4':11.4}},
+    pre:{name:'Preamplificador (4 canales)',jacks:{'MIC 1':-20,'MIC 2':-16.5,'OUT 1':6,'OUT 2':9.5,'OUT 3':13,'OUT 4':16.5}},
+    comp:{name:'Compresor estéreo',jacks:{'IN L':-17,'IN R':-13.5,'OUT L':10,'OUT R':13.5}},
+    eq:{name:'Ecualizador estéreo',jacks:{'IN L':-17,'IN R':-13.5,'OUT L':10,'OUT R':13.5}}
+  };
+  var DEPTH=20, ZB=-DEPTH-.6;
+  box(2.2,U*7,2,mat.frame,-W/2-1.1,0,0); box(2.2,U*7,2,mat.frame,W/2+1.1,0,0);
+  box(2.2,U*7,2,mat.frame,-W/2-1.1,0,ZB-.4); box(2.2,U*7,2,mat.frame,W/2+1.1,0,ZB-.4);
+  box(W+4.4,1,DEPTH+3,mat.frame,0,U*3.5+.5,-10.5); box(W+4.4,1,DEPTH+3,mat.frame,0,-U*3.5-.5,-10.5);
+  var units=[['iface',1],['pb',1],['pre',1],['comp',2],['eq',1],['blank',1]], y=U*3.5, pos={};
+  var deskY=-U*3.5-1;
+  box(170,1,46,mat.desk,0,deskY-.5,-8);
+  units.forEach(function(u){
+    var id=u[0], h=u[1]*U, cy=y-h/2; y-=h; pos[id]={y:cy,h:h};
+    box(W-1,h-.15,DEPTH,mat.chassis,0,cy,-10.6);
+    box(W,h-.15,.6,id==='pb'?mat.pbPanel:mat.panel,0,cy,0);
+    if(id==='blank') return;
+    if(id==='comp'||id==='eq'){
+      var nk=id==='comp'?6:8, r=id==='comp'?1.3:.9;
+      for(var k=0;k<nk;k++) cyl(r,1.2,mat.knob,-14+k*(26/(nk-1)),cy,.9,true);
+      cyl(.4,.5,mat.led,W/2-4,cy,.5,true);
+    }
+    if(id==='pre'){ for(var k2=0;k2<4;k2++) cyl(.9,1.2,mat.knob,4+k2*4.5,cy,.9,true); cyl(.4,.5,mat.led,W/2-3,cy,.5,true); }
+    if(id==='iface'){for(var m=0;m<16;m++) box(.5,1.6,.3,mat.led,2+m*1.1,cy,.4); cyl(1.4,1.2,mat.knob,-14,cy,.9,true);}
+    if(id!=='pb'){
+      label(DEV[id].name,new THREE.Vector3(-W/2-11,cy,0),FRONT,'dev');
+      label(DEV[id].name,new THREE.Vector3(W/2+11,cy,ZB),BACK,'dev');
+      Object.keys(DEV[id].jacks).forEach(function(jn,ix){
+        var x=DEV[id].jacks[jn]; jackAt(x,cy,ZB-.3,-1);
+        label(jn,new THREE.Vector3(x,cy+(ix%2?1.45:-1.45),ZB-.6),BACK,'jk');
+      });
+    }
+  });
+  // preamp front Hi-Z instrument inputs + phantom label
+  var HIZ={'INST 3':-9,'INST 4':-5};
+  Object.keys(HIZ).forEach(function(n){jackAt(HIZ[n],pos.pre.y,.45,1); label(n+' (Hi-Z)',new THREE.Vector3(HIZ[n],pos.pre.y-1.6,1),FRONT,'jk');});
+  label('+48 V · MIC 1-2',new THREE.Vector3(-18,pos.pre.y,1),FRONT,'jk');
+
+  // outboard on the desk
+  var SY={x:72,y:deskY+2.5,z:-10,w:34,h:5,d:16}, S2={x:72,y:deskY+10,z:-13,w:30,h:4,d:12}, DR={x:-70,y:deskY+2,z:-10,w:26,h:4,d:14};
+  function keyboard(B){
+    box(B.w,B.h,B.d,mat.chassis,B.x,B.y,B.z);
+    var nk=Math.floor((B.w-6)/1.35);
+    for(var kk=0;kk<nk;kk++) box(1.2,.5,B.d*.32,mat.keys,B.x-B.w/2+3.5+kk*1.35,B.y+B.h/2+.25,B.z+B.d*.28);
+    for(var sk=0;sk<5;sk++) cyl(.7,.8,mat.knob,B.x-B.w/2+5+sk*4.5,B.y+B.h/2+.4,B.z-B.d*.25);
+  }
+  keyboard(SY); keyboard(S2);
+  box(1,S2.y-SY.y-SY.h/2-S2.h/2,1,mat.frame,S2.x-S2.w/2+3,(SY.y+SY.h/2+S2.y-S2.h/2)/2,S2.z-3);
+  box(1,S2.y-SY.y-SY.h/2-S2.h/2,1,mat.frame,S2.x+S2.w/2-3,(SY.y+SY.h/2+S2.y-S2.h/2)/2,S2.z-3);
+  box(DR.w,DR.h,DR.d,mat.chassis,DR.x,DR.y,DR.z);
+  for(var pr=0;pr<2;pr++)for(var pc=0;pc<8;pc++) box(2,.5,2,pr?mat.knob:mat.led,DR.x-9.5+pc*2.7,DR.y+DR.h/2+.25,DR.z+2+pr*3);
+  var OUTJ={
+    drum:{'OUT L':new THREE.Vector3(DR.x+5,DR.y,DR.z-DR.d/2-.3),'OUT R':new THREE.Vector3(DR.x+8.5,DR.y,DR.z-DR.d/2-.3)},
+    synth1:{'OUT':new THREE.Vector3(SY.x-12,SY.y,SY.z-SY.d/2-.3)},
+    synth2:{'OUT':new THREE.Vector3(S2.x-10,S2.y,S2.z-S2.d/2-.3)}
+  };
+  Object.keys(OUTJ).forEach(function(d){Object.keys(OUTJ[d]).forEach(function(n){var p=OUTJ[d][n]; jackAt(p.x,p.y,p.z,-1); label(n,p.clone().add(new THREE.Vector3(0,-1.5,-.3)),BACK,'jk');});});
+  label('Sinte 1 (mono)',new THREE.Vector3(SY.x+8,SY.y+SY.h/2+1.6,SY.z+6),null,'dev');
+  label('Sinte 2 (mono)',new THREE.Vector3(S2.x,S2.y+S2.h/2+2.2,S2.z),null,'dev');
+  label('Caja de ritmos (estéreo)',new THREE.Vector3(DR.x,DR.y+DR.h/2+2.5,DR.z),null,'dev');
+
+  // condenser mics on stands
+  var micBody=new THREE.MeshStandardMaterial({roughness:.35,metalness:.6}), micGrille=new THREE.MeshStandardMaterial({roughness:.5,metalness:.7}), popMat=new THREE.MeshStandardMaterial({roughness:.9,metalness:0,transparent:true,opacity:.35,side:THREE.DoubleSide});
+  function mic(x,z,name){
+    var my=deskY+17;
+    cyl(3.4,.5,mat.frame,x,deskY+.25,z); cyl(.25,my-deskY-4,mat.frame,x,deskY+(my-deskY-4)/2,z);
+    var body=new THREE.Mesh(new THREE.CylinderGeometry(1.25,1.1,4.6,28),micBody); body.position.set(x,my,z); g.add(body);
+    var gr=new THREE.Mesh(new THREE.SphereGeometry(1.3,24,16,0,Math.PI*2,0,Math.PI/2),micGrille); gr.position.set(x,my+2.3,z); g.add(gr);
+    var grc=new THREE.Mesh(new THREE.CylinderGeometry(1.3,1.3,1.6,28,1,true),micGrille); grc.position.set(x,my+1.6,z); g.add(grc);
+    [my-1.2,my+1].forEach(function(yy){var rg=new THREE.Mesh(new THREE.TorusGeometry(2.1,.12,8,32),mat.frame); rg.rotation.x=Math.PI/2; rg.position.set(x,yy,z); g.add(rg);});
+    var pf=new THREE.Mesh(new THREE.CircleGeometry(2.4,32),popMat); pf.position.set(x,my+1.6,z+4.2); g.add(pf);
+    var pfr=new THREE.Mesh(new THREE.TorusGeometry(2.4,.12,8,32),mat.frame); pfr.position.copy(pf.position); g.add(pfr);
+    label(name,new THREE.Vector3(x,my+5.2,z),FRONT,'dev');
+    return {x:x,y:my,z:z};
+  }
+  var MIC1=mic(-36,14,'Mic 1 · condensador'), MIC2=mic(-50,10,'Mic 2 · condensador');
+  // guitar and bass on stands, front right
+  function instrument(x,z,neck,bodyM,name){
+    var by=deskY+6;
+    var b1=new THREE.Mesh(new THREE.CylinderGeometry(3.6,3.6,1,28),bodyM); b1.rotation.x=Math.PI/2; b1.position.set(x,by,z); g.add(b1);
+    var b2=new THREE.Mesh(new THREE.CylinderGeometry(2.7,2.7,1,28),bodyM); b2.rotation.x=Math.PI/2; b2.position.set(x,by+3.6,z); g.add(b2);
+    box(1,neck,.7,mat.wood,x,by+4+neck/2,z); box(1.6,2.6,.6,mat.dark,x,by+5.2+neck,z);
+    box(.3,6,.3,mat.frame,x-2,deskY+3,z-2.2).rotation.x=.35; box(.3,6,.3,mat.frame,x+2,deskY+3,z-2.2).rotation.x=.35;
+    label(name,new THREE.Vector3(x,by+neck+8.5,z),FRONT,'dev');
+    return new THREE.Vector3(x+2.6,by-2.2,z+.6);
+  }
+  var GTRJ=instrument(34,14,10,mat.wood,'Guitarra (mono)'), BASSJ=instrument(44,12,14,mat.dark,'Bajo (mono)');
+
+  /* ---- patch bay jacks + label strips ---- */
+  var pbY=pos.pb.y; function jx(c){return -20.7+c*1.8;}
+  function rowY(r){return pbY+(r?-1.3:1.3);}
+  for(var r=0;r<2;r++)for(var c=0;c<24;c++){jackAt(jx(c),rowY(r),.45,1); jackAt(jx(c),rowY(r),ZB-.3,-1);}
+  function stripTex(mirror){var cv=document.createElement('canvas'); cv.width=4096; cv.height=128; var t=new THREE.CanvasTexture(cv); t.anisotropy=4; t._cv=cv; t._mirror=mirror; return t;}
+  function drawStrip(t){
+    var cv=t._cv, x=cv.getContext('2d'), SW=W-4, pu=cv.width/SW;
+    x.fillStyle=tok('--surface'); x.fillRect(0,0,cv.width,cv.height);
+    x.textAlign='center'; x.textBaseline='middle'; x.font='700 30px "Roboto Mono", monospace';
+    for(var c=0;c<24;c++){
+      var wx=jx(c), u=(t._mirror?(-wx+SW/2):(wx+SW/2))*pu;
+      x.strokeStyle=tok('--line'); x.lineWidth=3; x.beginPath(); x.moveTo(u+pu*.9,0); x.lineTo(u+pu*.9,cv.height); x.stroke();
+      if(c<NC){
+        x.fillStyle=tok(COLTOK[c]); x.fillRect(u-pu*.8,2,pu*1.6,12);
+        x.fillStyle=tok('--fg'); x.fillText(COLS[c].ts,u,46); x.fillStyle=tok('--muted'); x.fillText(COLS[c].bs,u,92);
+      } else { x.fillStyle=tok('--muted'); x.fillText(String(c+1),u,68); }
+    }
+    t.needsUpdate=true;
+  }
+  var stF=stripTex(false), stB=stripTex(true), sgeo=new THREE.PlaneGeometry(W-4,1.3);
+  var sF=new THREE.Mesh(sgeo,new THREE.MeshBasicMaterial({map:stF})); sF.position.set(0,pbY,.42); g.add(sF);
+  var sB=new THREE.Mesh(sgeo,new THREE.MeshBasicMaterial({map:stB})); sB.rotation.y=Math.PI; sB.position.set(0,pbY,ZB-.42); g.add(sB);
+  label('Patch bay',new THREE.Vector3(-W/2-11,pbY,0),FRONT,'dev');
+  label('Patch bay (trasera)',new THREE.Vector3(W/2+11,pbY,ZB),BACK,'dev');
+  label('arriba: salidas',new THREE.Vector3(jx(19),rowY(0),ZB-.6),BACK,'row');
+  label('abajo: entradas',new THREE.Vector3(jx(19),rowY(1),ZB-.6),BACK,'row');
+  label('arriba: salidas',new THREE.Vector3(jx(19),rowY(0),1),FRONT,'row');
+  label('abajo: entradas',new THREE.Vector3(jx(19),rowY(1),1),FRONT,'row');
+
+  /* ---- cables ---- */
+  var SEG={}, pickables=[];
+  function tube(points,tokName,rad,id,kind){
+    var cu=new THREE.CatmullRomCurve3(points), m=new THREE.MeshStandardMaterial({roughness:.4,metalness:.05,transparent:true,opacity:1});
+    var me=new THREE.Mesh(new THREE.TubeGeometry(cu,90,rad||.34,10,false),m); g.add(me);
+    SEG[id]={mesh:me,curve:cu,tok:tokName,mat:m,plugs:[],kind:kind}; me.userData.seg=id; pickables.push(me); return cu;
+  }
+  function plug(p,m,facing){var pl=new THREE.Mesh(new THREE.CylinderGeometry(.58,.58,2.4,14),m);pl.rotation.x=Math.PI/2;pl.position.set(p.x,p.y,p.z+1.3*facing);g.add(pl);return pl;}
+  function devJack(ref){
+    if(OUTJ[ref[0]]) return OUTJ[ref[0]][ref[1]].clone();
+    return new THREE.Vector3(DEV[ref[0]].jacks[ref[1]],pos[ref[0]].y,ZB-.3);
+  }
+  function tagFor(id,text,p,n,color){var lo=label(text,p,n,'tag',color); lo.el.setAttribute('data-seg',id); lo.seg=id; return lo;}
+  function rearCable(a,b,depth,id,color,tAt,text){
+    var A=a.clone(), B=b.clone();
+    var p1=A.clone().add(new THREE.Vector3(0,0,-2.4)), p4=B.clone().add(new THREE.Vector3(0,0,-2.4));
+    var mid=A.clone().lerp(B,.5); mid.z=Math.min(A.z,B.z)-depth; mid.y=Math.min(A.y,B.y)-1-depth*.05;
+    var cu=tube([A.clone().add(new THREE.Vector3(0,0,-1.2)),p1,mid,p4,B.clone().add(new THREE.Vector3(0,0,-1.2))],color,.32,id,'rack');
+    SEG[id].plugs.push(plug(A,SEG[id].mat,-1),plug(B,SEG[id].mat,-1));
+    tagFor(id,text||id,cu.getPoint(tAt),BACK,color);
+  }
+  var CUTP={};
+  COLS.forEach(function(col,i){
+    var tA=new THREE.Vector3(jx(i),rowY(0),ZB-.3), tB=new THREE.Vector3(jx(i),rowY(1),ZB-.3), n=i+1, d=3+(i%7)*1.1;
+    rearCable(devJack(col.src),tA,d,'C'+n+'a',COLTOK[i],.15,'C'+n+'a');
+    if(col.dst) rearCable(tB,devJack(col.dst),d+1.6,'C'+n+'b',COLTOK[i],.85,'C'+n+'b');
+    var nid='N'+n; tube([tA.clone().add(new THREE.Vector3(0,.2,-.9)),tA.clone().lerp(tB,.5).add(new THREE.Vector3(0,0,-1.2)),tB.clone().add(new THREE.Vector3(0,-.2,-.9))],COLTOK[i],.2,nid,'normal');
+    CUTP[n]=tB.clone().add(new THREE.Vector3(0,-1.2,-1.5));
+  });
+  // mic cables (XLR to the preamp rear) and instrument cables (to the preamp front Hi-Z inputs)
+  function micCable(id,M,jack,col,swing){
+    var end=devJack(['pre',jack]);
+    var pts=[new THREE.Vector3(M.x,M.y-2.6,M.z),new THREE.Vector3(M.x+.5,M.y-5,M.z),new THREE.Vector3(M.x+.6,deskY+1.2,M.z-1),
+      new THREE.Vector3(M.x+2,deskY+.7,M.z-8),new THREE.Vector3(-W/2-swing,deskY+.8,-12),new THREE.Vector3(-W/2-swing+2,pos.pre.y-3,ZB-6),
+      new THREE.Vector3(end.x-2,pos.pre.y-.5,ZB-3.5),end.clone().add(new THREE.Vector3(0,0,-1.2))];
+    var cu=tube(pts,col,.38,id,'rack'); SEG[id].plugs.push(plug(end,SEG[id].mat,-1));
+    var xl=cyl(.72,2.2,SEG[id].mat,M.x,M.y-3.1,M.z); SEG[id].plugs.push(xl);
+    tagFor(id,id+' · XLR',cu.getPoint(.45),null,col);
+  }
+  micCable('M1',MIC1,'MIC 1',OT[4],5); micCable('M2',MIC2,'MIC 2',OT[5],8);
+  function instCable(id,J,jack,col,dz){
+    var end=new THREE.Vector3(HIZ[jack],pos.pre.y,.7);
+    var cu=tube([J.clone(),J.clone().add(new THREE.Vector3(1,-2.5,1)),new THREE.Vector3(J.x-4,deskY+.8,J.z+2),new THREE.Vector3(end.x+6,deskY+.8,8+dz),new THREE.Vector3(end.x,pos.pre.y-4,5+dz),end.clone().add(new THREE.Vector3(0,0,1.2))],col,.34,id,'rack');
+    SEG[id].plugs.push(plug(end,SEG[id].mat,1));
+    tagFor(id,id+' · Hi-Z',cu.getPoint(.4),null,col);
+  }
+  instCable('G1',GTRJ,'INST 3',OT[6],0); instCable('G2',BASSJ,'INST 4',OT[7],1.5);
+  // front patch cords (preset ones for the full studio, lesson ones, and free ones made later)
+  var cordN=0;
+  function patch(c1,r1,c2,r2,id,kind,text){
+    var a=new THREE.Vector3(jx(c1),rowY(r1),.7), b=new THREE.Vector3(jx(c2),rowY(r2),.7);
+    var sag=2.5+Math.abs(c1-c2)*.55+(cordN++%3)*.8, mid=a.clone().lerp(b,.5); mid.y-=sag; mid.z+=5+sag*.4;
+    var cu=tube([a.clone().add(new THREE.Vector3(0,0,1.2)),new THREE.Vector3(a.x,a.y-.3,3.4),mid,new THREE.Vector3(b.x,b.y-.3,3.4),b.clone().add(new THREE.Vector3(0,0,1.2))],'--fg',.4,id,kind);
+    SEG[id].plugs.push(plug(a,SEG[id].mat,1),plug(b,SEG[id].mat,1));
+    if(text) tagFor(id,text,cu.getPoint(.5),FRONT,'--fg');
+  }
+  // full studio example: Sinte 1 to the compressor (copy), EQ L back into IN 4
+  var FULLCORDS=[{a:{c:2,r:0},b:{c:8,r:1},id:'P1',n:'P1'},{a:{c:12,r:0},b:{c:3,r:1},id:'P2',n:'P2'}];
+  FULLCORDS.forEach(function(cd){patch(cd.a.c,cd.a.r,cd.b.c,cd.b.r,cd.id,'full',cd.id);});
+  // lesson cords
+  patch(2,0,10,1,'LP1','lesson','Parcheo PB 3 → PB 11');
+  patch(12,0,3,1,'LP2','lesson','Parcheo PB 13 → PB 4');
+  patch(2,0,2,1,'LP3','lesson','Parcheo PB 3 → PB 3');
+  patch(4,0,8,1,'LP4','lesson','Parcheo PB 5 → PB 9');
+  patch(12,0,5,1,'LP5','lesson','Parcheo PB 13 → PB 6');
+
+  /* ================= signal engine ================= */
+  // cords: [{a:{c,r},b:{c,r},id,n}] ; nm: 'normal' | 'semi' | 'thru'
+  function evalPatch(cords,nm){
+    var R={col:{},org:{},bad:{},loop:false,rows:[],tops:[]};
+    function cordAt(c,r){for(var k=0;k<cords.length;k++){var cd=cords[k]; if(cd.a.c===c&&cd.a.r===r) return {cd:cd,other:cd.b}; if(cd.b.c===c&&cd.b.r===r) return {cd:cd,other:cd.a};} return null;}
+    function topSig(i,stack){
+      if(stack.indexOf(i)>=0){R.loop=true; return [];}
+      if(i<NRAW) return [{chain:ONAME[i],o:i}];
+      var p=PROC[i]; return botSig(p.inp,stack.concat(i)).sig.map(function(s){return {chain:s.chain+' → '+p.name,o:s.o};});
+    }
+    function botSig(j,stack){
+      var hit=cordAt(j,1);
+      if(hit){ if(hit.other.r===0) return {sig:topSig(hit.other.c,stack),why:'por el cable '+hit.cd.n,via:'cord',cd:hit.cd}; return {sig:[],why:'el cable '+hit.cd.n+' viene de otra entrada: no trae señal',via:'none'}; }
+      if(nm==='thru') return {sig:[],why:'thru: sin cable no hay conexión',via:'none'};
+      if(nm==='normal'&&cordAt(j,0)) return {sig:[],why:'normal roto: hay un cable en '+pbn(j)+' arriba',via:'none'};
+      return {sig:topSig(j,stack),why:'por el normal de '+pbn(j),via:'normal'};
+    }
+    function mark(id,sig){ if(!sig.length) return; R.col[id]=OT[sig[0].o]; R.org[id]=R.org[id]||{}; sig.forEach(function(s){R.org[id][s.o]=1;}); }
+    mark('M1',[{o:4}]); mark('M2',[{o:5}]); mark('G1',[{o:6}]); mark('G2',[{o:7}]);
+    for(var i=0;i<NC;i++){
+      var ts=topSig(i,[]); R.tops.push(ts); mark('C'+(i+1)+'a',ts);
+      if(!COLS[i].dst) continue;
+      var bs=botSig(i,[]); R.rows.push({j:i,b:bs});
+      mark('C'+(i+1)+'b',bs.sig); if(bs.via==='normal') mark('N'+(i+1),bs.sig);
+    }
+    cords.forEach(function(cd){
+      if(cd.a.r===cd.b.r){R.bad[cd.id]=true; return;}
+      var t=cd.a.r===0?cd.a:cd.b; mark(cd.id,R.tops[t.c]);
+    });
+    return R;
+  }
+  function routesHTML(R,only){
+    var h='', heard={};
+    R.rows.forEach(function(rw){
+      var j=rw.j, s=rw.b.sig; if(only!==undefined&&!s.some(function(x){return x.o===only;})) return;
+      if(j<8) s.forEach(function(x){heard[x.o]=1;});
+      h+='<li class="'+(s.length?'on':'off')+'"><b>'+COLS[j].bot+'</b> ← '+(s.length?s.map(function(x){return x.chain;}).join(' y '):'<i>nada</i>')+' <span class="why">'+rw.b.why+'</span></li>';
+    });
+    if(only===undefined){
+      var lost=ONAME.slice(0,8).filter(function(_,k){return !heard[k];});
+      if(lost.length) h+='<li class="note"><b>No se graba en la interfaz:</b> '+lost.join(', ')+'.</li>';
+      if(R.loop) h+='<li class="note err"><b>Hay un bucle:</b> una salida vuelve a entrar a su propia cadena. Quita un cable para romperlo.</li>';
+    }
+    return h;
+  }
+
+  /* ---- labels projected over the canvas ---- */
+  var showJacks=true, showDev=true, v=new THREE.Vector3(), camDir=new THREE.Vector3();
+  var mode3='guided', active=null, cur=null, FR=null;
+  function tagShown(o){
+    var S=SEG[o.seg]; if(!S||!S.mesh.visible) return false;
+    if(mode3==='guided') return true;
+    if(mode3==='full') return !!(active&&(active.flow.indexOf(o.seg)>=0||(active.also||[]).indexOf(o.seg)>=0)) || S.kind==='full';
+    return false;
+  }
+  function placeLabels(){
+    var w=host.clientWidth,h=host.clientHeight;
+    labels.forEach(function(o){
+      var el=o.el, hideJk=(!showJacks&&(el.classList.contains('jk')||el.classList.contains('tag')||el.classList.contains('row')))||(!showDev&&el.classList.contains('dev'));
+      if(o.seg&&!tagShown(o)){el.hidden=true;return;}
+      v.copy(o.p).add(g.position);
+      var facing=true;
+      if(o.n){camDir.copy(cam.position).sub(v); facing=camDir.dot(o.n)>0;}
+      v.project(cam);
+      var vis=o.on!==false&&!hideJk&&facing&&v.z<1&&v.x>-1.1&&v.x<1.1&&v.y>-1.1&&v.y<1.1;
+      el.hidden=!vis;
+      if(vis){var px=(v.x+1)/2*w, hw=el.offsetWidth/2+4; px=Math.min(Math.max(px,hw),w-hw); el.style.transform='translate('+px.toFixed(1)+'px,'+((1-v.y)/2*h).toFixed(1)+'px) translate(-50%,-50%)';}
+    });
+  }
+
+  /* ---- painting ---- */
+  var cutLbl=label('normal roto',new THREE.Vector3(),BACK,'cut'); cutLbl.on=false;
+  var modeF=label('',new THREE.Vector3(jx(2),rowY(1)-4.4,1),FRONT,'pbmode'), modeB=label('',new THREE.Vector3(jx(2),rowY(1)-4.4,ZB-.6),BACK,'pbmode');
+  modeF.on=modeB.on=false;
+  var pulseGeo=new THREE.SphereGeometry(.58,14,10), pulses=[];
+  for(var q=0;q<70;q++){var pm=new THREE.Mesh(pulseGeo,new THREE.MeshBasicMaterial());pm.visible=false;g.add(pm);pulses.push(pm);}
+  var pulseList=[]; // [segId, hex]
+  var focusOnly=true, focusCord=null, freeSelF=null, FCM={};
+  function focusSet(){ // rear segments that belong to the current connection (free / challenge modes)
+    var f={}; if(!FR) return f;
+    function col(c){var n=c+1; f['C'+n+'a']=1; f['C'+n+'b']=1;}
+    var cd=null; if(focusCord) cd=SEG[focusCord]&&FR?focusCord:null;
+    if(cd){
+      var org=FR.org[cd]||{}, ends=null;
+      Object.keys(FR.org).forEach(function(id){ if(Object.keys(FR.org[id]).some(function(o){return org[o];})) f[id]=1; });
+      if(FCM&&FCM[cd]){ends=FCM[cd]; col(ends.a.c); col(ends.b.c);}
+    } else if(freeSelF){ col(freeSelF.c); }
+    return f;
+  }
+  function paintSegs(){
+    pulseList=[];
+    var free=mode3==='free'&&FR, hex={}, FS=free&&focusOnly?focusSet():{};
+    Object.keys(SEG).forEach(function(id){
+      var S=SEG[id], m=S.mat, vis;
+      if(free){
+        var ct=FR.col[id], bad=FR.bad[id];
+        vis=S.kind==='normal'?!!ct:(S.kind==='rack'||S.kind==='free');
+        if(focusOnly&&S.kind!=='free'&&!FS[id]) vis=false;
+        m.color.set(tok(bad?'--hot':ct||S.tok)); m.emissive=new THREE.Color(ct||bad?tok(bad?'--hot':ct):'#000000'); m.emissiveIntensity=ct?.45:bad?.3:0;
+        m.opacity=ct||bad||S.kind==='free'?1:.25; m.depthWrite=m.opacity>.5;
+        if(ct&&vis){hex[ct]=hex[ct]||tok(ct); pulseList.push([id,hex[ct]]);}
+      } else {
+        var inF=active&&active.flow.indexOf(id)>=0, inA=active&&(active.also||[]).indexOf(id)>=0, inC=active&&(active.cut||[]).indexOf(id)>=0;
+        if(S.kind==='normal') vis=!!(inF||inA);
+        else if(mode3==='guided') vis=!!(cur&&(cur.show||[]).indexOf(id)>=0);
+        else vis=(S.kind==='rack'||S.kind==='full')&&!(focusOnly&&active&&!inF&&!inA);
+        m.color.set(tok(inF||inA?active.c:S.tok));
+        m.emissive=new THREE.Color(inF||inA?tok(active.c):'#000000'); m.emissiveIntensity=inF?.55:inA?.3:0;
+        m.opacity=!active||inF||inA?1:inC?.45:(mode3==='guided'?1:.12); m.depthWrite=m.opacity>.5;
+        if((inF||inA)&&vis&&!reduce) pulseList.push([id,tok(active.c)]);
+      }
+      S.mesh.visible=vis; S.plugs.forEach(function(pl){pl.visible=vis;});
+    });
+    labels.forEach(function(o){ if(!o.seg) return;
+      var c=free?FR.col[o.seg]:(active&&(active.flow.indexOf(o.seg)>=0||(active.also||[]).indexOf(o.seg)>=0)?active.c:null);
+      o.el.classList.toggle('dim',!!(active&&active.cut&&active.cut.indexOf(o.seg)>=0));
+      o.el.style.setProperty('--lc',tok(c||o.tokColor||'--fg'));
+    });
+  }
+  function applyTheme(){
+    var fg=tok('--fg'),bg=tok('--bg'),sf=tok('--surface'),mu=tok('--muted');
+    mat.frame.color.copy(mix(mu,fg,.5)); mat.chassis.color.copy(mix(mu,bg,.45));
+    mat.panel.color.copy(mix(sf,mu,.35)); mat.pbPanel.color.copy(mix(fg,mu,.35));
+    mat.jack.color.copy(mix(fg,bg,.1)); mat.knob.color.copy(mix(fg,mu,.2));
+    mat.desk.color.copy(mix(bg,mu,.25)); mat.keys.color.copy(mix(sf,bg,.1));
+    mat.wood.color.copy(mix(tok('--brand'),fg,.35)); mat.dark.color.copy(mix(fg,mu,.1));
+    micBody.color.copy(mix(fg,mu,.25)); micGrille.color.copy(mix(mu,sf,.3)); popMat.color.copy(mix(fg,bg,.3));
+    mat.led.color.set(tok('--signal')); mat.led.emissive=new THREE.Color(tok('--signal')); mat.led.emissiveIntensity=.6;
+    drawStrip(stF); drawStrip(stB);
+    labels.forEach(function(o){if(o.tokColor) o.el.style.setProperty('--lc',tok(o.tokColor));});
+    paintSegs(); render();
+  }
+
+  /* ---- camera moves ---- */
+  var fly=null, timer=0;
+  function flyTo(k,dur,cb){
+    var s0=Math.max(1,1.4/cam.aspect), to=new THREE.Vector3().fromArray(VIEWS[k]).multiplyScalar(s0), tt=new THREE.Vector3().fromArray(TGT[k]);
+    var t0v=controls?controls.target.clone():new THREE.Vector3(0,-2,-10);
+    if(reduce||!dur){fly=null; cam.position.copy(to); if(controls){controls.target.copy(tt);controls.enabled=true;controls.update();} else cam.lookAt(tt); render(); if(cb)cb(); return;}
+    var a=new THREE.Spherical().setFromVector3(cam.position.clone().sub(t0v)), b=new THREE.Spherical().setFromVector3(to.clone().sub(tt));
+    var dth=b.theta-a.theta; if(dth>Math.PI)dth-=2*Math.PI; if(dth<-Math.PI)dth+=2*Math.PI;
+    fly={a:a,b:b,dth:dth,t0v:t0v,tt:tt,start:performance.now(),dur:dur,cb:cb}; if(controls) controls.enabled=false;
+  }
+  function stepFly(now){
+    if(!fly) return; var f=fly, u=Math.min(1,(now-f.start)/f.dur), e=u<.5?2*u*u:1-Math.pow(-2*u+2,2)/2;
+    var sp=new THREE.Spherical(f.a.radius+(f.b.radius-f.a.radius)*e, f.a.phi+(f.b.phi-f.a.phi)*e, f.a.theta+f.dth*e);
+    var tg=f.t0v.clone().lerp(f.tt,e); cam.position.copy(new THREE.Vector3().setFromSpherical(sp).add(tg));
+    if(controls) controls.target.copy(tg); cam.lookAt(tg);
+    if(u>=1){fly=null; if(controls){controls.enabled=true;controls.update();} if(f.cb) f.cb();}
+  }
+  function setView(k){$$('#views3d [data-view]').forEach(function(x){x.setAttribute('aria-pressed',x.getAttribute('data-view')===k?'true':'false');});}
+  function frontThenRear(d){ setView('front'); flyTo('front',d?700:0,function(){ timer=setTimeout(function(){setView('rear');flyTo('rear',d?1500:0);},reduce?1400:1100); }); }
+
+  /* ================= mode: full studio ================= */
+  var FULL=null, info=$('#pathinfo'), INFO0=info?info.innerHTML:'';
+  function select(key){
+    clearTimeout(timer); cutLbl.on=false;
+    $$('#paths3d [data-path]').forEach(function(b){b.setAttribute('aria-pressed',key!==null&&key!==undefined&&b.getAttribute('data-path')===String(key)?'true':'false');});
+    if(key===null||key===undefined){active=null; if(info) info.innerHTML=INFO0; paintSegs(); render(); return;}
+    var os=key===8?[8,9]:key===0?[0,1]:[key], flow=[];
+    Object.keys(FULL.org).forEach(function(id){ if(os.some(function(o){return FULL.org[id][o];})) flow.push(id); });
+    active={c:OT[key],flow:flow,also:[],cut:[]};
+    var name=key===8?'Interfaz OUT 3/4':key===0?'Caja de ritmos (L y R)':ONAME[key];
+    var lis=os.map(function(o){return routesHTML(FULL,o);}).join('');
+    if(info) info.innerHTML='<b>'+name+'</b> llega a:<ul class="flist routes">'+(lis||'<li class="off"><i>ninguna entrada</i></li>')+'</ul>'+(key===3?'<p class="small">P2 está en PB 4 abajo: rompe el normal, así que el Sinte 2 <b>no</b> llega a Interfaz IN 4.</p>':key===8?'<p class="small">P1 está en PB 9 abajo: rompe el normal, así que OUT 3 no llega al Compresor IN L.</p>':'');
+    paintSegs(); render();
+    var usesFront=flow.some(function(id){return SEG[id].kind==='full';});
+    if(usesFront) frontThenRear(1); else { setView('rear'); flyTo('rear',1100); }
+  }
+  function originOf(id){ if(!FULL||!FULL.org[id]) return null; var k=+Object.keys(FULL.org[id])[0]; return k===1?0:k===9?8:k; }
+  lblHost.addEventListener('click',function(e){if(mode3!=='full') return; var b=e.target.closest('[data-seg]'); if(b) select(originOf(b.getAttribute('data-seg')));});
+  $$('#paths3d [data-path]').forEach(function(b){b.addEventListener('click',function(){var k=b.getAttribute('data-path');select(k==='none'?null:+k);});});
+
+  /* ================= mode: step by step ================= */
+  var DRY3=['C3a','N3','C3b'];
+  var LESSONS={
+    L1:{mode:'normalizado',pb:2,steps:[
+      {view:'rear',show:[],t:'Vamos a conectar el <b>Sinte 1</b> al <b>ecualizador</b> pasando por el patch bay. La columna PB 3 está en modo <b>normalizado</b>. Empezamos sin cables: mira la parte de atrás del rack.'},
+      {view:'rear',show:['C3a'],flow:['C3a'],c:OT[2],t:'<b>Atrás.</b> Un cable lleva la salida del Sinte 1 (OUT, mono) a <b>PB 3 arriba</b>. La fila de arriba recibe las <b>salidas</b> de los instrumentos y equipos.'},
+      {view:'rear',show:['C3a','C3b'],flow:DRY3,c:OT[2],t:'<b>Atrás.</b> Otro cable sale de <b>PB 3 abajo</b> hacia <b>Interfaz IN 3</b>. La fila de abajo alimenta las <b>entradas</b>. Sin nada al frente, el normal une arriba con abajo: el sinte ya se graba en IN 3.'},
+      {view:'rear',show:['C3a','C3b','C11b'],flow:DRY3,c:OT[2],t:'<b>Atrás.</b> El ecualizador estéreo tiene su entrada L en <b>PB 11 abajo</b>. Todavía no le llega el sinte.'},
+      {view:'both',show:['C3a','C3b','C11b','LP1'],flow:['C3a','LP1','C11b'],cut:['C3b'],at:3,c:OT[2],t:'<b>Al frente.</b> Un parcheo va de <b>PB 3 arriba</b> a <b>PB 11 abajo</b> (EQ IN L). En <b>normalizado</b>, conectar en arriba <b>rompe el normal</b>: el sinte va al EQ e <b>IN 3 se queda sin señal</b>. El rack gira para mostrarlo atrás.'}]},
+    L2:{mode:'semi-normalizado',pb:2,steps:[
+      {view:'rear',show:['C3a','C3b','C11b'],flow:DRY3,c:OT[2],t:'Mismo cableado de atrás. Ahora PB 3 está en <b>semi-normalizado</b>. Sin cables al frente, el Sinte 1 llega a IN 3 por el normal.'},
+      {view:'both',show:['C3a','C3b','C11b','LP1'],flow:DRY3,also:['LP1','C11b'],c:OT[2],t:'<b>Al frente.</b> El mismo parcheo de <b>PB 3 arriba</b> a <b>PB 11 abajo</b>. En <b>semi-normal</b>, conectar en arriba <b>no corta</b>: el sinte sigue llegando a IN 3 y además una copia va al EQ.'},
+      {view:'rear',show:['C3a','C3b','C11b','LP1','C13a','C4a','C4b'],flow:DRY3,also:['LP1','C11b','C13a'],c:OT[2],t:'<b>Atrás.</b> La salida <b>EQ OUT L</b> llega a <b>PB 13 arriba</b>. PB 13 abajo no tiene equipo: el sinte con EQ todavía no llega a ninguna entrada. En PB 4 está el Sinte 2 → IN 4.'},
+      {view:'both',show:['C3a','C3b','C11b','LP1','C13a','C4a','C4b','LP2'],flow:DRY3,also:['LP1','C11b','C13a','LP2','C4b'],cut:['C4a'],at:4,c:OT[2],t:'<b>Al frente.</b> Un parcheo va de <b>PB 13 arriba</b> a <b>PB 4 abajo</b>. Conectar en <b>abajo rompe el normal</b>, también en semi-normal: IN 4 deja de recibir el Sinte 2 y graba el <b>Sinte 1 con EQ</b>. IN 3 sigue grabando el sinte seco.'}]},
+    L3:{mode:'thru (abierto)',pb:2,steps:[
+      {view:'rear',show:['C3a','C3b'],flow:['C3a'],cut:['C3b'],at:3,cutText:'sin normal',c:OT[2],t:'PB 3 está en <b>thru</b>: arriba y abajo <b>no están unidos</b>. El Sinte 1 llega a PB 3 arriba, pero IN 3 no recibe nada.'},
+      {view:'both',show:['C3a','C3b','LP3'],flow:['C3a','LP3','C3b'],c:OT[2],t:'<b>Al frente.</b> Un cable corto de <b>PB 3 arriba</b> a <b>PB 3 abajo</b>. En thru siempre necesitas un cable para que la señal pase. Ahora el sinte llega a IN 3.'}]},
+    L4:{mode:'semi-normalizado',pb:4,steps:[
+      {view:'mic',show:['M1'],flow:['M1'],c:OT[4],t:'<b>Tracking de voz.</b> El <b>Mic 1</b> (condensador) se conecta con un cable <b>XLR</b> balanceado a <b>MIC 1</b>, atrás del preamp. Necesita <b>phantom power (+48 V)</b>: el preamp lo envía por el mismo cable. La señal del mic es muy baja (nivel de micrófono), por eso va directo al preamp y <b>no</b> pasa por el patch bay.'},
+      {view:'rear',show:['M1','C5a'],flow:['M1','C5a'],c:OT[4],t:'<b>Atrás.</b> El preamp sube la voz a <b>nivel de línea</b>. Su salida OUT 1 va a <b>PB 5 arriba</b>.'},
+      {view:'rear',show:['M1','C5a','C5b'],flow:['M1','C5a','N5','C5b'],c:OT[4],t:'<b>Atrás.</b> PB 5 abajo va a <b>Interfaz IN 5</b>. Por el normal, la voz ya se graba en IN 5, sin procesar.'},
+      {view:'rear',show:['M1','C5a','C5b','C9b','C11a','C11b','C13a','C6b'],flow:['M1','C5a','N5','C5b'],c:OT[4],t:'<b>Atrás.</b> Ya están cableados: PB 9 abajo → Compresor IN L; Compresor OUT L → PB 11 → EQ IN L (normal); EQ OUT L → PB 13 arriba; PB 6 abajo → Interfaz IN 6. Por ahora el compresor no recibe nada.'},
+      {view:'both',show:['M1','C5a','C5b','C9b','C11a','C11b','C13a','C6b','LP4','LP5'],flow:['M1','C5a','N5','C5b'],also:['LP4','C9b','C11a','N11','C11b','C13a','LP5','C6b'],c:OT[4],t:'<b>Al frente.</b> Dos parcheos: <b>PB 5 arriba → PB 9 abajo</b> (voz al compresor) y <b>PB 13 arriba → PB 6 abajo</b> (EQ a IN 6). En <b>semi-normalizado</b> el normal de PB 5 no se corta: <b>IN 5</b> graba la voz <b>seca</b> e <b>IN 6</b> la graba <b>con compresor y EQ</b>. Si el procesado no sirve, tienes la toma limpia.'}]}
+  };
+  var ORDER=['L1','L2','L3','L4'], lesson='L1', stepI=0;
+  var ui={text:$('#steptext'),count:$('#stepcount'),badge:$('#stepmode'),prev:$('#stepprev'),next:$('#stepnext')};
+  function showStep(instant){
+    clearTimeout(timer); var L=LESSONS[lesson]; cur=L.steps[stepI];
+    active={c:cur.c||OT[2],flow:cur.flow||[],also:cur.also||[],cut:cur.cut||[]};
+    cutLbl.el.textContent=cur.cutText||'normal roto';
+    if(cur.at){cutLbl.p.copy(CUTP[cur.at]);cutLbl.on=true;} else cutLbl.on=false;
+    modeF.el.textContent=modeB.el.textContent=pbn(L.pb)+' · '+L.mode; modeF.on=modeB.on=cur.view!=='mic';
+    modeF.p.x=modeB.p.x=jx(L.pb);
+    if(ui.text) ui.text.innerHTML=cur.t;
+    if(ui.count) ui.count.textContent='Paso '+(stepI+1)+' de '+L.steps.length;
+    if(ui.badge) ui.badge.textContent=L.mode;
+    if(ui.prev) ui.prev.disabled=stepI===0&&ORDER.indexOf(lesson)===0;
+    var last=stepI===L.steps.length-1, lastL=ORDER.indexOf(lesson)===ORDER.length-1;
+    if(ui.next){ui.next.textContent=last?(lastL?'Fin':'Siguiente lección →'):'Siguiente →'; ui.next.disabled=last&&lastL;}
+    $$('#lessons3d [data-lesson]').forEach(function(b){b.setAttribute('aria-pressed',b.getAttribute('data-lesson')===lesson?'true':'false');});
+    paintSegs(); render();
+    var d=instant?0:1000;
+    if(cur.view==='both') frontThenRear(d); else { setView(cur.view); flyTo(cur.view,d); }
+  }
+  function go(dir){
+    var L=LESSONS[lesson], li=ORDER.indexOf(lesson);
+    if(dir>0){ if(stepI<L.steps.length-1) stepI++; else if(li<ORDER.length-1){lesson=ORDER[li+1];stepI=0;} else return; }
+    else { if(stepI>0) stepI--; else if(li>0){lesson=ORDER[li-1];stepI=LESSONS[lesson].steps.length-1;} else return; }
+    showStep();
+  }
+  if(ui.prev) ui.prev.addEventListener('click',function(){go(-1);});
+  if(ui.next) ui.next.addEventListener('click',function(){go(1);});
+  $$('#lessons3d [data-lesson]').forEach(function(b){b.addEventListener('click',function(){lesson=b.getAttribute('data-lesson');stepI=0;showStep();});});
+
+  /* ================= mode: free patching ================= */
+  var norm='semi', freeCords=[], freeSel=null, freeN=0, freeTimer=0;
+  var NORMNAME={normal:'normalizado',semi:'semi-normalizado',thru:'thru (abierto)'};
+  function jname(j){return pbn(j.c)+(j.r?' abajo':' arriba')+' ('+(j.r?COLS[j.c].bot:COLS[j.c].top)+')';}
+  var jackPicks=[], pickMat=new THREE.MeshBasicMaterial({transparent:true,opacity:0,depthWrite:false});
+  for(var pc2=0;pc2<NC;pc2++)for(var pr2=0;pr2<2;pr2++){var jp=new THREE.Mesh(new THREE.SphereGeometry(.85,12,8),pickMat);jp.position.set(jx(pc2),rowY(pr2),.8);jp.userData.jack={c:pc2,r:pr2};g.add(jp);jackPicks.push(jp);}
+  var ringMat=new THREE.MeshBasicMaterial(), ring=new THREE.Mesh(new THREE.TorusGeometry(.95,.2,8,28),ringMat); ring.visible=false; g.add(ring);
+  function occ(j){for(var k=0;k<freeCords.length;k++){var c=freeCords[k]; if((c.a.c===j.c&&c.a.r===j.r)||(c.b.c===j.c&&c.b.r===j.r)) return c;} return null;}
+  function dropCord(cd){
+    var S=SEG[cd.id]; if(S){ [S.mesh].concat(S.plugs).forEach(function(o){g.remove(o); if(o.geometry) o.geometry.dispose();}); S.mat.dispose(); pickables.splice(pickables.indexOf(S.mesh),1); delete SEG[cd.id]; }
+    freeCords.splice(freeCords.indexOf(cd),1);
+  }
+  function judge(a,b){
+    if(a.r===b.r){
+      if(a.r===0) return {lvl:'err',h:'<b>Esto no tiene sentido.</b> Uniste dos <b>salidas</b>: '+jname(a)+' y '+jname(b)+'. Una salida no recibe señal: las dos se cargan entre sí y no llega nada a ninguna entrada. Conecta siempre de <b>arriba</b> (salida) a <b>abajo</b> (entrada).'};
+      return {lvl:'err',h:'<b>Esto no tiene sentido.</b> Uniste dos <b>entradas</b>: '+jname(a)+' y '+jname(b)+'. Ninguna trae señal, así que no suena nada. Una entrada necesita una salida.'};
+    }
+    var t=a.r===0?a:b, d=a.r===0?b:a, msg=[], lvl='ok', sd=SRCDEV[t.c], dd=DSTDEV[d.c];
+    if(!dd){lvl='warn'; msg.push('<b>No llega a ningún lado.</b> '+pbn(d.c)+' abajo no está cableado a ningún equipo. Lleva el cable a una fila de abajo con equipo, por ejemplo una entrada de la interfaz.');}
+    else if(t.c===d.c){
+      if(norm==='thru') msg.push('<b>Correcto.</b> En thru este cable es la única forma de que '+COLS[t.c].top+' llegue a '+COLS[d.c].bot+'.');
+      else {lvl='warn'; msg.push('<b>Funciona, pero sobra.</b> Sin cable, '+COLS[t.c].top+' ya llegaba a '+COLS[d.c].bot+' por el normal de '+pbn(t.c)+'. El cable rompe el normal y lo reemplaza: el resultado es el mismo.');}
+    } else if(sd===dd&&sd!=='iface'){
+      lvl='err'; msg.push('<b>Cuidado: bucle de realimentación.</b> La salida del '+(sd==='comp'?'compresor':'ecualizador')+' vuelve a su propia entrada. Puede oscilar y dar un pitido fuerte. Baja el volumen y quita el cable.');
+    } else if(sd==='iface'&&dd==='iface'){
+      lvl='warn'; msg.push('<b>Loopback.</b> La interfaz se graba a sí misma: '+COLS[t.c].top+' entra a '+COLS[d.c].bot+'. Sirve para grabar lo que reproduces, pero si monitoreas esa entrada puedes crear realimentación.');
+    } else {
+      msg.push('<b>Correcto: salida → entrada.</b> '+COLS[t.c].top+' ahora entra a '+COLS[d.c].bot+'.');
+      if(dd==='comp'||dd==='eq') msg.push('Así procesas esa señal con el '+(dd==='comp'?'compresor':'ecualizador')+'.');
+      else msg.push('Esa señal se graba en la interfaz.');
+    }
+    if(dd&&t.c!==d.c){
+      if(norm==='normal') msg.push('En <b>normalizado</b>, conectar en '+pbn(t.c)+' arriba <b>rompe el normal</b>: '+(COLS[t.c].dst?COLS[t.c].bot+' deja de recibir '+COLS[t.c].top+'.':'esa columna no tenía destino.'));
+      else if(norm==='semi'&&COLS[t.c].dst) msg.push('En <b>semi-normalizado</b>, conectar arriba <b>no corta</b>: '+COLS[t.c].bot+' sigue recibiendo '+COLS[t.c].top+' y el cable lleva una copia.');
+      if(norm!=='thru') msg.push('Conectar en '+pbn(d.c)+' abajo <b>rompe el normal</b> de esa columna: '+COLS[d.c].bot+' ya no recibe '+COLS[d.c].top+'.');
+      else msg.push('En <b>thru</b> no hay normales: solo suena lo que conectas con cables.');
+    }
+    var sp=STEREO[t.c], dp=STEREO[d.c];
+    if(dd&&lvl!=='err'&&(sp!==undefined||dp!==undefined)){
+      if(sp!==undefined&&dp!==undefined) msg.push('<b>Estéreo:</b> '+COLS[t.c].top+' y '+COLS[d.c].bot+' son parte de un par L/R. Conecta también el otro lado ('+pbn(sp)+' arriba → '+pbn(dp)+' abajo) para no perder la imagen estéreo.'+(COLS[t.c].st.slice(-1)!==COLS[d.c].st.slice(-1)?' Ojo: estás cruzando L con R.':''));
+      else if(sp!==undefined) msg.push('<b>Estéreo:</b> '+COLS[t.c].top+' es un lado de un par L/R. Si la entrada es mono, solo grabas ese lado.');
+      else msg.push('<b>Mono a estéreo:</b> '+COLS[t.c].top+' es mono y entra a un lado ('+COLS[d.c].st+') de un equipo estéreo. Funciona, pero el otro lado queda vacío.');
+    }
+    if(lvl!=='err'&&dd){ var ts=evalPatch(freeCords,norm).tops[t.c]; if(!ts.length){lvl='warn'; msg.push('<b>Ojo:</b> '+COLS[t.c].top+' está en silencio porque ese equipo no recibe nada en su entrada.');} }
+    return {lvl:lvl,h:msg.join(' ')};
+  }
+  var fui={msg:$('#freemsg'),routes:$('#freeroutes'),cords:$('#freecords')};
+  function setMsg(lvl,h){ if(!fui.msg) return; fui.msg.className='fmsg '+lvl; fui.msg.innerHTML=h; }
+  function renderFreeUI(){
+    if(!FR) return;
+    if(fui.routes) fui.routes.innerHTML=routesHTML(FR);
+    if(fui.cords) fui.cords.innerHTML=freeCords.length?freeCords.map(function(cd){var t=cd.a.r===0?cd.a:cd.b,d=t===cd.a?cd.b:cd.a;return '<li><span class="cn'+(FR.bad[cd.id]?' bad':'')+'">'+cd.n+'</span> '+jname(t)+' → '+jname(d)+' <button type="button" class="btn sm" data-drop="'+cd.id+'">Quitar</button> <button type="button" class="btn sm'+(cd.id===focusCord?' on':'')+'" data-focus="'+cd.id+'" aria-pressed="'+(cd.id===focusCord?'true':'false')+'">Ver atrás</button></li>';}).join(''):'<li class="off">Todavía no hay cables al frente.</li>';
+    $$('#jackgrid [data-jc]').forEach(function(bt){
+      var j={c:+bt.getAttribute('data-jc'),r:+bt.getAttribute('data-jr')}, o=occ(j);
+      bt.setAttribute('aria-pressed',freeSel&&freeSel.c===j.c&&freeSel.r===j.r?'true':'false');
+      bt.classList.toggle('used',!!o); bt.querySelector('.cnum').textContent=o?o.n:'';
+    });
+  }
+  function refreshFree(){ FCM={}; freeCords.forEach(function(c){FCM[c.id]=c;}); if(focusCord&&!FCM[focusCord]) focusCord=freeCords.length?freeCords[freeCords.length-1].id:null; freeSelF=freeSel; FR=evalPatch(freeCords,norm); renderFreeUI(); if(chal) renderChal(); modeF.el.textContent=modeB.el.textContent='Patch bay · '+NORMNAME[norm]; paintSegs(); render(); }
+  function pickJack(j){
+    clearTimeout(freeTimer);
+    if(cam.position.z<0){setView('front');flyTo('front',700);}
+    var o=occ(j);
+    if(!freeSel){
+      if(o){ setMsg('warn','<b>Ese jack ya tiene el cable '+o.n+'.</b> Un jack recibe un solo plug. Quita ese cable o elige otro jack.'); return; }
+      freeSel=j; ringMat.color.set(tok('--brand')); ring.position.set(jx(j.c),rowY(j.r),.9); ring.visible=true;
+      setMsg('info','Tomaste un cable en <b>'+jname(j)+'</b>. Ahora elige el otro extremo.'+(j.r===0?' Para que suene, llévalo a la fila de <b>abajo</b> (una entrada).':' Para que suene, el otro extremo debe ir a la fila de <b>arriba</b> (una salida).'));
+      refreshFree(); return;
+    }
+    if(freeSel.c===j.c&&freeSel.r===j.r){ freeSel=null; ring.visible=false; setMsg('info','Soltaste el cable. Elige un jack para empezar.'); refreshFree(); return; }
+    if(o){ setMsg('warn','<b>Ese jack ya tiene el cable '+o.n+'.</b> Un jack recibe un solo plug. Elige otro jack.'); return; }
+    if(freeCords.length>=8){ setMsg('warn','Ya hay 8 cables. Quita uno para conectar otro.'); return; }
+    freeN++; var cd={a:freeSel,b:j,id:'F'+freeN,n:freeCords.length+1};
+    var jd=judge(freeSel,j); focusCord=cd.id; freeCords.push(cd); freeCords.forEach(function(c,k){c.n=k+1;}); patch(cd.a.c,cd.a.r,cd.b.c,cd.b.r,cd.id,'free',null);
+    freeSel=null; ring.visible=false; setMsg(jd.lvl,'Cable '+cd.n+': '+jd.h); refreshFree();
+    var sb=$('#free-turn'); if(sb&&sb.checked){ freeTimer=setTimeout(function(){setView('rear');flyTo('rear',1400);},1100); }
+  }
+  function unplug(id){
+    var cd=freeCords.filter(function(c){return c.id===id;})[0]; if(!cd) return;
+    var t=cd.a.r===0?cd.a:cd.b, d=t===cd.a?cd.b:cd.a;
+    dropCord(cd); freeCords.forEach(function(c,k){c.n=k+1;});
+    setMsg('info','Quitaste el cable de '+jname(t)+' a '+jname(d)+'. '+(norm==='thru'?'En thru, esas columnas quedan sin conexión.':'Las columnas vuelven a su normal.'));
+    refreshFree();
+  }
+  $$('#jackgrid [data-jc]').forEach(function(bt){bt.addEventListener('click',function(){pickJack({c:+bt.getAttribute('data-jc'),r:+bt.getAttribute('data-jr')});});});
+  if(fui.cords) fui.cords.addEventListener('click',function(e){var fb=e.target.closest('[data-focus]'); if(fb){focusCord=fb.getAttribute('data-focus'); refreshFree(); clearTimeout(freeTimer); setView('rear'); flyTo('rear',1200); return;} var b=e.target.closest('[data-drop]'); if(b) unplug(b.getAttribute('data-drop'));});
+  $$('#norm3d [data-norm]').forEach(function(bt){bt.addEventListener('click',function(){
+    norm=bt.getAttribute('data-norm'); $$('#norm3d [data-norm]').forEach(function(x){x.setAttribute('aria-pressed',x===bt?'true':'false');});
+    setMsg('info','Modo del patch bay: <b>'+NORMNAME[norm]+'</b>. '+(norm==='normal'?'Arriba y abajo están unidos. Un cable en arriba <b>o</b> en abajo rompe el normal.':norm==='semi'?'Arriba y abajo están unidos. Un cable en arriba toma una copia sin cortar; un cable en abajo rompe el normal.':'Arriba y abajo no están unidos. Solo suena lo que conectas con cables.'));
+    refreshFree();
+  });});
+  var clr=$('#free-clear'); if(clr) clr.addEventListener('click',function(){ freeCords.slice().forEach(dropCord); freeSel=null; ring.visible=false; setMsg('info','Quitaste todos los cables del frente.'); refreshFree(); });
+
+  /* ---- pointer: click cables / jacks ---- */
+  var ray=new THREE.Raycaster(), ndc=new THREE.Vector2(), down=null;
+  function setRay(e){var r=renderer.domElement.getBoundingClientRect(); ndc.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1); ray.setFromCamera(ndc,cam);}
+  function visPick(){return pickables.filter(function(m){return m.visible;});}
+  renderer.domElement.addEventListener('pointerdown',function(e){down=[e.clientX,e.clientY];});
+  renderer.domElement.addEventListener('pointerup',function(e){
+    if(mode3==='guided'||!down||Math.abs(e.clientX-down[0])+Math.abs(e.clientY-down[1])>6) return; down=null; setRay(e);
+    if(mode3==='free'){
+      var hit=ray.intersectObjects(jackPicks,false)[0], hc=ray.intersectObjects(visPick().filter(function(m){return SEG[m.userData.seg]&&SEG[m.userData.seg].kind==='free';}),false)[0];
+      if(hit&&(!hc||hit.distance<=hc.distance+.5)) pickJack(hit.object.userData.jack); else if(hc) unplug(hc.object.userData.seg);
+      return;
+    }
+    var h2=ray.intersectObjects(visPick(),false)[0]; if(h2) select(originOf(h2.object.userData.seg));
+  });
+  renderer.domElement.addEventListener('pointermove',function(e){
+    if(e.buttons||mode3==='guided'){renderer.domElement.style.cursor='';return;} setRay(e);
+    renderer.domElement.style.cursor=ray.intersectObjects(mode3==='free'?jackPicks.concat(visPick()):visPick(),false).length?'pointer':'';
+  });
+
+  /* ================= challenges (free patching with a goal) ================= */
+  function has(R,j,chain){var rw=R.rows.filter(function(x){return x.j===j;})[0]; return !!(rw&&rw.b.sig.some(function(s){return s.chain===chain;}));}
+  function only(R,j,chain){var rw=R.rows.filter(function(x){return x.j===j;})[0]; return !!(rw&&rw.b.sig.length===1&&rw.b.sig[0].chain===chain);}
+  var G_NOBAD={t:'Ningún cable une dos salidas o dos entradas',ok:function(R){return !Object.keys(R.bad).length;},h:'Revisa tus cables: cada cable va de una fila de <b>arriba</b> (salida) a una de <b>abajo</b> (entrada).'};
+  var G_NOLOOP={t:'No hay bucles de realimentación',ok:function(R){return !R.loop;},h:'Una salida vuelve a su propia cadena. Busca un cable que lleve el compresor o el EQ a su propia entrada.'};
+  var CHAL=[
+    {name:'1 · Voz seca y comprimida',norm:'semi',
+     s:'Una cantante graba la voz principal con el <b>Mic 1</b>. El productor quiere dos pistas: la voz <b>seca</b> en <b>Interfaz IN 5</b> y la voz <b>solo con compresor</b> en <b>Interfaz IN 6</b>. Hoy no se usa el Mic 2. El patch bay está en <b>semi-normalizado</b>.',
+     goals:[{t:'IN 5 graba la voz seca (Mic 1)',ok:function(R){return has(R,4,'Mic 1');},h:'En semi-normal, un cable en PB 5 <b>arriba</b> no corta el normal hacia IN 5.'},
+            {t:'IN 6 graba Mic 1 → Compresor L',ok:function(R){return only(R,5,'Mic 1 → Compresor L');},h:'Lleva la voz a la entrada del compresor (PB 9 abajo) y su salida (PB 11 arriba) a IN 6 (PB 6 abajo).'},G_NOBAD],
+     sol:[[4,0,8,1],[10,0,5,1]],
+     ex:'PB 5 arriba → PB 9 abajo lleva una copia de la voz al compresor (semi-normal no corta IN 5). PB 11 arriba → PB 6 abajo lleva la voz comprimida a IN 6 y rompe el normal del Mic 2, que hoy no se usa.'},
+    {name:'2 · Caja de ritmos estéreo al compresor',norm:'semi',
+     s:'Sesión de beats: hoy no hay guitarra ni bajo. Quieren la <b>caja de ritmos estéreo</b> seca en <b>IN 1/2</b> y también <b>comprimida en estéreo</b> en <b>IN 7/8</b>, sin cruzar L y R.',
+     goals:[{t:'IN 1 y 2 graban la caja seca (L y R)',ok:function(R){return has(R,0,'Caja de ritmos L')&&has(R,1,'Caja de ritmos R');},h:'No conectes nada en PB 1 y PB 2 <b>abajo</b>: eso rompe el normal hacia IN 1/2.'},
+            {t:'IN 7 graba Caja L → Compresor L',ok:function(R){return only(R,6,'Caja de ritmos L → Compresor L');},h:'Caja L (PB 1 arriba) va a Compresor IN L (PB 9 abajo). Compresor OUT L (PB 11 arriba) va a IN 7 (PB 7 abajo).'},
+            {t:'IN 8 graba Caja R → Compresor R',ok:function(R){return only(R,7,'Caja de ritmos R → Compresor R');},h:'Lo mismo con el lado R: PB 2 → PB 10, y PB 12 → PB 8.'},G_NOBAD],
+     sol:[[0,0,8,1],[1,0,9,1],[10,0,6,1],[11,0,7,1]],
+     ex:'Cuatro cables: L con L y R con R. En semi-normal las copias en PB 1/2 arriba no cortan IN 1/2. Los cables en PB 7/8 abajo rompen el normal de guitarra y bajo, que hoy no se usan.'},
+    {name:'3 · Normalizado: Sinte 2 con EQ',norm:'normal',
+     s:'El patch bay está en <b>normalizado</b>. El tecladista quiere grabar el <b>Sinte 2 solo con ecualizador</b> (sin compresor) en <b>Interfaz IN 4</b>. Recuerda: en normalizado, un cable en arriba <b>también</b> rompe el normal.',
+     goals:[{t:'IN 4 graba Sinte 2 → EQ L (sin compresor)',ok:function(R){return only(R,3,'Sinte 2 → EQ L');},h:'Lleva el Sinte 2 (PB 4 arriba) directo a EQ IN L (PB 11 abajo), sin pasar por PB 9. Luego EQ OUT L (PB 13 arriba) a IN 4 (PB 4 abajo).'},G_NOBAD,G_NOLOOP],
+     sol:[[3,0,10,1],[12,0,3,1]],
+     ex:'PB 4 arriba → PB 11 abajo manda el sinte al EQ y deja fuera al compresor (el cable en PB 11 abajo rompe ese normal). PB 13 arriba → PB 4 abajo devuelve el EQ a IN 4. En normalizado el cable en PB 4 arriba corta el sinte seco, pero aquí no hace falta.'},
+    {name:'4 · Thru: arma la sesión de banda',norm:'thru',
+     s:'Ensayo grabado de una banda. El patch bay está en <b>thru</b>: nada pasa sin cable. Necesitan: <b>caja de ritmos</b> en IN 1/2, <b>voz (Mic 1)</b> en IN 5, <b>guitarra</b> en IN 7 y <b>bajo</b> en IN 8.',
+     goals:[{t:'Caja L y R en IN 1 y 2',ok:function(R){return has(R,0,'Caja de ritmos L')&&has(R,1,'Caja de ritmos R');},h:'En thru necesitas un cable de PB 1 arriba a PB 1 abajo, y lo mismo en PB 2.'},
+            {t:'Mic 1 en IN 5',ok:function(R){return has(R,4,'Mic 1');},h:'PB 5 arriba → PB 5 abajo.'},
+            {t:'Guitarra en IN 7 y bajo en IN 8',ok:function(R){return has(R,6,'Guitarra')&&has(R,7,'Bajo');},h:'PB 7 arriba → PB 7 abajo y PB 8 arriba → PB 8 abajo.'},G_NOBAD],
+     sol:[[0,0,0,1],[1,0,1,1],[4,0,4,1],[6,0,6,1],[7,0,7,1]],
+     ex:'En thru cada señal necesita su propio cable, aunque arriba y abajo estén en la misma columna. Por eso en estudios se prefiere semi-normal para lo que se graba siempre igual.'},
+    {name:'5 · Mezcla híbrida con 2 cables',norm:'semi',
+     s:'Mezcla final: el DAW manda la mezcla estéreo por <b>Interfaz OUT 3/4</b>. Quieren pasarla por el <b>compresor y luego el EQ</b> y grabarla de vuelta en <b>IN 7/8</b>. Reto: hazlo con <b>2 cables o menos</b>. Pista: aprovecha los normales.',
+     goals:[{t:'IN 7 graba OUT 3 → Compresor L → EQ L',ok:function(R){return only(R,6,'Interfaz OUT 3 → Compresor L → EQ L');},h:'OUT 3 ya llega al compresor por el normal de PB 9, y el compresor ya llega al EQ por el normal de PB 11. Solo falta sacar el EQ.'},
+            {t:'IN 8 graba OUT 4 → Compresor R → EQ R',ok:function(R){return only(R,7,'Interfaz OUT 4 → Compresor R → EQ R');},h:'Igual con el lado R: EQ OUT R está en PB 14 arriba.'},
+            {t:'Usas 2 cables o menos',ok:function(){return freeCords.length<=2;},h:'No conectes nada en PB 9–12: los normales ya hacen ese trabajo.'},G_NOBAD],
+     sol:[[12,0,6,1],[13,0,7,1]],
+     ex:'Los normales de PB 9–12 ya unen OUT 3/4 → compresor → EQ. Solo hacen falta 2 cables: PB 13 → PB 7 y PB 14 → PB 8. Un buen ruteo de patch bay ahorra cables.'},
+    {name:'6 · Encuentra los errores',norm:'semi',pre:[[0,0,1,0],[12,0,10,1],[2,0,0,1]],
+     s:'Otro estudiante dejó el patch bay así y <b>nada suena bien</b>. Arréglalo: la caja debe llegar a <b>IN 1/2</b>, el <b>Sinte 1</b> a <b>IN 3</b>, sin cables mal puestos y sin bucles.',
+     goals:[G_NOBAD,G_NOLOOP,
+            {t:'Caja L y R en IN 1 y 2',ok:function(R){return only(R,0,'Caja de ritmos L')&&only(R,1,'Caja de ritmos R');},h:'Hay un cable en PB 1 <b>abajo</b> que rompe el normal de la caja.'},
+            {t:'Sinte 1 en IN 3',ok:function(R){return has(R,2,'Sinte 1');},h:'Revisa que nada esté en PB 3 abajo.'}],
+     sol:[],
+     ex:'Había tres errores: un cable unía dos salidas (PB 1 y PB 2 arriba), otro llevaba EQ OUT L a la entrada del EQ (bucle), y otro metía el Sinte 1 en PB 1 abajo y cortaba la caja. Sin esos cables, los normales lo resuelven todo.'}
+  ];
+  var chal=null, chalI=0, chalTried=false;
+  var cui={box:$('#chal3d'),title:$('#chaltitle'),text:$('#chaltext'),goals:$('#chalgoals'),res:$('#chalres'),norm:$('#chalnorm')};
+  function setNorm(n){norm=n; $$('#norm3d [data-norm]').forEach(function(x){x.setAttribute('aria-pressed',x.getAttribute('data-norm')===n?'true':'false');});}
+  function addCord(a,b){freeN++; var cd={a:a,b:b,id:'F'+freeN}; focusCord=cd.id; freeCords.push(cd); freeCords.forEach(function(c,k){c.n=k+1;}); patch(a.c,a.r,b.c,b.r,cd.id,'free',null);}
+  function clearCords(){freeCords.slice().forEach(dropCord); freeSel=null; ring.visible=false;}
+  function renderChal(){
+    if(!chal||!FR||!cui.goals) return;
+    var all=true;
+    cui.goals.innerHTML=chal.goals.map(function(gl){var ok=gl.ok(FR); if(!ok) all=false; return '<li class="'+(ok?'ok':'no')+'"><span class="gk" aria-hidden="true">'+(ok?'✓':'○')+'</span> '+gl.t+(chalTried&&!ok?'<span class="why">'+gl.h+'</span>':'')+'</li>';}).join('');
+    return all;
+  }
+  function startChal(i){
+    chalI=i; chal=CHAL[i]; chalTried=false; clearCords(); setNorm(chal.norm);
+    (chal.pre||[]).forEach(function(x){addCord({c:x[0],r:x[1]},{c:x[2],r:x[3]});});
+    $$('#chal3d [data-chal]').forEach(function(b){b.setAttribute('aria-pressed',+b.getAttribute('data-chal')===i?'true':'false');});
+    if(cui.title) cui.title.textContent=chal.name;
+    if(cui.text) cui.text.innerHTML=chal.s;
+    if(cui.norm) cui.norm.textContent=NORMNAME[chal.norm];
+    if(cui.res){cui.res.hidden=true;}
+    setMsg('info','Desafío cargado. Toca un jack del frente (en el 3D o en los botones) y luego el otro extremo.');
+    refreshFree();
+  }
+  function checkChal(){
+    chalTried=true; var all=renderChal();
+    if(!cui.res) return; cui.res.hidden=false;
+    if(all){cui.res.className='fmsg ok'; cui.res.innerHTML='<b>¡Desafío superado!</b> '+chal.ex;}
+    else {cui.res.className='fmsg err'; cui.res.innerHTML='<b>Todavía no.</b> Revisa los objetivos marcados con ○: cada uno tiene una pista.';}
+  }
+  $$('#chal3d [data-chal]').forEach(function(b){b.addEventListener('click',function(){startChal(+b.getAttribute('data-chal'));});});
+  var cb1=$('#chalcheck'); if(cb1) cb1.addEventListener('click',checkChal);
+  var cb2=$('#chalreset'); if(cb2) cb2.addEventListener('click',function(){startChal(chalI);});
+  var cb3=$('#chalsol'); if(cb3) cb3.addEventListener('click',function(){
+    clearCords(); chal.sol.forEach(function(x){addCord({c:x[0],r:x[1]},{c:x[2],r:x[3]});}); refreshFree(); chalTried=true; renderChal();
+    if(cui.res){cui.res.hidden=false; cui.res.className='fmsg info'; cui.res.innerHTML='<b>Solución.</b> '+chal.ex;}
+    setMsg('info','Esta es una solución posible. Puede haber otras: lo importante es que se cumplan los objetivos.');
+    setView('front'); flyTo('front',700,function(){ freeTimer=setTimeout(function(){setView('rear');flyTo('rear',1400);},1300); });
+  });
+
+  /* ---- modes ---- */
+  function setMode(mm,instant){
+    var m=mm==='chal'?'free':mm; mode3=m; if(mm!=='chal') chal=null; clearTimeout(timer); clearTimeout(freeTimer); freeSel=null; ring.visible=false; active=null; cur=null; cutLbl.on=false;
+    $$('#modes3d [data-mode]').forEach(function(b){b.setAttribute('aria-pressed',b.getAttribute('data-mode')===mm?'true':'false');});
+    var nb=$('#norm3d'); if(nb) nb.hidden=mm!=='free'; var cbx=$('#chal3d'); if(cbx) cbx.hidden=mm!=='chal';
+    ['#lessons3d','#steps3d'].forEach(function(q){var e=$(q); if(e) e.hidden=m!=='guided';});
+    ['#paths3d','#pathinfo','#wires3d'].forEach(function(q){var e=$(q); if(e) e.hidden=m!=='full';});
+    var fp=$('#freepanel'); if(fp) fp.hidden=m!=='free';
+    if(m==='guided'){ FR=null; showStep(instant); }
+    else if(m==='free'){ modeF.p.x=modeB.p.x=jx(5); modeF.on=modeB.on=true; if(mm==='chal') startChal(chalI); else refreshFree(); setView('front'); flyTo('front',instant?0:900); }
+    else { FR=null; FULL=evalPatch(FULLCORDS,'semi'); modeF.el.textContent=modeB.el.textContent='Patch bay · semi-normalizado'; modeF.p.x=modeB.p.x=jx(5); modeF.on=modeB.on=true; select(null); setView('rear'); flyTo('rear',instant?0:900); }
+  }
+  $$('#modes3d [data-mode]').forEach(function(b){b.addEventListener('click',function(){setMode(b.getAttribute('data-mode'));});});
+
+  /* ---- render loop ---- */
+  function stepPulses(now){
+    var n=0;
+    if(!reduce) pulseList.forEach(function(pl,si){var S=SEG[pl[0]]; if(!S||!S.mesh.visible) return; for(var k=0;k<2&&n<pulses.length;k++){var t=((now/1400)+k/2+si*.13)%1; pulses[n].position.copy(S.curve.getPoint(t)); pulses[n].material.color.set(pl[1]); pulses[n].visible=true; n++;}});
+    for(;n<pulses.length;n++) pulses[n].visible=false;
+  }
+  var raf=0, sized=false;
+  function render(){var now=performance.now(); stepFly(now); stepPulses(now); renderer.render(scene,cam);placeLabels();}
+  function size(){var w=host.clientWidth,h=host.clientHeight;if(!w||!h)return;renderer.setSize(w,h,false);cam.aspect=w/h;if(!sized){sized=true;cam.position.multiplyScalar(Math.max(1,1.4/cam.aspect));}cam.updateProjectionMatrix();render();}
+  if('ResizeObserver' in window) new ResizeObserver(size).observe(host); else window.addEventListener('resize',size);
+  size(); applyTheme(); setMode('guided',true);
+  new MutationObserver(applyTheme).observe(root,{attributes:true,attributeFilter:['data-theme']});
+  if(window.matchMedia){var mq2=window.matchMedia('(prefers-color-scheme: dark)'); if(mq2.addEventListener) mq2.addEventListener('change',applyTheme);}
+  $$('#views3d [data-view]').forEach(function(b){
+    b.addEventListener('click',function(){ clearTimeout(timer); clearTimeout(freeTimer); var k=b.getAttribute('data-view'); setView(k); flyTo(k,0); });
+  });
+  var jt=$('#lbl-toggle'); if(jt) jt.addEventListener('change',function(){showJacks=jt.checked;render();});
+  var fo=$('#focus-only'); if(fo) fo.addEventListener('change',function(){focusOnly=fo.checked; paintSegs(); render();});
+  var jd=$('#lbl-dev'); if(jd) jd.addEventListener('change',function(){showDev=jd.checked;render();});
+  var visible=true;
+  if('IntersectionObserver' in window){new IntersectionObserver(function(e){visible=e[0].isIntersecting; if(visible&&!reduce) loop();}).observe(host);}
+  function loop(){cancelAnimationFrame(raf); if(!visible) return; if(controls) controls.update(); render(); raf=requestAnimationFrame(loop);}
+  if(reduce){ if(controls) controls.addEventListener('change',render); render(); } else loop();
+})();
+})();
+</script>
+
+</body>
+</html>
